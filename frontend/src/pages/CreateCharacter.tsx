@@ -8,7 +8,7 @@ const CreateCharacter = () => {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: '25px' }}>
       <h1>Create Character</h1>
       <button onClick={handleCreate}>Create Character</button>
     </div>
