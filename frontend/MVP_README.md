@@ -57,34 +57,34 @@ Dark Fantasy Game - это PvE/PvP игра в жанре Dark Fantasy, реал
 
 ---
 
-#### **Story 1.2: Интеграция Telegram** ❌
-- [ ] Подключить Telegram WebApp SDK в `index.html` ❌
-- [ ] Создать хук `useTelegramWebApp()` для инициализации SDK ❌
-- [ ] Получить `initData` при запуске приложения ❌
-- [ ] Добавить fallback для разработки без Telegram (dev mode) ❌
-- [ ] Протестировать в Telegram (через ngrok для локальной разработки) ❌
+#### **Story 1.2: Интеграция Telegram** ✅
+- [x] Подключить Telegram WebApp SDK в `index.html` ✅
+- [x] Создать хук `useTelegramWebApp()` для инициализации SDK ✅
+- [x] Получить `initData` при запуске приложения ✅
+- [x] Добавить fallback для разработки без Telegram (dev mode) ✅
+- [ ] Протестировать в Telegram (через ngrok для локальной разработки) ⏳
 
 **Критерий готовности:** В консоли браузера виден `initData` или работает dev mode.
-**Текущий статус:** ❌ **Не выполнено** - интеграция с Telegram полностью отсутствует
+**Текущий статус:** ✅ **ВЫПОЛНЕНО** - интеграция с Telegram работает, создан хук `useTelegramWebApp()`, добавлен dev mode для локальной разработки, initData отображается в UI. Осталось протестировать в реальном Telegram боте.
 
 ---
 
-#### **Story 1.3: API и авторизация** ❌
-- [ ] Создать `src/services/api.ts` с Axios instance ❌
-- [ ] Настроить interceptors для добавления JWT токена ❌
-- [ ] Создать `src/services/auth.service.ts` ❌
-  - [ ] Метод `loginWithTelegram(initData)` ❌
-  - [ ] Метод `checkAuth()` ❌
-- [ ] Сохранить JWT токен в `localStorage` после успешной авторизации ❌
-- [ ] Создать Redux slice `authSlice` с состояниями: ❌
-  - `isAuthenticated` ❌
-  - `user` ❌
-  - `loading` ❌
-  - `error` ❌
-- [ ] Обработать ошибки авторизации (показать сообщение) ❌
+#### **Story 1.3: API и авторизация** ✅
+- [x] Создать `src/services/api.ts` с Axios instance ✅
+- [x] Настроить interceptors для добавления JWT токена ✅
+- [x] Создать `src/services/auth.service.ts` ✅
+  - [x] Метод `loginWithTelegram(initData)` ✅
+  - [x] Метод `checkAuth()` ✅
+- [x] Сохранить JWT токен в `localStorage` после успешной авторизации ✅
+- [x] Создать Redux slice `authSlice` с состояниями: ✅
+  - `isAuthenticated` ✅
+  - `user` ✅
+  - `loading` ✅
+  - `error` ✅
+- [x] Обработать ошибки авторизации (показать сообщение) ✅
 
 **Критерий готовности:** После авторизации токен сохраняется и добавляется в запросы.
-**Текущий статус:** ❌ **Не выполнено** - нет API сервисов, нет Redux store, нет авторизации
+**Текущий статус:** ✅ **ВЫПОЛНЕНО** - создан API клиент с interceptors, auth service с методами авторизации, Redux store с authSlice, типизированные хуки. Готово к интеграции с backend.
 
 ---
 
