@@ -1,0 +1,10 @@
+export declare const CHARACTER_CLASSES: readonly ["warrior", "mage", "assassin"];
+export type CharacterClass = typeof CHARACTER_CLASSES[number];
+export declare const ITEM_TYPES: readonly ["weapon", "helmet", "armor", "belt", "legs", "potion"];
+export type ItemType = typeof ITEM_TYPES[number];
+export declare const DUNGEON_DIFFICULTIES: readonly ["easy", "medium", "hard"];
+export type DungeonDifficulty = typeof DUNGEON_DIFFICULTIES[number];
+export declare const BATTLE_STATUSES: readonly ["active", "completed", "abandoned"];
+export type BattleStatus = typeof BATTLE_STATUSES[number];
+export declare const PVP_BATTLE_STATUSES: readonly ["active", "completed"];
+export type PvpBattleStatus = typeof PVP_BATTLE_STATUSES[number];
