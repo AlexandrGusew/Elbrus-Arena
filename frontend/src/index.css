@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark Fantasy Base Styles */
+@layer base {
+  body {
+    @apply bg-dark-bg text-dark-text min-h-screen;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+}
+
+/* Custom Components */
+@layer components {
+  .btn-primary {
+    @apply bg-dark-red hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-dark-accent hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-dark-panel p-6 rounded-lg shadow-lg border border-dark-accent;
+  }
+}
