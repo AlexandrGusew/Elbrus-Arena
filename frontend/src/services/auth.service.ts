@@ -38,7 +38,7 @@ class AuthService {
         initData
       } as TelegramAuthRequest)
 
-      const { token, user } = response.data
+      const { token } = response.data
 
       this.setToken(token)
 

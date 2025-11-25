@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-export const styles: Record<string, CSSProperties | ((hpPercent: number) => CSSProperties)> = {
+export const styles: Record<string, CSSProperties> = {
   container: {
     padding: '20px',
     maxWidth: '800px',
@@ -110,10 +110,12 @@ export const styles: Record<string, CSSProperties | ((hpPercent: number) => CSSP
     borderRadius: '10px',
     overflow: 'hidden',
   },
-  hpBarInner: (hpPercent: number): CSSProperties => ({
-    background: hpPercent > 50 ? '#4caf50' : hpPercent > 25 ? '#ff9800' : '#f44336',
-    height: '100%',
-    width: `${hpPercent}%`,
-    transition: 'width 0.3s',
-  }),
 };
+
+// Функция для получения стиля HP бара
+export const getHpBarInnerStyle = (hpPercent: number): CSSProperties => ({
+  background: hpPercent > 50 ? '#4caf50' : hpPercent > 25 ? '#ff9800' : '#f44336',
+  height: '100%',
+  width: `${hpPercent}%`,
+  transition: 'width 0.3s',
+});

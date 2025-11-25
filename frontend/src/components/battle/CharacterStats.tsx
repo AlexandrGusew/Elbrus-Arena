@@ -1,5 +1,5 @@
 import type { Character } from '../../types/api';
-import { styles } from '../../pages/Dungeon.styles';
+import { styles, getHpBarInnerStyle } from '../../pages/Dungeon.styles';
 
 type CharacterStatsProps = {
   character: Character;
@@ -23,7 +23,7 @@ export const CharacterStats = ({ character }: CharacterStatsProps) => {
           <span>{character.currentHp} / {character.maxHp}</span>
         </div>
         <div style={styles.hpBarOuter}>
-          <div style={typeof styles.hpBarInner === 'function' ? styles.hpBarInner(hpPercent) : styles.hpBarInner} />
+          <div style={getHpBarInnerStyle(hpPercent)} />
         </div>
       </div>
     </div>

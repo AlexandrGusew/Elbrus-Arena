@@ -1,11 +1,7 @@
-import { api } from '../services/api';
 import { useCharacter } from '../hooks/useCharacter';
-import type { Character, InventoryItem } from '../types/api';
 
 const Blacksmith = () => {
-  const { character, setCharacter, loading } = useCharacter();
-
-  const _handleEquip = async (invItem: InventoryItem) => {
+  const { character, loading } = useCharacter();
     if (!character) return;
 
     try {

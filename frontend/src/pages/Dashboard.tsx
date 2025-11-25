@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useCharacter } from '../hooks/useCharacter';
-import { styles } from './Dashboard.styles';
+import { styles, getHpBarInnerStyle } from './Dashboard.styles';
 
 const Dashboard = () => {
   const { character, loading, error } = useCharacter();
@@ -46,7 +46,7 @@ const Dashboard = () => {
           <span>{character.currentHp} / {character.maxHp}</span>
         </div>
         <div style={styles.hpBarOuter}>
-          <div style={typeof styles.hpBarInner === 'function' ? styles.hpBarInner(hpPercent) : styles.hpBarInner} />
+          <div style={getHpBarInnerStyle(hpPercent)} />
         </div>
       </div>
 

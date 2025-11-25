@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { commonStyles, colors, mergeStyles } from '../styles/common.styles';
 
-export const styles: Record<string, CSSProperties | ((hpPercent: number) => CSSProperties)> = {
+export const styles: Record<string, CSSProperties> = {
   container: commonStyles.container,
   header: {
     fontSize: '18px',
@@ -21,12 +21,6 @@ export const styles: Record<string, CSSProperties | ((hpPercent: number) => CSSP
     borderRadius: '10px',
     overflow: 'hidden',
   },
-  hpBarInner: (hpPercent: number): CSSProperties => ({
-    background: hpPercent > 50 ? colors.success : hpPercent > 25 ? colors.warning : '#f44336',
-    height: '100%',
-    width: `${hpPercent}%`,
-    transition: 'width 0.3s',
-  }),
   resourcesGrid: {
     ...commonStyles.gridTwoColumns,
     marginBottom: '20px',
@@ -63,3 +57,11 @@ export const styles: Record<string, CSSProperties | ((hpPercent: number) => CSSP
   loadingContainer: commonStyles.loadingContainer,
   errorContainer: commonStyles.errorContainer,
 };
+
+// Функция для получения стиля HP бара
+export const getHpBarInnerStyle = (hpPercent: number): CSSProperties => ({
+  background: hpPercent > 50 ? colors.success : hpPercent > 25 ? colors.warning : '#f44336',
+  height: '100%',
+  width: `${hpPercent}%`,
+  transition: 'width 0.3s',
+});

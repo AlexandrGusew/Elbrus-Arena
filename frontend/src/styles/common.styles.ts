@@ -158,3 +158,17 @@ export const commonStyles: Record<string, CSSProperties> = {
 export const mergeStyles = (...styles: (CSSProperties | undefined)[]): CSSProperties => {
   return Object.assign({}, ...styles.filter(Boolean));
 };
+
+// Хелпер для получения стиля (поддерживает функции)
+export const getStyle = (
+  style: CSSProperties | ((hpPercent: number) => CSSProperties),
+  hpPercent?: number
+): CSSProperties => {
+  if (typeof style === 'function') {
+    if (hpPercent === undefined) {
+      throw new Error('hpPercent is required for function styles');
+    }
+    return style(hpPercent);
+  }
+  return style;
+};
