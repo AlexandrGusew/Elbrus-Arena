@@ -10,10 +10,9 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../shared'),
     },
   },
-  // Убрал настройки ngrok для локальной разработки
-  // Раскомментируй когда будешь деплоить через ngrok:
-  // server: {
-  //   allowedHosts: ['.ngrok-free.dev', '.ngrok.io'],
-  //   hmr: { clientPort: 443 }
-  // }
+  // Настройки для работы через ngrok
+  server: {
+    allowedHosts: ['.ngrok-free.dev', '.ngrok.io'],
+    hmr: { clientPort: 443 }
+  }
 })
