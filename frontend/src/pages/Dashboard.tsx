@@ -1,6 +1,16 @@
 import { Link } from 'react-router-dom';
 import { useCharacter } from '../hooks/useCharacter';
 import { Button, Card } from '../components/ui';
+import { WarriorIdle } from '../components/warrior';
+import { WizardIdle } from '../components/wizard';
+import { SamuraiIdle } from '../components/samurai';
+import type { CharacterClass } from '../types/api';
+
+const CLASS_ANIMATIONS: Record<CharacterClass, React.ComponentType<{ compact?: boolean }>> = {
+  warrior: WarriorIdle,
+  mage: WizardIdle,
+  samurai: SamuraiIdle,
+};
 
 const Dashboard = () => {
   const { character, loading, error } = useCharacter();
@@ -46,8 +56,11 @@ const Dashboard = () => {
         <div className="space-y-6">
           {/* Character Avatar */}
           <Card>
-            <div className="rf-avatar mx-auto">
-              🛡️
+            <div className="flex justify-center items-center" style={{ minHeight: '150px' }}>
+              {(() => {
+                const AnimationComponent = CLASS_ANIMATIONS[character.class as CharacterClass];
+                return <AnimationComponent compact />;
+              })()}
             </div>
           </Card>
 
