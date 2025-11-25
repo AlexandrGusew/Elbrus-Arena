@@ -3,8 +3,8 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: elbrusgame-backend
     restart: unless-stopped
     ports:
@@ -28,8 +28,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
         - VITE_API_URL=${VITE_API_URL}
         - VITE_WS_URL=${VITE_WS_URL}
