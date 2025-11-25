@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int        @id @default(autoincrement())
+  telegramId BigInt     @unique
+  username   String?
+  firstName  String?
+  createdAt  DateTime   @default(now())
+  character  Character?
+
+  @@map("users")
+}
+
+model Character {
+  id           Int         @id @default(autoincrement())
+  userId       Int         @unique
+  name         String      @unique
+  class        String
+  level        Int         @default(1)
+  experience   Int         @default(0)
+  strength     Int         @default(0)
+  agility      Int         @default(0)
+  intelligence Int         @default(0)
+  freePoints   Int         @default(0)
+  maxHp        Int         @default(100)
+  currentHp    Int         @default(100)
+  armor        Int         @default(10)
+  gold         Int         @default(100)
+  stamina      Int         @default(100)
+  rating       Int         @default(0)
+  createdAt    DateTime    @default(now())
+  user         User        @relation(fields: [userId], references: [id])
+  inventory    Inventory?
+  pveBattles   PveBattle[]
+  pvpBattles1  PvpBattle[] @relation("Player1")
+  pvpBattles2  PvpBattle[] @relation("Player2")
+
+  @@map("characters")
+}
+
+model Monster {
+  id       Int              @id @default(autoincrement())
+  name     String
+  hp       Int
+  damage   Int
+  armor    Int
+  isBoss   Boolean          @default(false)
+  dungeons DungeonMonster[]
+
+  @@map("monsters")
+}
+
+model Dungeon {
+  id          Int              @id @default(autoincrement())
+  name        String
+  difficulty  String
+  staminaCost Int              @default(20)
+  expReward   Int
+  goldReward  Int
+  monsters    DungeonMonster[]
+  battles     PveBattle[]
+
+  @@map("dungeons")
+}
+
+model DungeonMonster {
+  id        Int     @id @default(autoincrement())
+  dungeonId Int
+  monsterId Int
+  position  Int
+  dungeon   Dungeon @relation(fields: [dungeonId], references: [id])
+  monster   Monster @relation(fields: [monsterId], references: [id])
+
+  @@map("dungeon_monsters")
+}
+
+model Item {
+  id              Int             @id @default(autoincrement())
+  name            String
+  type            String
+  description     String          @default("")
+  damage          Int             @default(0)
+  armor           Int             @default(0)
+  bonusStr        Int             @default(0)
+  bonusAgi        Int             @default(0)
+  bonusInt        Int             @default(0)
+  price           Int             @default(0)
+  minStrength     Int             @default(0)
+  minAgility      Int             @default(0)
+  minIntelligence Int             @default(0)
+  minLevel        Int             @default(1)
+  inventoryItems  InventoryItem[]
+
+  @@map("items")
+}
+
+model Inventory {
+  id          Int             @id @default(autoincrement())
+  characterId Int             @unique
+  size        Int             @default(20)
+  createdAt   DateTime        @default(now())
+  character   Character       @relation(fields: [characterId], references: [id])
+  items       InventoryItem[]
+
+  @@map("inventories")
+}
+
+model InventoryItem {
+  id          Int       @id @default(autoincrement())
+  inventoryId Int
+  itemId      Int
+  quantity    Int       @default(1)
+  enhancement Int       @default(0)
+  isEquipped  Boolean   @default(false)
+  inventory   Inventory @relation(fields: [inventoryId], references: [id])
+  item        Item      @relation(fields: [itemId], references: [id])
+
+  @@map("inventory_items")
+}
+
+model PvpBattle {
+  id           String    @id @default(uuid())
+  player1Id    Int
+  player2Id    Int
+  winnerId     Int?
+  status       String
+  ratingChange Int       @default(0)
+  rounds       Json
+  createdAt    DateTime  @default(now())
+  player1      Character @relation("Player1", fields: [player1Id], references: [id])
+  player2      Character @relation("Player2", fields: [player2Id], references: [id])
+
+  @@map("pvp_battles")
+}
+
+model PveBattle {
+  id             String    @id @default(uuid())
+  characterId    Int
+  dungeonId      Int
+  currentMonster Int       @default(1)
+  characterHp    Int
+  monsterHp      Int
+  status         String
+  rounds         Json
+  createdAt      DateTime  @default(now())
+  character      Character @relation(fields: [characterId], references: [id])
+  dungeon        Dungeon   @relation(fields: [dungeonId], references: [id])
+
+  @@map("pve_battles")
+}

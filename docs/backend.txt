@@ -1,0 +1,152 @@
+# BACKEND АРХИТЕКТУРА
+
+## СТРУКТУРА МОДУЛЕЙ
+
+### AppModule (корневой)
+Главный модуль приложения. Импортирует все остальные модули и настраивает ConfigModule для работы с переменными окружения.
+
+### PrismaModule
+Инкапсулирует работу с БД через Prisma ORM. Предоставляет PrismaService для всех остальных модулей.
+
+### CharacterModule
+Управление персонажами игрока.
+
+Endpoints:
+- POST /api/character - создание персонажа
+- GET /api/character/:id - получение персонажа по ID
+- GET /api/character/user/:userId - получение персонажа по userId
+- PUT /api/character/:characterId/equip/:inventoryItemId - надеть предмет
+- PUT /api/character/:characterId/unequip/:inventoryItemId - снять предмет
+
+CharacterService:
+- create() - создает User (если нет) и Character с Inventory в транзакции
+- findById() - загружает персонажа с инвентарем
+- findByUserId() - находит персонажа по userId
+- equipItem() - делегирует InventoryService, затем возвращает обновленного персонажа
+- unequipItem() - делегирует InventoryService, затем возвращает обновленного персонажа
+
+Константы (character.constants.ts):
+- CLASS_STATS - стартовые характеристики для warrior/mage/assassin
+- CHARACTER_INCLUDE - стандартный Prisma include для загрузки с инвентарем
+
+### InventoryModule
+Управление экипировкой и предметами в инвентаре.
+
+InventoryService:
+- equipItem() - проверяет принадлежность предмета, требования (level, strength, agility, intelligence), снимает другие предметы того же типа, надевает предмет
+- unequipItem() - снимает предмет
+
+### ItemModule
+Управление предметами в игре.
+
+Endpoints:
+- GET /api/items - список всех предметов
+- GET /api/items/:id - получение предмета по ID
+
+ItemService:
+- findAll() - возвращает все предметы
+- findOne() - находит предмет по ID
+
+### DungeonModule
+Управление подземельями и монстрами.
+
+Endpoints:
+- GET /api/dungeons - список всех подземелий
+- GET /api/dungeons/:id - получение подземелья по ID с монстрами
+
+DungeonService:
+- findAll() - возвращает все подземелья
+- findOne() - находит подземелье по ID с монстрами
+
+### BattleModule
+Боевая система PvE (игрок против монстров).
+
+Endpoints:
+- POST /api/battle/start - начать новый бой
+- GET /api/battle/:id - получить состояние боя
+
+WebSocket (BattleGateway):
+- join-battle - клиент подключается к бою, получает round-start
+- round-actions - клиент отправляет действия, сервер возвращает round-complete
+- События: round-start, round-complete, battle-end, error
+
+BattleService:
+- startBattle() - создает запись PveBattle в БД, инициализирует первого монстра
+- getBattle() - загружает состояние боя
+- processRound() - обрабатывает раунд боя:
+  * Генерирует действия монстра через MonsterAI
+  * Рассчитывает урон через CombatCalculator
+  * Обновляет HP персонажа и монстра
+  * Начисляет награды (gold, exp) при победе
+  * Восстанавливает 30% HP при победе над монстром
+  * Полностью восстанавливает HP при победе в подземелье
+  * Переключает на следующего монстра или завершает бой
+
+Утилиты:
+- CombatCalculator - рассчитывает урон с учетом атак, защит и брони
+- MonsterAI - генерирует случайные действия монстра (2 атаки + 3 защиты)
+- StatsCalculator - рассчитывает эффективные характеристики персонажа с учетом экипировки
+
+## ЛОГИКА ВЗАИМОДЕЙСТВИЯ
+
+### Создание персонажа
+1. CharacterController принимает запрос
+2. CharacterService.create():
+   - Находит или создает User по telegramId
+   - Проверяет существование персонажа
+   - Создает Character и Inventory в транзакции
+   - Возвращает полного персонажа с инвентарем
+
+### Экипировка предмета
+1. CharacterController принимает запрос
+2. CharacterService.equipItem() -> InventoryService.equipItem():
+   - Проверяет существование предмета
+   - Проверяет принадлежность предмета персонажу
+   - Проверяет требования (уровень, характеристики)
+   - Снимает другие предметы того же типа
+   - Надевает предмет
+3. CharacterService возвращает обновленного персонажа
+
+### Боевая система
+1. Клиент отправляет POST /api/battle/start
+2. BattleService.startBattle() создает запись боя
+3. Клиент подключается через WebSocket: join-battle
+4. Сервер отправляет round-start с текущим состоянием
+5. Клиент выбирает действия и отправляет round-actions
+6. BattleService.processRound():
+   - Генерирует действия монстра
+   - Рассчитывает урон обеим сторонам
+   - Обновляет HP
+   - Начисляет награды при победе
+   - Определяет статус боя (active/won/lost)
+7. Сервер отправляет round-complete
+8. Если бой продолжается - через 2 секунды отправляется новый round-start
+9. Если бой завершен - отправляется battle-end
+
+## ОБРАБОТКА ОШИБОК
+
+Используются NestJS exceptions:
+- NotFoundException - сущность не найдена (404)
+- BadRequestException - неверные данные (400)
+- ForbiddenException - нет прав доступа (403)
+
+## БАЗА ДАННЫХ
+
+Prisma ORM с PostgreSQL:
+- User - пользователи Telegram
+- Character - персонажи игроков
+- Inventory - инвентари персонажей
+- InventoryItem - предметы в инвентаре
+- Item - шаблоны предметов
+- Dungeon - подземелья
+- Monster - шаблоны монстров
+- DungeonMonster - связь подземелий и монстров
+- PveBattle - записи боев PvE
+
+## КОНФИГУРАЦИЯ
+
+.env файл:
+- DATABASE_URL - подключение к PostgreSQL
+- PORT - порт сервера (по умолчанию 3000)
+- CORS_ORIGINS - разрешенные origins для CORS (список через запятую)
+- JWT_SECRET - секрет для JWT (для будущей авторизации)

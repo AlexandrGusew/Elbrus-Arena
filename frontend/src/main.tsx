@@ -9,6 +9,11 @@ import PvP from './pages/PvP'
 import Dungeon from './pages/Dungeon'
 import Blacksmith from './pages/Blacksmith'
 
+if (!localStorage.getItem('auth_token')) {
+  const fakeToken = 'dev-fake-token-' + Date.now();
+  localStorage.setItem('auth_token', fakeToken);
+}
+
 const router = createBrowserRouter([
   {
     path: '/',
