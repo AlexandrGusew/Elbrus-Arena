@@ -1,6 +1,6 @@
-import { CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 
-export const styles: Record<string, CSSProperties> = {
+export const styles: Record<string, CSSProperties | ((hpPercent: number) => CSSProperties)> = {
   container: {
     padding: '20px',
     maxWidth: '800px',

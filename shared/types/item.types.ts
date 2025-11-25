@@ -1,4 +1,4 @@
-import { ItemType } from './enums';
+import type { ItemType } from './enums';
 
 export interface Item {
   id: number;

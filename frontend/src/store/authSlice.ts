@@ -7,7 +7,8 @@
  * - Async thunks для авторизации
  */
 
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import type { AuthState, User } from '../types/auth'
 import { authService } from '../services/auth.service'
 

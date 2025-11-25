@@ -113,37 +113,37 @@ export const useTelegramWebApp = (): UseTelegramWebAppReturn => {
           isVisible: false,
           isActive: true,
           isProgressVisible: false,
-          setText: (text: string) => {},
-          onClick: (callback: () => void) => {},
-          offClick: (callback: () => void) => {},
+          setText: (_text: string) => {},
+          onClick: (_callback: () => void) => {},
+          offClick: (_callback: () => void) => {},
           show: () => {},
           hide: () => {},
           enable: () => {},
           disable: () => {},
           showProgress: () => {},
           hideProgress: () => {},
-          setParams: (params: any) => {}
+          setParams: (_params: any) => {}
         },
         BackButton: {
           isVisible: false,
-          onClick: (callback: () => void) => {},
-          offClick: (callback: () => void) => {},
+          onClick: (_callback: () => void) => {},
+          offClick: (_callback: () => void) => {},
           show: () => {},
           hide: () => {}
         },
         HapticFeedback: {
-          impactOccurred: (style: string) => {},
-          notificationOccurred: (type: string) => {},
+          impactOccurred: (_style: string) => {},
+          notificationOccurred: (_type: string) => {},
           selectionChanged: () => {}
         },
         ready: () => {},
         expand: () => {},
         close: () => {},
-        showAlert: (message: string) => {},
-        showConfirm: (message: string) => {},
-        showPopup: (params: any) => {},
-        openLink: (url: string) => {},
-        openTelegramLink: (url: string) => {}
+        showAlert: (_message: string) => {},
+        showConfirm: (_message: string) => {},
+        showPopup: (_params: any) => {},
+        openLink: (_url: string) => {},
+        openTelegramLink: (_url: string) => {}
       }
 
       setWebApp(mockWebApp as TelegramWebApp)

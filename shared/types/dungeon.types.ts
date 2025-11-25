@@ -1,4 +1,4 @@
-import { DungeonDifficulty } from './enums';
+import type { DungeonDifficulty } from './enums';
 
 export interface Monster {
   id: number;

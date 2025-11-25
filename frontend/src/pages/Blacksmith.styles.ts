@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import { commonStyles, colors, mergeStyles } from '../styles/common.styles';
 
 export const styles: Record<string, CSSProperties> = {

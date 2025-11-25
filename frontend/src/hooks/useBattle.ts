@@ -70,7 +70,7 @@ export function useBattle(battleId: string | null) {
       }));
     });
 
-    newSocket.on('error', (error: { message: string }) => {
+    newSocket.on('error', (_error: { message: string }) => {
     });
 
     newSocket.on('disconnect', () => {

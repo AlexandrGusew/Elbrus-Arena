@@ -23,7 +23,7 @@ export const CharacterStats = ({ character }: CharacterStatsProps) => {
           <span>{character.currentHp} / {character.maxHp}</span>
         </div>
         <div style={styles.hpBarOuter}>
-          <div style={styles.hpBarInner(hpPercent)} />
+          <div style={typeof styles.hpBarInner === 'function' ? styles.hpBarInner(hpPercent) : styles.hpBarInner} />
         </div>
       </div>
     </div>

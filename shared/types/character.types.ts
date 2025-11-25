@@ -1,5 +1,5 @@
-import { CharacterClass } from './enums';
-import { Inventory } from './item.types';
+import type { CharacterClass } from './enums';
+import type { Inventory } from './item.types';
 
 export interface Character {
   id: number;

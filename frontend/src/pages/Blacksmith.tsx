@@ -1,13 +1,11 @@
-import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useCharacter } from '../hooks/useCharacter';
 import type { Character, InventoryItem } from '../types/api';
-import { styles } from './Blacksmith.styles';
 
 const Blacksmith = () => {
   const { character, setCharacter, loading } = useCharacter();
 
-  const handleEquip = async (invItem: InventoryItem) => {
+  const _handleEquip = async (invItem: InventoryItem) => {
     if (!character) return;
 
     try {
