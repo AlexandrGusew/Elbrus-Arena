@@ -22,7 +22,7 @@ export interface Character {
 }
 
 export interface CreateCharacterDto {
-  userId: number;
+  telegramId: number;  // Telegram ID пользователя (бэкенд сам создаст/найдет User)
   name: string;
   class: CharacterClass;
 }

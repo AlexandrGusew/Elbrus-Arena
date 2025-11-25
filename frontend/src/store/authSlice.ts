@@ -90,7 +90,6 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       state.user = null
       state.error = null
-      console.log('👋 Пользователь вышел из системы')
     },
 
     /**
@@ -127,7 +126,6 @@ const authSlice = createSlice({
     builder.addCase(loginWithTelegram.pending, (state) => {
       state.loading = true
       state.error = null
-      console.log('⏳ Авторизация через Telegram...')
     })
 
     builder.addCase(loginWithTelegram.fulfilled, (state, action) => {
@@ -135,7 +133,6 @@ const authSlice = createSlice({
       state.isAuthenticated = true
       state.user = action.payload
       state.error = null
-      console.log('✅ Авторизация успешна:', action.payload.firstName)
     })
 
     builder.addCase(loginWithTelegram.rejected, (state, action) => {
@@ -143,7 +140,6 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       state.user = null
       state.error = action.payload as string
-      console.error('❌ Ошибка авторизации:', action.payload)
     })
 
     // ==========================================
@@ -151,7 +147,6 @@ const authSlice = createSlice({
     // ==========================================
     builder.addCase(checkAuth.pending, (state) => {
       state.loading = true
-      console.log('🔍 Проверка авторизации...')
     })
 
     builder.addCase(checkAuth.fulfilled, (state, action) => {
@@ -159,7 +154,6 @@ const authSlice = createSlice({
       state.isAuthenticated = true
       state.user = action.payload
       state.error = null
-      console.log('✅ Авторизация подтверждена:', action.payload.firstName)
     })
 
     builder.addCase(checkAuth.rejected, (state, action) => {
@@ -167,7 +161,6 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       state.user = null
       state.error = action.payload as string
-      console.log('🔓 Не авторизован')
     })
   }
 })

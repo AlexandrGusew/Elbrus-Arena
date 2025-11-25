@@ -1,0 +1,297 @@
+# EPIC 2: СЛЕДУЮЩИЕ ЗАДАЧИ РАЗРАБОТКИ
+
+## АНАЛИЗ ТЕКУЩЕГО СОСТОЯНИЯ
+
+### ✅ ЧТО РЕАЛИЗОВАНО:
+- Базовые CRUD для персонажей, предметов, подземелий
+- PvE боевая система с WebSocket
+- Экипировка и инвентарь
+- Базовый UI (Dashboard, Blacksmith, Dungeon, CreateCharacter)
+- Рефакторинг и очистка кода
+- Документация backend и frontend
+- Начисление наград (gold, exp) за победу
+
+### ❌ ЧТО НЕ РЕАЛИЗОВАНО:
+
+## ПРИОРИТЕТ 1: КРИТИЧЕСКИЕ СИСТЕМЫ (8 задач)
+
+### BACKEND
+
+1. JWT Авторизация
+   - Создать AuthModule, AuthService, AuthGuard
+   - Endpoints: POST /api/auth/login, POST /api/auth/refresh
+   - Защитить все существующие endpoints через @UseGuards(JwtAuthGuard)
+   - Генерация и валидация JWT токенов
+   Файлы: backend/src/auth/ (создать модуль)
+   Приоритет: ВЫСОКИЙ
+
+2. Telegram WebApp интеграция
+   - Валидация initData от Telegram
+   - Автоматическое создание User по Telegram ID
+   - Endpoint: POST /api/auth/telegram
+   Файлы: backend/src/auth/telegram-auth.guard.ts
+   Приоритет: ВЫСОКИЙ
+
+3. DTO Валидация
+   - Установить class-validator, class-transformer
+   - Создать DTO для всех endpoints:
+     * CreateCharacterDto
+     * EquipItemDto
+     * StartBattleDto
+     * RoundActionsDto
+   - Добавить @UsePipes(ValidationPipe) глобально
+   Файлы: backend/src/*/dto/*.dto.ts
+   Приоритет: ВЫСОКИЙ
+
+4. Система Level-Up
+   - Создать LevelUpService
+   - Логика повышения уровня при достижении опыта
+   - Начисление свободных очков характеристик
+   - Endpoint: PUT /api/character/:id/levelup
+   - Расчет требуемого опыта по формуле
+   Файлы: backend/src/character/services/levelup.service.ts
+   Приоритет: ВЫСОКИЙ
+
+5. Stamina механика
+   - Добавить поле stamina в Character
+   - Трата stamina при входе в подземелье
+   - Восстановление stamina со временем (1 за 5 минут)
+   - Максимум stamina = 100
+   - Проверка stamina перед началом боя
+   Файлы: backend/prisma/schema.prisma, backend/src/character/character.service.ts
+   Приоритет: СРЕДНИЙ
+
+### FRONTEND
+
+6. Telegram WebApp SDK интеграция
+   - Настроить @twa-dev/sdk
+   - Использовать реальные данные Telegram вместо заглушек
+   - Убрать dev mode заглушки
+   - Отображать данные пользователя Telegram
+   Файлы: frontend/src/hooks/useTelegramWebApp.ts, frontend/src/main.tsx
+   Приоритет: ВЫСОКИЙ
+
+7. Глобальное состояние (Redux Toolkit)
+   - Настроить Redux store
+   - Создать slices: characterSlice, authSlice
+   - Заменить localStorage логику на Redux
+   - Убрать дублирование загрузки персонажа
+   Файлы: frontend/src/store/
+   Приоритет: СРЕДНИЙ
+
+8. Улучшение UI/UX
+   - Добавить анимации переходов
+   - Loader компоненты
+   - Toast уведомления об ошибках/успехах
+   - Модальные окна подтверждений
+   Файлы: frontend/src/components/ui/
+   Приоритет: СРЕДНИЙ
+
+## ПРИОРИТЕТ 2: ИГРОВАЯ МЕХАНИКА (7 задач)
+
+9. Магазин предметов (Shop)
+   - ShopModule на backend
+   - Endpoints: GET /api/shop/items, POST /api/shop/buy/:itemId
+   - Проверка наличия золота
+   - Добавление предмета в инвентарь при покупке
+   - Страница Shop на frontend
+   Файлы: backend/src/shop/, frontend/src/pages/Shop.tsx
+   Приоритет: СРЕДНИЙ
+
+10. Распределение свободных очков характеристик
+    - Endpoint: PUT /api/character/:id/stats (body: {strength?, agility?, intelligence?})
+    - Проверка наличия freePoints
+    - Обновление характеристик
+    - UI кнопки +/- на Dashboard
+    Файлы: backend/src/character/character.controller.ts, frontend/src/pages/Dashboard.tsx
+    Приоритет: СРЕДНИЙ
+
+11. Расширенный лут
+    - Добавить drop шанс предметов от монстров
+    - Таблица MonsterLoot в БД
+    - Случайный дроп при победе над монстром
+    - Показ полученных предметов после боя
+    Файлы: backend/prisma/schema.prisma, backend/src/battle/loot.service.ts
+    Приоритет: НИЗКИЙ
+
+12. Восстановление HP вне боя
+    - Постепенное восстановление HP (1% в минуту)
+    - Или добавить кнопку "Отдохнуть" (восстановить HP за золото)
+    - Endpoint: POST /api/character/:id/rest
+    Файлы: backend/src/character/character.service.ts
+    Приоритет: НИЗКИЙ
+
+13. История боев
+    - Сохранение завершенных боев в БД (не удалять)
+    - Endpoint: GET /api/character/:id/battles/history
+    - Страница History на frontend
+    Файлы: backend/src/battle/battle.service.ts, frontend/src/pages/History.tsx
+    Приоритет: НИЗКИЙ
+
+14. Рейтинговая таблица (Leaderboard)
+    - Endpoint: GET /api/leaderboard (сортировка по level/gold/exp)
+    - Top 100 игроков
+    - Страница Leaderboard на frontend
+    Файлы: backend/src/leaderboard/, frontend/src/pages/Leaderboard.tsx
+    Приоритет: НИЗКИЙ
+
+15. Достижения (Achievements)
+    - Таблица Achievement в БД
+    - Отслеживание прогресса (убито монстров, пройдено подземелий и т.д.)
+    - Награды за достижения
+    - Страница Achievements на frontend
+    Файлы: backend/src/achievements/, frontend/src/pages/Achievements.tsx
+    Приоритет: НИЗКИЙ
+
+## ПРИОРИТЕТ 3: PvP И СОЦИАЛЬНЫЕ ФИЧИ (5 задач)
+
+16. PvP боевая система
+    - Создать PvpBattleModule
+    - Endpoints: POST /api/pvp/challenge/:characterId, POST /api/pvp/accept/:battleId
+    - WebSocket для PvP боев (ход за ходом)
+    - Ставки золота/предметов
+    - Страница PvP.tsx уже существует - реализовать функционал
+    Файлы: backend/src/pvp/, frontend/src/pages/PvP.tsx
+    Приоритет: СРЕДНИЙ
+
+17. Друзья/Friendlist
+    - Таблица Friend в БД
+    - Endpoints: POST /api/friends/add/:userId, GET /api/friends/list
+    - Приглашения в бой через друзей
+    Файлы: backend/src/friends/, frontend/src/pages/Friends.tsx
+    Приоритет: НИЗКИЙ
+
+18. Гильдии/Кланы
+    - Таблица Guild в БД
+    - Endpoints: POST /api/guild/create, POST /api/guild/:id/join
+    - Групповые подземелья для гильдий
+    - Бонусы гильдии
+    Файлы: backend/src/guild/, frontend/src/pages/Guild.tsx
+    Приоритет: НИЗКИЙ
+
+19. Торговля между игроками
+    - Endpoint: POST /api/trade/offer (отправить предложение обмена)
+    - WebSocket для реального времени
+    - Подтверждение обеими сторонами
+    Файлы: backend/src/trade/, frontend/src/pages/Trade.tsx
+    Приоритет: НИЗКИЙ
+
+20. Чат
+    - Глобальный чат
+    - Личные сообщения
+    - WebSocket для сообщений в реальном времени
+    Файлы: backend/src/chat/, frontend/src/components/Chat.tsx
+    Приоритет: НИЗКИЙ
+
+## ПРИОРИТЕТ 4: ОПТИМИЗАЦИЯ И КАЧЕСТВО (6 задач)
+
+21. Оптимизация БД запросов
+    - Решить N+1 проблему в battle.service.ts
+    - Добавить индексы в Prisma schema
+    - Использовать include вместо множественных запросов
+    Файлы: backend/src/battle/battle.service.ts, backend/prisma/schema.prisma
+    Приоритет: СРЕДНИЙ
+
+22. Кэширование
+    - Установить Redis
+    - Кэшировать список предметов, подземелий
+    - TTL 5-10 минут
+    Файлы: backend/src/cache/
+    Приоритет: НИЗКИЙ
+
+23. Rate Limiting
+    - Установить @nestjs/throttler
+    - Ограничить запросы: 100 req/min на IP
+    - Защита от спама
+    Файлы: backend/src/app.module.ts
+    Приоритет: СРЕДНИЙ
+
+24. Unit тесты Backend
+    - Jest для сервисов
+    - Покрыть тестами:
+      * CharacterService (create, equipItem)
+      * BattleService (processRound)
+      * CombatCalculator
+    - Цель: 70% покрытие
+    Файлы: backend/src/**/*.spec.ts
+    Приоритет: НИЗКИЙ
+
+25. E2E тесты Frontend
+    - Playwright или Cypress
+    - Тесты сценариев:
+      * Создание персонажа
+      * Прохождение подземелья
+      * Экипировка предметов
+    Файлы: frontend/e2e/
+    Приоритет: НИЗКИЙ
+
+26. Мониторинг и логирование
+    - Winston для логирования на backend
+    - Sentry для отслеживания ошибок
+    - Метрики производительности
+    Файлы: backend/src/common/logger/
+    Приоритет: НИЗКИЙ
+
+## ПРИОРИТЕТ 5: ДЕПЛОЙ И ИНФРАСТРУКТУРА (4 задачи)
+
+27. Docker контейнеризация
+    - Dockerfile для backend
+    - Dockerfile для frontend
+    - docker-compose.yml (backend + postgres + redis)
+    Файлы: ./Dockerfile, ./docker-compose.yml
+    Приоритет: СРЕДНИЙ
+
+28. CI/CD Pipeline
+    - GitHub Actions
+    - Автоматические тесты на PR
+    - Деплой на production
+    Файлы: .github/workflows/
+    Приоритет: НИЗКИЙ
+
+29. Миграции БД
+    - Prisma migrate для production
+    - Seed данные (предметы, монстры, подземелья)
+    Файлы: backend/prisma/seed.ts
+    Приоритет: СРЕДНИЙ
+
+30. Мониторинг инфраструктуры
+    - Grafana + Prometheus
+    - Метрики: CPU, память, запросы/сек
+    - Алерты при падении сервера
+    Приоритет: НИЗКИЙ
+
+## ИТОГО: 30 ЗАДАЧ
+
+### Рекомендуемый порядок выполнения:
+
+**Спринт 1 (Критические системы):**
+1. JWT Авторизация
+2. Telegram WebApp интеграция
+3. DTO Валидация
+4. Система Level-Up
+
+**Спринт 2 (Игровая механика):**
+5. Stamina механика
+6. Магазин предметов
+7. Распределение свободных очков
+8. Оптимизация БД запросов
+
+**Спринт 3 (UI/UX и качество):**
+9. Глобальное состояние Redux
+10. Улучшение UI/UX
+11. Rate Limiting
+12. Unit тесты Backend
+
+**Спринт 4 (Социальные фичи):**
+13. PvP боевая система
+14. Рейтинговая таблица
+15. Друзья/Friendlist
+16. История боев
+
+**Спринт 5 (Деплой):**
+17. Docker контейнеризация
+18. Миграции БД production
+19. CI/CD Pipeline
+20. Мониторинг
+
+Остальные задачи - по мере необходимости.

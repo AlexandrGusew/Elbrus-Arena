@@ -4,6 +4,7 @@ export interface Item {
   id: number;
   name: string;
   type: ItemType;
+  description: string;
   damage: number;
   armor: number;
   bonusStr: number;

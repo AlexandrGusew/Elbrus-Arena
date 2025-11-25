@@ -11,8 +11,8 @@ export const DUNGEON_DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
 export type DungeonDifficulty = typeof DUNGEON_DIFFICULTIES[number];
 
 
-export const BATTLE_STATUSES = ['active', 'completed', 'abandoned'] as const;
-export type BattleStatus = typeof BATTLE_STATUSES[number];
+export const BATTLE_STATUSES = ['active', 'won', 'lost'] as const;
+export type BattleStatusEnum = typeof BATTLE_STATUSES[number];
 
 
 export const PVP_BATTLE_STATUSES = ['active', 'completed'] as const;

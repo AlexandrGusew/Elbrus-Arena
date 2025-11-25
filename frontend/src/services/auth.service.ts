@@ -34,29 +34,16 @@ class AuthService {
    */
   async loginWithTelegram(initData: string): Promise<AuthResponse> {
     try {
-      console.log('🔐 Авторизация через Telegram...')
-
-      // Отправляем initData на backend
       const response = await api.post<AuthResponse>('/auth/telegram', {
         initData
       } as TelegramAuthRequest)
 
       const { token, user } = response.data
 
-      // Сохраняем токен в localStorage
       this.setToken(token)
-
-      console.log('✅ Авторизация успешна:', {
-        userId: user.id,
-        username: user.username,
-        firstName: user.firstName
-      })
 
       return response.data
     } catch (error: any) {
-      console.error('❌ Ошибка авторизации:', error.response?.data || error.message)
-
-      // Обрабатываем специфичные ошибки
       if (error.response?.status === 401) {
         throw new Error('Невалидные данные от Telegram')
       } else if (error.response?.status === 500) {
@@ -90,21 +77,14 @@ class AuthService {
       const token = this.getToken()
 
       if (!token) {
-        console.log('🔓 Токен отсутствует')
         return null
       }
-
-      console.log('🔍 Проверка авторизации...')
 
       // Проверяем валидность токена на backend
       const response = await api.get<{ user: User }>('/auth/me')
 
-      console.log('✅ Пользователь авторизован:', response.data.user.firstName)
-
       return response.data.user
     } catch (error: any) {
-      console.warn('⚠️ Проверка авторизации не удалась:', error.message)
-
       // Токен невалиден - удаляем
       if (error.response?.status === 401) {
         this.removeToken()
@@ -126,7 +106,6 @@ class AuthService {
    * ```
    */
   logout(): void {
-    console.log('👋 Выход из системы...')
     this.removeToken()
   }
 
@@ -146,7 +125,6 @@ class AuthService {
    */
   private setToken(token: string): void {
     localStorage.setItem(TOKEN_KEY, token)
-    console.log('💾 Токен сохранен в localStorage')
   }
 
   /**
@@ -154,7 +132,6 @@ class AuthService {
    */
   private removeToken(): void {
     localStorage.removeItem(TOKEN_KEY)
-    console.log('🗑️ Токен удален из localStorage')
   }
 
   /**

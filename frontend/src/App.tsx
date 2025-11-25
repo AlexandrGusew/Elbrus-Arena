@@ -1,10 +1,9 @@
-import { useTelegramWebApp } from './hooks/useTelegramWebApp'
+ща import { useTelegramWebApp } from './hooks/useTelegramWebApp'
 import './App.css'
 
 function App() {
   const { webApp, user, initData, isReady, isDevMode } = useTelegramWebApp()
 
-  // Показываем загрузку, пока Telegram инициализируется
   if (!isReady) {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -14,7 +13,6 @@ function App() {
     )
   }
 
-  // Если нет Telegram и dev mode выключен
   if (!webApp || !user) {
     return (
       <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
@@ -25,7 +23,6 @@ function App() {
     )
   }
 
-  // Тестируем функции Telegram
   const handleVibrate = () => {
     webApp.HapticFeedback.impactOccurred('medium')
   }
@@ -36,7 +33,6 @@ function App() {
 
   return (
     <div style={{ padding: '20px' }}>
-      {/* Dev Mode Индикатор */}
       {isDevMode && (
         <div
           style={{
@@ -53,14 +49,12 @@ function App() {
         </div>
       )}
 
-      {/* Информация о пользователе */}
       <div style={{ marginBottom: '30px' }}>
         <h1>Elbrus Arena</h1>
         <h2>Привет, {user.first_name}!</h2>
         {user.username && <p>@{user.username}</p>}
       </div>
 
-      {/* Telegram данные */}
       <div
         style={{
           background: '#17161c',
@@ -92,7 +86,6 @@ function App() {
         )}
       </div>
 
-      {/* Init Data (для отправки на backend) */}
       <div
         style={{
           background: '#17161c',
@@ -119,7 +112,6 @@ function App() {
         </p>
       </div>
 
-      {/* Тестирование функций Telegram */}
       <div style={{ marginBottom: '20px' }}>
         <h3>🧪 Тест функций Telegram</h3>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -159,7 +151,6 @@ function App() {
         </p>
       </div>
 
-      {/* Инструкция */}
       <div
         style={{
           background: '#17161c',

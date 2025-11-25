@@ -47,18 +47,10 @@ export const useTelegramWebApp = (): UseTelegramWebAppReturn => {
     const devModeEnv = import.meta.env.VITE_DEV_MODE
     const devMode = devModeEnv === 'true' || devModeEnv === true
 
-    // Отладочные логи
-    console.log('🔍 Environment check:')
-    console.log('  - VITE_DEV_MODE:', devModeEnv, '(type:', typeof devModeEnv, ')')
-    console.log('  - devMode:', devMode)
-    console.log('  - Telegram WebApp exists:', !!tg)
-
     if (tg && tg.initDataUnsafe?.user) {
       // ========================================
       // РЕАЛЬНЫЙ TELEGRAM (с данными пользователя)
       // ========================================
-      console.log('🚀 Initializing Telegram WebApp...')
-
       // Сообщаем Telegram, что приложение готово
       tg.ready()
 
@@ -75,25 +67,10 @@ export const useTelegramWebApp = (): UseTelegramWebAppReturn => {
       setIsDevMode(false)
       setIsReady(true)
 
-      console.log('✅ Telegram WebApp initialized successfully')
-      console.log('📱 Platform:', tg.platform)
-      console.log('🎨 Color Scheme:', tg.colorScheme)
-      console.log('📏 Viewport Height:', tg.viewportHeight)
-      console.log('👤 User:', telegramUser)
-      console.log('🔐 Init Data:', telegramInitData ? '(received)' : '(empty)')
-
-      // Настройка темы приложения под Telegram
-      if (tg.themeParams) {
-        console.log('🎨 Theme Params:', tg.themeParams)
-      }
-
     } else if (devMode) {
       // ========================================
       // DEV MODE (Локальная разработка)
       // ========================================
-      console.warn('⚠️ Telegram WebApp not found')
-      console.log('🔧 Running in DEV MODE with mock data')
-
       // Создаем фейкового пользователя для разработки
       const mockUser: TelegramUser = {
         id: 999999999,
@@ -136,37 +113,37 @@ export const useTelegramWebApp = (): UseTelegramWebAppReturn => {
           isVisible: false,
           isActive: true,
           isProgressVisible: false,
-          setText: (text: string) => console.log('Mock MainButton.setText:', text),
-          onClick: (callback: () => void) => console.log('Mock MainButton.onClick:', callback),
-          offClick: (callback: () => void) => console.log('Mock MainButton.offClick:', callback),
-          show: () => console.log('Mock MainButton.show'),
-          hide: () => console.log('Mock MainButton.hide'),
-          enable: () => console.log('Mock MainButton.enable'),
-          disable: () => console.log('Mock MainButton.disable'),
-          showProgress: () => console.log('Mock MainButton.showProgress'),
-          hideProgress: () => console.log('Mock MainButton.hideProgress'),
-          setParams: (params: any) => console.log('Mock MainButton.setParams:', params)
+          setText: (text: string) => {},
+          onClick: (callback: () => void) => {},
+          offClick: (callback: () => void) => {},
+          show: () => {},
+          hide: () => {},
+          enable: () => {},
+          disable: () => {},
+          showProgress: () => {},
+          hideProgress: () => {},
+          setParams: (params: any) => {}
         },
         BackButton: {
           isVisible: false,
-          onClick: (callback: () => void) => console.log('Mock BackButton.onClick:', callback),
-          offClick: (callback: () => void) => console.log('Mock BackButton.offClick:', callback),
-          show: () => console.log('Mock BackButton.show'),
-          hide: () => console.log('Mock BackButton.hide')
+          onClick: (callback: () => void) => {},
+          offClick: (callback: () => void) => {},
+          show: () => {},
+          hide: () => {}
         },
         HapticFeedback: {
-          impactOccurred: (style: string) => console.log('Mock HapticFeedback.impactOccurred:', style),
-          notificationOccurred: (type: string) => console.log('Mock HapticFeedback.notificationOccurred:', type),
-          selectionChanged: () => console.log('Mock HapticFeedback.selectionChanged')
+          impactOccurred: (style: string) => {},
+          notificationOccurred: (type: string) => {},
+          selectionChanged: () => {}
         },
-        ready: () => console.log('Mock WebApp.ready'),
-        expand: () => console.log('Mock WebApp.expand'),
-        close: () => console.log('Mock WebApp.close'),
-        showAlert: (message: string) => console.log('Mock WebApp.showAlert:', message),
-        showConfirm: (message: string) => console.log('Mock WebApp.showConfirm:', message),
-        showPopup: (params: any) => console.log('Mock WebApp.showPopup:', params),
-        openLink: (url: string) => console.log('Mock WebApp.openLink:', url),
-        openTelegramLink: (url: string) => console.log('Mock WebApp.openTelegramLink:', url)
+        ready: () => {},
+        expand: () => {},
+        close: () => {},
+        showAlert: (message: string) => {},
+        showConfirm: (message: string) => {},
+        showPopup: (params: any) => {},
+        openLink: (url: string) => {},
+        openTelegramLink: (url: string) => {}
       }
 
       setWebApp(mockWebApp as TelegramWebApp)
@@ -175,17 +152,10 @@ export const useTelegramWebApp = (): UseTelegramWebAppReturn => {
       setIsDevMode(true)
       setIsReady(true)
 
-      console.log('✅ DEV MODE initialized')
-      console.log('👤 Mock User:', mockUser)
-      console.log('⚡ All Telegram API calls will be mocked')
-
     } else {
       // ========================================
       // ОШИБКА: нет Telegram и dev mode выключен
       // ========================================
-      console.error('❌ Telegram WebApp not found and DEV MODE is disabled')
-      console.error('💡 To enable dev mode, set VITE_DEV_MODE=true in .env file')
-
       setIsReady(true) // Все равно помечаем как готово, чтобы показать ошибку
     }
   }, [])
