@@ -1,5 +1,5 @@
 /**
- * Redux Slice для управления состоянием авторизации
+ * 
  *
  * Содержит:
  * - Состояние авторизации (isAuthenticated, user, loading, error)
