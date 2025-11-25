@@ -1,0 +1,115 @@
+/* Общие стили для всех анимаций воина */
+.warrior-animation {
+  width: 128px;
+  height: 128px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* Idle Animation */
+.warrior-idle {
+  background-image: url("/avatar/warrior/Idle.png");
+}
+
+.warrior-idle--playing {
+  animation: warrior-idle-anim 1s steps(4) infinite;
+}
+
+@keyframes warrior-idle-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -512px 0; /* 128 * 4 = 512 */
+  }
+}
+
+/* Walk Animation */
+.warrior-walk {
+  background-image: url("/avatar/warrior/Walk.png");
+}
+
+.warrior-walk--playing {
+  animation: warrior-walk-anim 0.8s steps(6) infinite;
+}
+
+@keyframes warrior-walk-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -768px 0; /* 128 * 6 = 768 */
+  }
+}
+
+/* Attack 1 Animation */
+.warrior-attack1 {
+  background-image: url("/avatar/warrior/attack-1.png");
+}
+
+.warrior-attack1--playing {
+  animation: warrior-attack1-anim 0.5s steps(5) forwards;
+}
+
+@keyframes warrior-attack1-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -640px 0; /* 128 * 5 = 640 */
+  }
+}
+
+/* Attack 2 Animation */
+.warrior-attack2 {
+  background-image: url("/avatar/warrior/attack-2.png");
+}
+
+.warrior-attack2--playing {
+  animation: warrior-attack2-anim 0.6s steps(5) forwards;
+}
+
+@keyframes warrior-attack2-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -640px 0; /* 128 * 5 = 640 */
+  }
+}
+
+/* Attack 3 Animation */
+.warrior-attack3 {
+  background-image: url("/avatar/warrior/Attack-3.png");
+}
+
+.warrior-attack3--playing {
+  animation: warrior-attack3-anim 0.7s steps(6) forwards;
+}
+
+@keyframes warrior-attack3-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -768px 0; /* 128 * 6 = 768 */
+  }
+}
+
+/* Dead Animation */
+.warrior-dead {
+  background-image: url("/avatar/warrior/Dead.png");
+}
+
+.warrior-dead--playing {
+  animation: warrior-dead-anim 1s steps(4) forwards;
+}
+
+@keyframes warrior-dead-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -512px 0; /* 128 * 4 = 512 */
+  }
+}

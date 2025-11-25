@@ -1,0 +1,83 @@
+/* Общие стили для всех анимаций satyr */
+.satyr-animation {
+  width: 128px;
+  height: 128px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* Idle Animation - 7 кадров */
+.satyr-idle {
+  background-image: url("/avatar/satyr/Idle.png");
+  background-size: 896px 128px; /* 7 * 128 */
+}
+
+.satyr-idle--playing {
+  animation: satyr-idle-anim 1.4s steps(7) infinite;
+}
+
+@keyframes satyr-idle-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -896px 0;
+  }
+}
+
+/* Walk Animation - 12 кадров */
+.satyr-walk {
+  background-image: url("/avatar/satyr/Walk.png");
+  background-size: 1536px 128px; /* 12 * 128 */
+}
+
+.satyr-walk--playing {
+  animation: satyr-walk-anim 1.6s steps(12) infinite;
+}
+
+@keyframes satyr-walk-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1536px 0;
+  }
+}
+
+/* Attack Animation - 8 кадров */
+.satyr-attack {
+  background-image: url("/avatar/satyr/Attack.png");
+  background-size: 1024px 128px; /* 8 * 128 */
+}
+
+.satyr-attack--playing {
+  animation: satyr-attack-anim 1.2s steps(8) forwards;
+}
+
+@keyframes satyr-attack-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1024px 0;
+  }
+}
+
+/* Dead Animation - 4 кадра */
+.satyr-dead {
+  background-image: url("/avatar/satyr/Dead.png");
+  background-size: 512px 128px; /* 4 * 128 */
+}
+
+.satyr-dead--playing {
+  animation: satyr-dead-anim 0.8s steps(4) forwards;
+}
+
+@keyframes satyr-dead-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -512px 0;
+  }
+}

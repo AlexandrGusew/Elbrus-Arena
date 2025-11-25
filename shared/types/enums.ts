@@ -1,5 +1,5 @@
 
-export const CHARACTER_CLASSES = ['warrior', 'mage', 'assassin'] as const;
+export const CHARACTER_CLASSES = ['warrior', 'mage', 'samurai'] as const;
 export type CharacterClass = typeof CHARACTER_CLASSES[number];
 
 

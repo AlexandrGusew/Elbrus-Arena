@@ -1,0 +1,98 @@
+/* Общие стили для всех анимаций визарда */
+.wizard-animation {
+  width: 128px;
+  height: 128px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* Idle Animation */
+.wizard-idle {
+  background-image: url("/avatar/wizzard/Idle.png");
+}
+
+.wizard-idle--playing {
+  animation: wizard-idle-anim 1.2s steps(4) infinite;
+}
+
+@keyframes wizard-idle-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -512px 0; /* 128 * 4 = 512 */
+  }
+}
+
+/* Walk Animation */
+.wizard-walk {
+  background-image: url("/avatar/wizzard/Walk.png");
+}
+
+.wizard-walk--playing {
+  animation: wizard-walk-anim 1s steps(6) infinite;
+}
+
+@keyframes wizard-walk-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -768px 0; /* 128 * 6 = 768 */
+  }
+}
+
+/* Attack 1 Animation - Магическая атака */
+.wizard-attack1 {
+  background-image: url("/avatar/wizzard/Attack_1.png");
+}
+
+.wizard-attack1--playing {
+  animation: wizard-attack1-anim 0.8s steps(5) forwards;
+}
+
+@keyframes wizard-attack1-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -640px 0; /* 128 * 5 = 640 */
+  }
+}
+
+/* Attack 2 Animation - Мощное заклинание */
+.wizard-attack2 {
+  background-image: url("/avatar/wizzard/Attack_2.png");
+  background-size: 1152px 128px; /* 9 кадров по 128px в ширину, 1 ряд */
+}
+
+.wizard-attack2--playing {
+  animation: wizard-attack2-anim 1.8s steps(9) forwards;
+}
+
+@keyframes wizard-attack2-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1152px 0; /* 128 * 9 = 1152 */
+  }
+}
+
+/* Dead Animation */
+.wizard-dead {
+  background-image: url("/avatar/wizzard/Dead.png");
+}
+
+.wizard-dead--playing {
+  animation: wizard-dead-anim 1.2s steps(4) forwards;
+}
+
+@keyframes wizard-dead-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -512px 0; /* 128 * 4 = 512 */
+  }
+}

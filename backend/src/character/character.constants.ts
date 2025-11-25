@@ -27,11 +27,11 @@ export const CLASS_STATS = {
     maxHp: 100,
     currentHp: 100,
   },
-  assassin: {
-    strength: 10,
-    agility: 15,
-    intelligence: 8,
-    maxHp: 120,
-    currentHp: 120,
+  samurai: {
+    strength: 12,
+    agility: 12,
+    intelligence: 6,
+    maxHp: 130,
+    currentHp: 130,
   },
 } as const;

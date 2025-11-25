@@ -9,7 +9,15 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(npm run start:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(cat:*)",
+      "Bash(/tmp/current_index_css.txt)",
+      "Bash(npm run start:dev:*)",
+      "Bash(timeout:*)",
+      "Bash(copy:*)",
+      "Bash(ping:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

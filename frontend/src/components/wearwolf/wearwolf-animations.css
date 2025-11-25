@@ -1,0 +1,121 @@
+/* Общие стили для всех анимаций wearwolf */
+.wearwolf-animation {
+  width: 128px;
+  height: 128px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* Idle Animation - 8 кадров */
+.wearwolf-idle {
+  background-image: url("/avatar/wearwolf/Idle.png");
+  background-size: 1024px 128px; /* 8 * 128 */
+}
+
+.wearwolf-idle--playing {
+  animation: wearwolf-idle-anim 1.6s steps(8) infinite;
+}
+
+@keyframes wearwolf-idle-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1024px 0;
+  }
+}
+
+/* Walk Animation - 11 кадров */
+.wearwolf-walk {
+  background-image: url("/avatar/wearwolf/Walk.png");
+  background-size: 1408px 128px; /* 11 * 128 */
+}
+
+.wearwolf-walk--playing {
+  animation: wearwolf-walk-anim 1.4s steps(11) infinite;
+}
+
+@keyframes wearwolf-walk-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1408px 0;
+  }
+}
+
+/* Attack 1 Animation - 6 кадров */
+.wearwolf-attack1 {
+  background-image: url("/avatar/wearwolf/Attack_1.png");
+  background-size: 768px 128px; /* 6 * 128 */
+}
+
+.wearwolf-attack1--playing {
+  animation: wearwolf-attack1-anim 0.9s steps(6) forwards;
+}
+
+@keyframes wearwolf-attack1-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -768px 0;
+  }
+}
+
+/* Attack 2 Animation - 4 кадра */
+.wearwolf-attack2 {
+  background-image: url("/avatar/wearwolf/Attack_2.png");
+  background-size: 512px 128px; /* 4 * 128 */
+}
+
+.wearwolf-attack2--playing {
+  animation: wearwolf-attack2-anim 0.6s steps(4) forwards;
+}
+
+@keyframes wearwolf-attack2-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -512px 0;
+  }
+}
+
+/* Attack 3 Animation - 5 кадров */
+.wearwolf-attack3 {
+  background-image: url("/avatar/wearwolf/Attack_3.png");
+  background-size: 640px 128px; /* 5 * 128 */
+}
+
+.wearwolf-attack3--playing {
+  animation: wearwolf-attack3-anim 0.8s steps(5) forwards;
+}
+
+@keyframes wearwolf-attack3-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -640px 0;
+  }
+}
+
+/* Dead Animation - 2 кадра */
+.wearwolf-dead {
+  background-image: url("/avatar/wearwolf/Dead.png");
+  background-size: 256px 128px; /* 2 * 128 */
+}
+
+.wearwolf-dead--playing {
+  animation: wearwolf-dead-anim 0.4s steps(2) forwards;
+}
+
+@keyframes wearwolf-dead-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -256px 0;
+  }
+}

@@ -1,0 +1,121 @@
+/* Общие стили для всех анимаций самурая */
+.samurai-animation {
+  width: 128px;
+  height: 128px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* Idle Animation - 6 кадров */
+.samurai-idle {
+  background-image: url("/avatar/samurai/Idle.png");
+  background-size: 768px 128px; /* 6 * 128 */
+}
+
+.samurai-idle--playing {
+  animation: samurai-idle-anim 1.2s steps(6) infinite;
+}
+
+@keyframes samurai-idle-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -768px 0;
+  }
+}
+
+/* Walk Animation - 9 кадров */
+.samurai-walk {
+  background-image: url("/avatar/samurai/Walk.png");
+  background-size: 1152px 128px; /* 9 * 128 */
+}
+
+.samurai-walk--playing {
+  animation: samurai-walk-anim 1.2s steps(9) infinite;
+}
+
+@keyframes samurai-walk-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1152px 0;
+  }
+}
+
+/* Attack 1 Animation - 4 кадра */
+.samurai-attack1 {
+  background-image: url("/avatar/samurai/Attack_1.png");
+  background-size: 512px 128px; /* 4 * 128 */
+}
+
+.samurai-attack1--playing {
+  animation: samurai-attack1-anim 0.6s steps(4) forwards;
+}
+
+@keyframes samurai-attack1-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -512px 0;
+  }
+}
+
+/* Attack 2 Animation - 5 кадров */
+.samurai-attack2 {
+  background-image: url("/avatar/samurai/Attack_2.png");
+  background-size: 640px 128px; /* 5 * 128 */
+}
+
+.samurai-attack2--playing {
+  animation: samurai-attack2-anim 0.8s steps(5) forwards;
+}
+
+@keyframes samurai-attack2-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -640px 0;
+  }
+}
+
+/* Attack 3 Animation - 4 кадра */
+.samurai-attack3 {
+  background-image: url("/avatar/samurai/Attack_3.png");
+  background-size: 512px 128px;
+}
+
+.samurai-attack3--playing {
+  animation: samurai-attack3-anim 0.6s steps(4) forwards;
+}
+
+@keyframes samurai-attack3-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -512px 0;
+  }
+}
+
+/* Dead Animation - 6 кадров */
+.samurai-dead {
+  background-image: url("/avatar/samurai/Dead.png");
+  background-size: 768px 128px; /* 6 * 128 */
+}
+
+.samurai-dead--playing {
+  animation: samurai-dead-anim 1.2s steps(6) forwards;
+}
+
+@keyframes samurai-dead-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -768px 0;
+  }
+}

@@ -1,0 +1,121 @@
+/* Общие стили для всех анимаций yuokai */
+.yuokai-animation {
+  width: 128px;
+  height: 128px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* Idle Animation - 6 кадров */
+.yuokai-idle {
+  background-image: url("/avatar/yuokai/Idle.png");
+  background-size: 768px 128px; /* 6 * 128 */
+}
+
+.yuokai-idle--playing {
+  animation: yuokai-idle-anim 1.2s steps(6) infinite;
+}
+
+@keyframes yuokai-idle-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -768px 0;
+  }
+}
+
+/* Walk Animation - 8 кадров */
+.yuokai-walk {
+  background-image: url("/avatar/yuokai/Walk.png");
+  background-size: 1024px 128px; /* 8 * 128 */
+}
+
+.yuokai-walk--playing {
+  animation: yuokai-walk-anim 1.2s steps(8) infinite;
+}
+
+@keyframes yuokai-walk-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1024px 0;
+  }
+}
+
+/* Attack 1 Animation - 3 кадра */
+.yuokai-attack1 {
+  background-image: url("/avatar/yuokai/Attack_1.png");
+  background-size: 384px 128px; /* 3 * 128 */
+}
+
+.yuokai-attack1--playing {
+  animation: yuokai-attack1-anim 0.5s steps(3) forwards;
+}
+
+@keyframes yuokai-attack1-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -384px 0;
+  }
+}
+
+/* Attack 2 Animation - 6 кадров */
+.yuokai-attack2 {
+  background-image: url("/avatar/yuokai/Attack_2.png");
+  background-size: 768px 128px; /* 6 * 128 */
+}
+
+.yuokai-attack2--playing {
+  animation: yuokai-attack2-anim 1s steps(6) forwards;
+}
+
+@keyframes yuokai-attack2-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -768px 0;
+  }
+}
+
+/* Attack 3 Animation - 4 кадра */
+.yuokai-attack3 {
+  background-image: url("/avatar/yuokai/Attack_3.png");
+  background-size: 512px 128px; /* 4 * 128 */
+}
+
+.yuokai-attack3--playing {
+  animation: yuokai-attack3-anim 0.6s steps(4) forwards;
+}
+
+@keyframes yuokai-attack3-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -512px 0;
+  }
+}
+
+/* Dead Animation - 6 кадров */
+.yuokai-dead {
+  background-image: url("/avatar/yuokai/Dead.png");
+  background-size: 768px 128px; /* 6 * 128 */
+}
+
+.yuokai-dead--playing {
+  animation: yuokai-dead-anim 1.2s steps(6) forwards;
+}
+
+@keyframes yuokai-dead-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -768px 0;
+  }
+}

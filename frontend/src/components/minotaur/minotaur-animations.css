@@ -1,0 +1,83 @@
+/* Общие стили для всех анимаций минотавра */
+.minotaur-animation {
+  width: 128px;
+  height: 128px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* Idle Animation - 10 кадров */
+.minotaur-idle {
+  background-image: url("/avatar/minotaur/Idle.png");
+  background-size: 1280px 128px; /* 10 * 128 */
+}
+
+.minotaur-idle--playing {
+  animation: minotaur-idle-anim 2s steps(10) infinite;
+}
+
+@keyframes minotaur-idle-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1280px 0;
+  }
+}
+
+/* Walk Animation - 12 кадров */
+.minotaur-walk {
+  background-image: url("/avatar/minotaur/Walk.png");
+  background-size: 1536px 128px; /* 12 * 128 */
+}
+
+.minotaur-walk--playing {
+  animation: minotaur-walk-anim 1.6s steps(12) infinite;
+}
+
+@keyframes minotaur-walk-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1536px 0;
+  }
+}
+
+/* Attack Animation - 5 кадров */
+.minotaur-attack {
+  background-image: url("/avatar/minotaur/Attack.png");
+  background-size: 640px 128px; /* 5 * 128 */
+}
+
+.minotaur-attack--playing {
+  animation: minotaur-attack-anim 0.8s steps(5) forwards;
+}
+
+@keyframes minotaur-attack-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -640px 0;
+  }
+}
+
+/* Dead Animation - 5 кадров */
+.minotaur-dead {
+  background-image: url("/avatar/minotaur/Dead.png");
+  background-size: 640px 128px; /* 5 * 128 */
+}
+
+.minotaur-dead--playing {
+  animation: minotaur-dead-anim 1s steps(5) forwards;
+}
+
+@keyframes minotaur-dead-anim {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -640px 0;
+  }
+}
