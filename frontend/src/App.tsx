@@ -1,4 +1,4 @@
-ща import { useTelegramWebApp } from './hooks/useTelegramWebApp'
+import { useTelegramWebApp } from './hooks/useTelegramWebApp'
 import './App.css'
 
 function App() {
