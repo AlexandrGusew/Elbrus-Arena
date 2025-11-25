@@ -17,19 +17,13 @@ import type {
   CreateUserDto,
 } from '@shared/types';
 
-import {
-  CHARACTER_CLASSES,
-  DUNGEON_DIFFICULTIES,
-  ITEM_TYPES,
-} from '@shared/types';
-
+export { CHARACTER_CLASSES, DUNGEON_DIFFICULTIES, ITEM_TYPES } from '@shared/types/enums.ts';
 
 export interface ApiError {
   statusCode: number;
   message: string;
   error?: string;
 }
-
 
 export type {
   User,
@@ -47,11 +41,4 @@ export type {
   ItemType,
   InventoryItem,
   Inventory,
-};
-
-
-export {
-  CHARACTER_CLASSES,
-  DUNGEON_DIFFICULTIES,
-  ITEM_TYPES,
 };

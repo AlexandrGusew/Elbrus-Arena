@@ -4,7 +4,11 @@
       "Bash(npm install:*)",
       "Bash(taskkill:*)",
       "Bash(nul)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(npm run start:*)"
     ],
     "deny": [],
     "ask": []
