@@ -18,7 +18,15 @@ COPY backend .
 RUN npx prisma generate
 
 # Собираем проект
-RUN npm run build
+RUN npm run build || (echo "BUILD FAILED" && exit 1)
+
+# Проверяем, что сборка прошла успешно
+RUN echo "=== Checking dist directory ===" && \
+    ls -la dist/ && \
+    echo "=== Looking for main files ===" && \
+    find dist -name "main*" -type f && \
+    echo "=== All files in dist ===" && \
+    find dist -type f
 
 # Production образ
 FROM node:20-alpine
@@ -43,4 +51,4 @@ COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/backend/src/main.js"]
