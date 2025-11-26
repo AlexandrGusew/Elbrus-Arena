@@ -42,8 +42,8 @@ RUN echo "=== Checking dist directory ===" && \
 # Production образ
 FROM node:20-alpine
 
-# Устанавливаем OpenSSL 1.1 для Prisma
-RUN apk add --no-cache openssl1.1-compat
+# Устанавливаем OpenSSL для Prisma
+RUN apk add --no-cache openssl openssl1.1-compat libc6-compat
 
 WORKDIR /app
 
