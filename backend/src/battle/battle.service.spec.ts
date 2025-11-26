@@ -27,6 +27,12 @@ describe('BattleService', () => {
     armor: 5,
     rating: 0,
     createdAt: new Date(),
+    inventory: {
+      id: 1,
+      characterId: 1,
+      size: 20,
+      items: [],
+    },
   };
 
   const mockMonster = {
@@ -179,10 +185,12 @@ describe('BattleService', () => {
 
   describe('processRound', () => {
     it('должен обработать раунд и нанести урон', async () => {
-      const battleWithRounds = { ...mockBattle, rounds: [] };
+      const battleWithRounds = {
+        ...mockBattle,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleWithRounds as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
       jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleWithRounds as any);
 
       const playerActions = {
@@ -201,10 +209,13 @@ describe('BattleService', () => {
     });
 
     it('должен завершить бой если HP персонажа <= 0', async () => {
-      const battleLowHp = { ...mockBattle, characterHp: 10, rounds: [] };
+      const battleLowHp = {
+        ...mockBattle,
+        characterHp: 10,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleLowHp as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
 
       const updateSpy = jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue({
         ...battleLowHp,
@@ -225,10 +236,13 @@ describe('BattleService', () => {
     });
 
     it('должен завершить бой если HP монстра <= 0', async () => {
-      const battleLowMonsterHp = { ...mockBattle, monsterHp: 10, rounds: [] };
+      const battleLowMonsterHp = {
+        ...mockBattle,
+        monsterHp: 10,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleLowMonsterHp as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
 
       const updateSpy = jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue({
         ...battleLowMonsterHp,
@@ -278,10 +292,12 @@ describe('BattleService', () => {
 
   describe('calculateDamage (через processRound)', () => {
     it('должен нанести полный урон если зоны не защищены', async () => {
-      const battleData = { ...mockBattle, rounds: [] };
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
       jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleData as any);
 
       const playerActions = {
@@ -295,10 +311,12 @@ describe('BattleService', () => {
     });
 
     it('должен заблокировать урон если зона защищена', async () => {
-      const battleData = { ...mockBattle, rounds: [] };
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
       jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleData as any);
 
       const playerActions = {

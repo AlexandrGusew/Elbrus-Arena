@@ -15,6 +15,23 @@ enum ItemType {
   legs
   accessory
   potion
+  shield
+  offhand
+}
+
+enum CharacterClass {
+  WARRIOR
+  ROGUE
+  MAGE
+}
+
+enum SpecializationBranch {
+  PALADIN
+  BARBARIAN
+  SHADOW_DANCER
+  POISONER
+  FROST_MAGE
+  WARLOCK
 }
 
 model User {
@@ -29,29 +46,30 @@ model User {
 }
 
 model Character {
-  id                Int         @id @default(autoincrement())
-  userId            Int         @unique
-  name              String      @unique
+  id                Int              @id @default(autoincrement())
+  userId            Int              @unique
+  name              String           @unique
   class             String
-  level             Int         @default(1)
-  experience        Int         @default(0)
-  strength          Int         @default(0)
-  agility           Int         @default(0)
-  intelligence      Int         @default(0)
-  freePoints        Int         @default(0)
-  maxHp             Int         @default(100)
-  currentHp         Int         @default(100)
-  armor             Int         @default(10)
-  gold              Int         @default(100)
-  stamina           Int         @default(100)
-  lastStaminaUpdate DateTime    @default(now())
-  rating            Int         @default(0)
-  createdAt         DateTime    @default(now())
-  user              User        @relation(fields: [userId], references: [id])
+  level             Int              @default(1)
+  experience        Int              @default(0)
+  strength          Int              @default(0)
+  agility           Int              @default(0)
+  intelligence      Int              @default(0)
+  freePoints        Int              @default(0)
+  maxHp             Int              @default(100)
+  currentHp         Int              @default(100)
+  armor             Int              @default(10)
+  gold              Int              @default(100)
+  stamina           Int              @default(100)
+  lastStaminaUpdate DateTime         @default(now())
+  rating            Int              @default(0)
+  createdAt         DateTime         @default(now())
+  user              User             @relation(fields: [userId], references: [id])
   inventory         Inventory?
   pveBattles        PveBattle[]
-  pvpBattles1       PvpBattle[] @relation("Player1")
-  pvpBattles2       PvpBattle[] @relation("Player2")
+  pvpBattles1       PvpBattle[]      @relation("Player1")
+  pvpBattles2       PvpBattle[]      @relation("Player2")
+  specialization    Specialization?
 
   @@map("characters")
 }
@@ -154,21 +172,22 @@ model PvpBattle {
 }
 
 model PveBattle {
-  id             String    @id @default(uuid())
-  characterId    Int
-  dungeonId      Int
-  currentMonster Int       @default(1)
-  characterHp    Int
-  monsterHp      Int
-  status         String
-  rounds         Json
-  playerFirst    Boolean   @default(true)
-  lootedItems    Json?
-  expGained      Int?
-  goldGained     Int?
-  createdAt      DateTime  @default(now())
-  character      Character @relation(fields: [characterId], references: [id])
-  dungeon        Dungeon   @relation(fields: [dungeonId], references: [id])
+  id                String             @id @default(uuid())
+  characterId       Int
+  dungeonId         Int
+  currentMonster    Int                @default(1)
+  characterHp       Int
+  monsterHp         Int
+  status            String
+  rounds            Json
+  playerFirst       Boolean            @default(true)
+  lootedItems       Json?
+  expGained         Int?
+  goldGained        Int?
+  createdAt         DateTime           @default(now())
+  character         Character          @relation(fields: [characterId], references: [id])
+  dungeon           Dungeon            @relation(fields: [dungeonId], references: [id])
+  abilityCooldowns  AbilityCooldown[]
 
   @@map("pve_battles")
 }
@@ -184,4 +203,41 @@ model MonsterLoot {
   item       Item    @relation(fields: [itemId], references: [id])
 
   @@map("monster_loots")
+}
+
+model Specialization {
+  id              Int                   @id @default(autoincrement())
+  characterId     Int                   @unique
+  branch          SpecializationBranch
+  tier1Unlocked   Boolean               @default(true)
+  tier2Unlocked   Boolean               @default(false)
+  tier3Unlocked   Boolean               @default(false)
+  selectedAt      DateTime              @default(now())
+  character       Character             @relation(fields: [characterId], references: [id])
+
+  @@map("specializations")
+}
+
+model SpecializationAbility {
+  id          Int                   @id @default(autoincrement())
+  branch      SpecializationBranch
+  tier        Int
+  name        String
+  description String
+  cooldown    Int                   @default(0)
+  effects     Json
+
+  @@unique([branch, tier])
+  @@map("specialization_abilities")
+}
+
+model AbilityCooldown {
+  id        Int      @id @default(autoincrement())
+  battleId  String
+  abilityId Int
+  turnsLeft Int
+  battle    PveBattle @relation(fields: [battleId], references: [id])
+
+  @@unique([battleId, abilityId])
+  @@map("ability_cooldowns")
 }

@@ -127,4 +127,43 @@ export class CharacterLevelUpService {
       freePoints: character.freePoints,
     };
   }
+
+  /**
+   * ТЕСТОВЫЙ МЕТОД: Дает персонажу +20000 опыта для быстрого тестирования
+   */
+  async testLevelBoost(characterId: number): Promise<{
+    message: string;
+    oldLevel: number;
+    newLevel: number;
+    expGained: number;
+  }> {
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+    });
+
+    if (!character) {
+      throw new Error('Character not found');
+    }
+
+    const oldLevel = character.level;
+    const expBoost = 20000;
+
+    // Добавляем опыт
+    await this.prisma.character.update({
+      where: { id: characterId },
+      data: {
+        experience: character.experience + expBoost,
+      },
+    });
+
+    // Автоматически повышаем уровни
+    const levelsGained = await this.checkAndLevelUp(characterId);
+
+    return {
+      message: `Получено ${expBoost} опыта! Уровень: ${oldLevel} → ${oldLevel + levelsGained}`,
+      oldLevel,
+      newLevel: oldLevel + levelsGained,
+      expGained: expBoost,
+    };
+  }
 }

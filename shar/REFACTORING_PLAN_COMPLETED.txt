@@ -1,0 +1,376 @@
+═══════════════════════════════════════════════════════════════════════════════
+                        ПЛАН РЕФАКТОРИНГА ПРОЕКТА
+                           Всего: 41 проблема
+═══════════════════════════════════════════════════════════════════════════════
+
+🎉🎉🎉 НОВЫЙ ФУНКЦИОНАЛ ДОБАВЛЕН! 🎉🎉🎉
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[✓] АВТОРИЗАЦИЯ ПО ИМЕНИ ПЕРСОНАЖА
+    Реализовано: Простая авторизация - вход по имени + создание нового
+    Бэкенд:
+      - GET /api/character/name/:name - поиск персонажа по имени
+      - character.service.ts - метод findByName()
+    Frontend:
+      - CreateCharacter.tsx - два режима: "Войти" и "Создать"
+      - useGetCharacterByNameQuery - RTK Query для поиска
+      - Dashboard.tsx - кнопка "Выйти" (красная, внизу)
+    Что работает:
+      ✓ Ввел имя → нашел персонажа → вход выполнен
+      ✓ Имя не найдено → ошибка
+      ✓ Кнопка "Выйти" → очистка localStorage → возврат на главную
+
+[✓] ЗАТОЧКА И ПРОДАЖА ПРЕДМЕТОВ
+    Реализовано: Полная система улучшения и продажи
+    Бэкенд:
+      - POST /api/character/:id/enhance/:itemId - заточка
+      - DELETE /api/character/:id/sell/:itemId - продажа (50% цены)
+      - inventory-enhancement.service.ts - логика заточки
+      - inventory.service.ts - логика продажи
+    Frontend:
+      - Blacksmith.tsx - заточка ТОЛЬКО надетых предметов
+      - Inventory.tsx - кнопка "Продать" + цена продажи
+      - useEnhanceItemMutation, useSellItemMutation
+    Что работает:
+      ✓ Заточка: стоимость = 100 * (lvl+1)²
+      ✓ Надетые предметы → в кузницу
+      ✓ Продажа: 50% от базовой цены
+      ✓ Нельзя продать надетый предмет
+
+[✓] ДОПОЛНИТЕЛЬНЫЕ УЛУЧШЕНИЯ UI
+    - Dashboard: убран список инвентаря, добавлен счетчик
+    - Dashboard: добавлен progress bar для стамины
+    - Inventory: отображение требований предметов (уровень, характеристики)
+    - Все через RTK Query - единый стор данных
+
+[⏳] ТЕСТИРОВАНИЕ ФУНКЦИОНАЛА
+    Цель: Покрыть тестами весь функционал для исключения багов
+    TODO:
+      - Написать тесты для character.service.ts (бэкенд)
+      - Написать тесты для character.controller.ts (бэкенд)
+      - Написать тесты для inventory.service.ts (продажа предметов)
+      - Написать тесты для characterApi.ts (RTK Query стор)
+      - Убедиться что все идет через СТОР во всех компонентах
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+═══════════════════════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 1 - КРИТИЧНО (10 задач)
+═══════════════════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━ КРИТИЧЕСКИЕ БАГИ (6) ━━━━━━━━━━━━━━━━━━━━━━
+
+[✓] 1. Конфликт типов BattleStatus
+    Где: shared/types/enums.ts:14-15 vs shared/types/battle.types.ts:6
+    Проблема: Два разных определения ('active'|'completed'|'abandoned' vs 'active'|'won'|'lost')
+    Решение: Синхронизировать типы, использовать 'active'|'won'|'lost' для PvE
+    Файлы: shared/types/enums.ts, shared/types/battle.types.ts
+
+[✓] 2. Отсутствует поле description в Item
+    Где: shared/types/item.types.ts, backend/prisma/schema.prisma
+    Проблема: Используется в Blacksmith.tsx:112, но не определено
+    Решение: Добавить поле description в схему и типы
+    Файлы: shared/types/item.types.ts, backend/prisma/schema.prisma
+
+[✓] 3. Armor не обновляется при экипировке
+    Где: backend/src/character/character.service.ts
+    Проблема: Экипировка брони не влияет на защиту персонажа
+    Решение: Создать систему расчета эффективного armor от экипировки
+    Файлы: backend/src/character/utils/stats-calculator.ts
+
+[✓] 4. Отсутствует API для экипировки предметов
+    Где: frontend/src/pages/Blacksmith.tsx:38-39 (TODO)
+    Проблема: Экипировка работает только локально, не сохраняется
+    Решение: Создать endpoints PUT /api/character/:id/equip и /unequip
+    Файлы: backend/src/character/character.controller.ts,
+           backend/src/character/character.service.ts,
+           frontend/src/pages/Blacksmith.tsx
+
+[✓] 5. Бонусы от предметов не применяются
+    Где: Нет логики применения bonusStr/Agi/Int
+    Проблема: Надетая экипировка не дает бонусов к характеристикам
+    Решение: Создать систему пересчета характеристик с учетом экипировки
+    Файлы: backend/src/character/utils/stats-calculator.ts
+
+[✓] 6. HP игрока не восстанавливается между монстрами
+    Где: backend/src/battle/battle.service.ts:188-200
+    Проблема: Невозможно пройти подземелье с 3+ монстрами
+    Решение: Частично восстанавливать HP после победы над монстром (30% за монстра, 100% за победу)
+    Файлы: backend/src/battle/battle.service.ts
+
+━━━━━━━━━━━━━━━━━━━━━━━━ БЕЗОПАСНОСТЬ (4) ━━━━━━━━━━━━━━━━━━━━━━━━
+
+[ ] 26. Нет аутентификации
+    Где: frontend/src/main.tsx:16-20 fake token
+    Проблема: Любой может делать запросы с любым characterId
+    Решение: Реализовать проверку Telegram initData
+    Файлы: backend/src/auth/ (создать модуль)
+
+[ ] 27. Нет проверки владения персонажем
+    Где: Все endpoints персонажа и боя
+    Проблема: Игрок может управлять чужими персонажами
+    Решение: Создать AuthGuard, проверять userId
+    Файлы: backend/src/auth/guards/auth.guard.ts (создать)
+
+[ ] 28. SQL Injection потенциал
+    Где: character.controller.ts:14-22 Number(id) без валидации
+    Проблема: NaN при невалидном ID
+    Решение: Добавить ValidationPipe, DTO с @IsNumber()
+    Файлы: backend/src/main.ts, все контроллеры
+
+[ ] 29. Нет rate limiting
+    Проблема: Возможна DDoS атака
+    Решение: Добавить @nestjs/throttler
+    Файлы: backend/src/app.module.ts
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 2 - ВАЖНО (15 задач)
+═══════════════════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━ ДУБЛИРОВАНИЕ КОДА (7) ━━━━━━━━━━━━━━━━━━━━━
+
+[✓] 7. Дублирование констант CHARACTER_CLASSES, DUNGEON_DIFFICULTIES
+    Где: frontend/src/types/api.ts:21-23 vs shared/types/enums.ts
+    Решение: Удалить из frontend, импортировать из shared
+    Файлы: frontend/src/types/api.ts
+
+[✓] 8. Дублирование стилей (container, statsBlock, buttons и т.д.)
+    Где: 4 файла .styles.ts в frontend/src/pages/
+    Решение: Создать frontend/src/styles/common.styles.ts
+    Файлы: frontend/src/styles/common.styles.ts (создать),
+           frontend/src/pages/Dashboard.styles.ts,
+           frontend/src/pages/Blacksmith.styles.ts,
+           frontend/src/pages/CreateCharacter.styles.ts,
+           frontend/src/pages/Dungeon.styles.ts
+
+[✓] 9. Дублирование логики загрузки персонажа
+    Где: Dashboard.tsx:17-41, Blacksmith.tsx:16-32, Dungeon.tsx:25-46
+    Решение: Создать хук useCharacter()
+    Файлы: frontend/src/hooks/useCharacter.ts (создать)
+
+[✓] 10. Дублирование Prisma include для Character
+    Где: backend/src/character/character.service.ts:94-105, 111-122
+    Решение: Вынести в константу CHARACTER_INCLUDE
+    Файлы: backend/src/character/character.constants.ts (создать)
+
+[✓] 11. Дублирование loading состояния
+    Где: Dashboard.tsx, Blacksmith.tsx, CreateCharacter.tsx
+    Решение: Создать хук useAsync() или использовать React Query
+    Файлы: frontend/src/hooks/useAsync.ts (создать)
+
+[ ] 12. Inline стили везде
+    Где: Все .styles.ts файлы
+    Решение: Рассмотреть переход на CSS Modules (опционально)
+    Статус: НИЗКИЙ ПРИОРИТЕТ - можно пропустить
+
+[✓] 13. Хардкод URL WebSocket
+    Где: frontend/src/hooks/useBattle.ts:29
+    Решение: Вынести в env переменные
+    Файлы: frontend/.env, frontend/vite.config.ts
+
+━━━━━━━━━━━━━━━━━━━ АРХИТЕКТУРА БЭКЕНДА (6) ━━━━━━━━━━━━━━━━━━━
+
+[✓] 14. CharacterService - нарушение SRP (создание User)
+    Где: backend/src/character/character.service.ts:10-22, 36-60, 76-81
+    Решение:
+      - Создать UserService
+      - Вынести классы в character.constants.ts
+      - Создать InventoryService
+    Файлы: backend/src/user/ (создать модуль),
+           backend/src/inventory/ (создать модуль),
+           backend/src/character/character.constants.ts (создать)
+
+[✓] 15. BattleService - слишком много ответственности
+    Где: backend/src/battle/battle.service.ts:150-264
+    Решение:
+      - Создать battle/utils/combat-calculator.ts
+      - Создать battle/utils/monster-ai.ts
+      - Создать character/utils/stats-calculator.ts
+    Файлы: backend/src/battle/utils/combat-calculator.ts (создать),
+           backend/src/battle/utils/monster-ai.ts (создать),
+           backend/src/character/utils/stats-calculator.ts (создать)
+
+[ ] 16. Отсутствие валидации DTO
+    Где: Все контроллеры
+    Решение: Добавить class-validator, создать DTO классы
+    Файлы: backend/src/character/dto/ (создать),
+           backend/src/battle/dto/ (создать),
+           backend/src/main.ts (добавить ValidationPipe)
+
+[✓] 17. Неправильная обработка ошибок
+    Где: Все сервисы (throw new Error вместо Http exceptions)
+    Решение: Использовать NotFoundException, BadRequestException и т.д.
+    Файлы: Все сервисы
+
+[✓] 18. Отсутствие транзакций
+    Где: backend/src/character/character.service.ts:9-88
+    Решение: Обернуть создание персонажа в $transaction
+    Файлы: backend/src/character/character.service.ts
+
+[✓] 19. Хардкод CORS origins
+    Где: backend/src/main.ts:9-16, battle.gateway.ts:13-18
+    Решение: Вынести в .env через ConfigService
+    Файлы: backend/.env, backend/src/main.ts, backend/src/battle/battle.gateway.ts
+
+━━━━━━━━━━━━━━━━━━━━━━━ ВАЛИДАЦИЯ (2) ━━━━━━━━━━━━━━━━━━━━━━━━
+
+[ ] 35. Валидация имени персонажа
+    Где: CreateCharacter.tsx:22-25
+    Решение: Проверка длины 3-20, только буквы/цифры, обработка ошибки уникальности
+    Файлы: frontend/src/pages/CreateCharacter.tsx,
+           backend/src/character/dto/create-character.dto.ts (создать)
+
+[ ] 36. Валидация действий в бою
+    Где: battle.service.ts:104-107
+    Решение: Проверить количество, валидность зон, дубликаты
+    Файлы: backend/src/battle/dto/round-actions.dto.ts (создать)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 3 - СРЕДНЕ (13 задач)
+═══════════════════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━ ЛОГИЧЕСКИЕ ПРОБЛЕМЫ (6) ━━━━━━━━━━━━━━━━━━━━
+
+[✓] 20. Нет восстановления HP после боя
+    Решение: Полностью восстанавливать HP после победы в подземелье
+    Файлы: backend/src/battle/battle.service.ts
+
+[ ] 21. Stamina не тратится и не восстанавливается
+    Где: Dungeon.tsx:100 проверяет, но не вычитает
+    Решение: Реализовать механику траты/восстановления
+    Файлы: backend/src/character/character.service.ts,
+           backend/src/battle/battle.service.ts
+
+[✓] 22. Нет начисления наград (exp, gold)
+    Где: battle.service.ts:198 побеждает, но не дает наград
+    Решение: Начислять expReward и goldReward при победе
+    Файлы: backend/src/battle/battle.service.ts
+
+[✓] 23. Нет проверки минимальных требований для предметов
+    Где: Отсутствует логика проверки minLevel, minStrength и т.д.
+    Решение: Добавить валидацию при экипировке
+    Файлы: backend/src/character/character.service.ts (в метод equip)
+
+[ ] 24. Нет системы опыта и левел-апа
+    Где: Нет логики повышения уровня
+    Решение: Создать систему начисления опыта и level-up
+    Файлы: backend/src/character/utils/level-up.service.ts (создать)
+
+[ ] 25. N+1 проблема в БД запросах
+    Где: battle.service.ts:104-149 три отдельных запроса
+    Решение: Оптимизировать через единый запрос с include
+    Файлы: backend/src/battle/battle.service.ts
+
+━━━━━━━━━━━━━━━━━━━━ ПРОБЛЕМЫ ФРОНТЕНДА (5) ━━━━━━━━━━━━━━━━━━━━
+
+[ ] 30. Нет централизованного состояния
+    Где: Персонаж загружается заново на каждой странице
+    Решение: Использовать Redux для хранения текущего персонажа
+    Файлы: frontend/src/store/character.slice.ts (создать)
+
+[ ] 31. Небезопасное использование localStorage
+    Где: CreateCharacter.tsx:44, main.tsx:16-20
+    Решение: Создать утилиту safeStorage
+    Файлы: frontend/src/utils/storage.ts (создать)
+
+[ ] 32. Хардкод строк и magic numbers
+    Где: CreateCharacter.tsx:32, :8-12, DifficultySelector.tsx:4-8
+    Решение: Создать frontend/src/constants/game.ts
+    Файлы: frontend/src/constants/game.ts (создать)
+
+[ ] 33. Отсутствие обработки edge cases
+    Где: Dashboard.tsx:57, CharacterStats.tsx:9 (деление на ноль)
+    Решение: Добавить проверки maxHp > 0
+    Файлы: frontend/src/pages/Dashboard.tsx,
+           frontend/src/components/battle/CharacterStats.tsx
+
+[ ] 34. Проблемы с WebSocket
+    Где: useBattle.ts:23-95 нет реконнекта
+    Решение: Добавить автоматический реконнект
+    Файлы: frontend/src/hooks/useBattle.ts
+
+━━━━━━━━━━━━━━━━━━━━━ ПРОИЗВОДИТЕЛЬНОСТЬ (2) ━━━━━━━━━━━━━━━━━━━
+
+[ ] 38. Чрезмерное JSON.parse/stringify
+    Где: battle.service.ts:212
+    Решение: Убрать двойное преобразование
+    Файлы: backend/src/battle/battle.service.ts
+
+[ ] 39. Нет индексов в БД
+    Решение: Добавить индексы для userId, telegramId
+    Файлы: backend/prisma/schema.prisma
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 4 - НИЗКИЙ (3 задачи)
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] 37. Несогласованность настроек ngrok
+    Где: Закомментировано в vite.config.ts, но активно в backend CORS
+    Решение: Создать docs/ngrok/ с конфигами
+    Файлы: docs/ngrok/README.md (создать),
+           docs/ngrok/vite.config.ngrok.ts (создать)
+
+[ ] 40. Нет тестов
+    Решение: Написать тесты для:
+      - BattleService
+      - CharacterService
+      - CombatCalculator (после рефакторинга)
+      - Frontend компонентов
+    Файлы: backend/src/**/*.spec.ts (создать),
+           frontend/src/**/*.test.tsx (создать)
+
+[✓] 41. Удалить все комментарии
+    Где: По всему коду
+    Решение: Очистить от комментариев фронтенд и бэкенд
+    Файлы: Все файлы с комментариями
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            ПОРЯДОК ВЫПОЛНЕНИЯ
+═══════════════════════════════════════════════════════════════════════════════
+
+ЭТАП 1: Критические баги и безопасность (задачи 1-6, 26-29)
+  └─ 10 задач, основа для дальнейшей работы
+
+ЭТАП 2: Дублирование и архитектура (задачи 7-19)
+  └─ 13 задач, улучшение структуры кода
+
+ЭТАП 3: Логика и валидация (задачи 20-25, 35-36)
+  └─ 8 задач, завершение игровой механики
+
+ЭТАП 4: Фронтенд и производительность (задачи 30-34, 38-39)
+  └─ 7 задач, оптимизация UX
+
+ЭТАП 5: Финальные штрихи (задачи 37, 40-41)
+  └─ 3 задачи, документация и тесты
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            ПРОГРЕСС: 21/41 (51%)
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ ЭТАП 1: Критические баги и безопасность - 6/10 (60%)
+  [✓] Задачи 1-6: Критические баги (ВЫПОЛНЕНО)
+  [ ] Задачи 26-29: Безопасность (TODO)
+
+✅ ЭТАП 2: Дублирование и архитектура - 11/13 (85%)
+  [✓] Задачи 7-11, 13-15, 17-19: (ВЫПОЛНЕНО)
+  [ ] Задача 16: DTO валидация (TODO)
+  [ ] Задача 12: CSS Modules (НИЗКИЙ ПРИОРИТЕТ - можно пропустить)
+
+✅ ЭТАП 3: Логика и валидация - 3/8 (38%)
+  [✓] Задачи 20, 22, 23: (ВЫПОЛНЕНО)
+  [ ] Задачи 21, 24, 25, 35, 36: (TODO)
+
+✅ ЭТАП 4: Фронтенд и производительность - 0/7 (0%)
+  [ ] Задачи 30-34, 38-39: (TODO)
+
+✅ ЭТАП 5: Финальные штрихи - 1/3 (33%)
+  [✓] Задача 41: Удалить комментарии (ВЫПОЛНЕНО)
+  [ ] Задачи 37, 40: (TODO)
+
+Чтобы отметить задачу как выполненную, замени [ ] на [✓]

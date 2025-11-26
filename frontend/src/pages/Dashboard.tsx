@@ -1,10 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useGetCharacterQuery, useGetStaminaInfoQuery } from '../store/api/characterApi';
+import { useGetCharacterQuery, useGetStaminaInfoQuery, useTestLevelBoostMutation } from '../store/api/characterApi';
 import { styles } from './Dashboard.styles';
+import { useState } from 'react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const characterId = localStorage.getItem('characterId');
+  const [boostMessage, setBoostMessage] = useState<string | null>(null);
 
   const { data: character, isLoading, error } = useGetCharacterQuery(
     Number(characterId),
@@ -14,10 +16,24 @@ const Dashboard = () => {
   const { data: staminaInfo } = useGetStaminaInfoQuery(
     Number(characterId),
     {
-      skip: !characterId,
+      skip: !characterId || !character || !!error,
       pollingInterval: 1000,
     }
   );
+
+  const [testLevelBoost, { isLoading: isBoostLoading }] = useTestLevelBoostMutation();
+
+  const handleLevelBoost = async () => {
+    if (!characterId) return;
+    try {
+      const result = await testLevelBoost(Number(characterId)).unwrap();
+      setBoostMessage(result.message);
+      setTimeout(() => setBoostMessage(null), 5000);
+    } catch (error: any) {
+      setBoostMessage(error?.data?.message || 'Ошибка');
+      setTimeout(() => setBoostMessage(null), 5000);
+    }
+  };
 
   if (!characterId) {
     navigate('/');
@@ -49,6 +65,33 @@ const Dashboard = () => {
       <h1>{character.name}</h1>
       <div style={styles.header}>
         Уровень {character.level} • {character.class}
+      </div>
+
+      {/* Тестовая кнопка апгрейда */}
+      <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+        <button
+          onClick={handleLevelBoost}
+          disabled={isBoostLoading}
+          style={{
+            ...styles.buttonDungeon,
+            background: '#ff9800',
+            padding: '10px 20px',
+            fontSize: '14px',
+          }}
+        >
+          {isBoostLoading ? 'Прокачка...' : '🚀 ТЕСТ: +20000 опыта'}
+        </button>
+        {boostMessage && (
+          <div style={{
+            marginTop: '10px',
+            padding: '10px',
+            background: '#4caf50',
+            borderRadius: '4px',
+            fontSize: '14px',
+          }}>
+            {boostMessage}
+          </div>
+        )}
       </div>
 
       {/* Статы */}
@@ -132,6 +175,13 @@ const Dashboard = () => {
             Кузница
           </button>
         </Link>
+        {character.level >= 10 && (
+          <Link to="/specialization" style={styles.linkButton}>
+            <button style={{ ...styles.buttonDungeon, background: '#673ab7' }}>
+              Специализация
+            </button>
+          </Link>
+        )}
       </div>
 
       {/* Кнопка выхода */}

@@ -95,6 +95,19 @@ export const characterApi = baseApi.injectEndpoints({
     >({
       query: (characterId) => `/character/${characterId}/stamina`,
     }),
+
+    testLevelBoost: builder.mutation<
+      { message: string; oldLevel: number; newLevel: number; expGained: number },
+      number
+    >({
+      query: (characterId) => ({
+        url: `/character/${characterId}/test-level-boost`,
+        method: 'POST',
+      }),
+      invalidatesTags: (result, error, characterId) => [
+        { type: 'Character', id: characterId },
+      ],
+    }),
   }),
 })
 
@@ -109,4 +122,5 @@ export const {
   useGetLevelProgressQuery,
   useDistributeStatsMutation,
   useGetStaminaInfoQuery,
+  useTestLevelBoostMutation,
 } = characterApi

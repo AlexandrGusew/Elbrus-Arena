@@ -17,3 +17,14 @@ export type BattleStatusEnum = typeof BATTLE_STATUSES[number];
 
 export const PVP_BATTLE_STATUSES = ['active', 'completed'] as const;
 export type PvpBattleStatus = typeof PVP_BATTLE_STATUSES[number];
+
+
+export const SPECIALIZATION_BRANCHES = [
+  'PALADIN',
+  'BARBARIAN',
+  'SHADOW_DANCER',
+  'POISONER',
+  'FROST_MAGE',
+  'WARLOCK',
+] as const;
+export type SpecializationBranch = typeof SPECIALIZATION_BRANCHES[number];
