@@ -30,6 +30,13 @@ export interface Battle {
   rounds: RoundResult[];
 }
 
+export interface LootedItem {
+  itemId: number;
+  itemName: string;
+  itemType: string;
+  enhancement: number;
+}
+
 export type BattleState = {
   roundNumber: number;
   playerHp: number;
@@ -38,4 +45,7 @@ export type BattleState = {
   lastRoundResult?: RoundResult;
   currentMonster?: number;
   totalMonsters?: number;
+  lootedItems?: LootedItem[];
+  expGained?: number;
+  goldGained?: number;
 };

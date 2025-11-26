@@ -14,10 +14,12 @@ export interface Character {
   freePoints: number;
   maxHp: number;
   currentHp: number;
+  armor: number;
   gold: number;
   stamina: number;
+  lastStaminaUpdate: string;
   rating: number;
-  createdAt: Date;
+  createdAt: string;
   inventory: Inventory;
 }
 

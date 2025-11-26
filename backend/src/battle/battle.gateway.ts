@@ -6,7 +6,9 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { BattleService, RoundActions } from './battle.service';
+import { RoundActionsDto } from './dto/round-actions.dto';
 
 const corsOriginsString = process.env.CORS_ORIGINS || '';
 const corsOrigins = corsOriginsString.split(',').filter(Boolean);
@@ -57,16 +59,23 @@ export class BattleGateway {
   }
 
   @SubscribeMessage('round-actions')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async handleRoundActions(
-    @MessageBody() data: { battleId: string; actions: RoundActions },
+    @MessageBody() data: { battleId: string; actions: RoundActionsDto },
     @ConnectedSocket() client: Socket,
   ) {
     const { battleId, actions } = data;
 
     try {
+      // Преобразуем валидированный DTO в тип RoundActions для сервиса
+      const roundActions: RoundActions = {
+        attacks: [actions.attacks[0], actions.attacks[1]],
+        defenses: [actions.defenses[0], actions.defenses[1], actions.defenses[2]],
+      };
+
       const roundResult = await this.battleService.processRound(
         battleId,
-        actions,
+        roundActions,
       );
 
       this.server.to(battleId).emit('round-complete', roundResult);
@@ -79,9 +88,14 @@ export class BattleGateway {
       }
 
       if (battle.status !== 'active') {
+        // Получаем полную информацию о бое для отправки лута
+        const fullBattle = await this.battleService.getBattleWithLoot(battleId);
+
         this.server.to(battleId).emit('battle-end', {
           status: battle.status,
-          battle,
+          lootedItems: fullBattle?.lootedItems || [],
+          expGained: fullBattle?.expGained || 0,
+          goldGained: fullBattle?.goldGained || 0,
         });
       } else {
         setTimeout(() => {

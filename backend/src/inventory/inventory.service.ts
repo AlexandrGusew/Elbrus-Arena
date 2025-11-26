@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -13,6 +13,10 @@ export class InventoryService {
 
     if (!inventoryItem) {
       throw new NotFoundException('Inventory item not found');
+    }
+
+    if (inventoryItem.item.type === 'potion') {
+      throw new BadRequestException('Potions cannot be equipped');
     }
 
     const inventory = await this.prisma.inventory.findFirst({
@@ -91,5 +95,61 @@ export class InventoryService {
       where: { id: inventoryItemId },
       data: { isEquipped: false },
     });
+  }
+
+  /**
+   * Продать предмет за 50% от базовой стоимости
+   */
+  async sellItem(characterId: number, inventoryItemId: number): Promise<{
+    goldReceived: number;
+    itemName: string;
+  }> {
+    // Получаем предмет с проверкой владения
+    const inventoryItem = await this.prisma.inventoryItem.findUnique({
+      where: { id: inventoryItemId },
+      include: {
+        item: true,
+        inventory: {
+          include: {
+            character: true,
+          },
+        },
+      },
+    });
+
+    if (!inventoryItem) {
+      throw new NotFoundException('Inventory item not found');
+    }
+
+    // Проверка что предмет принадлежит персонажу
+    if (inventoryItem.inventory.characterId !== characterId) {
+      throw new ForbiddenException('This item does not belong to this character');
+    }
+
+    // Нельзя продавать экипированные предметы
+    if (inventoryItem.isEquipped) {
+      throw new BadRequestException('Cannot sell equipped items. Unequip first.');
+    }
+
+    // Цена продажи = 50% от базовой цены
+    const sellPrice = Math.floor(inventoryItem.item.price * 0.5);
+
+    // Удаляем предмет и добавляем золото
+    await this.prisma.$transaction([
+      this.prisma.inventoryItem.delete({
+        where: { id: inventoryItemId },
+      }),
+      this.prisma.character.update({
+        where: { id: characterId },
+        data: {
+          gold: inventoryItem.inventory.character.gold + sellPrice,
+        },
+      }),
+    ]);
+
+    return {
+      goldReceived: sellPrice,
+      itemName: inventoryItem.item.name,
+    };
   }
 }

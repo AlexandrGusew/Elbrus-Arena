@@ -1,0 +1,130 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class CharacterLevelUpService {
+  constructor(private prisma: PrismaService) {}
+
+  /**
+   * Рассчитывает требуемый опыт для следующего уровня
+   * Формула: 100 * level^2
+   */
+  calculateRequiredExp(level: number): number {
+    return 100 * level * level;
+  }
+
+  /**
+   * Проверяет и автоматически повышает уровень персонажа
+   * Может повысить несколько уровней за раз
+   * @returns количество полученных уровней
+   */
+  async checkAndLevelUp(characterId: number): Promise<number> {
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+    });
+
+    if (!character) {
+      throw new Error('Character not found');
+    }
+
+    let currentLevel = character.level;
+    let currentExp = character.experience;
+    let currentFreePoints = character.freePoints;
+    let levelsGained = 0;
+
+    // Повышаем уровень пока хватает опыта
+    while (true) {
+      const requiredExp = this.calculateRequiredExp(currentLevel);
+
+      if (currentExp < requiredExp) {
+        break; // Недостаточно опыта для следующего уровня
+      }
+
+      // Повышаем уровень
+      currentLevel++;
+      currentFreePoints += 3; // 3 свободных очка за уровень
+      levelsGained++;
+    }
+
+    // Если был левел-ап, обновляем персонажа
+    if (levelsGained > 0) {
+      await this.prisma.character.update({
+        where: { id: characterId },
+        data: {
+          level: currentLevel,
+          freePoints: currentFreePoints,
+        },
+      });
+    }
+
+    return levelsGained;
+  }
+
+  /**
+   * Распределяет свободные очки характеристик
+   */
+  async distributeStats(
+    characterId: number,
+    strength: number,
+    agility: number,
+    intelligence: number,
+  ): Promise<void> {
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+    });
+
+    if (!character) {
+      throw new Error('Character not found');
+    }
+
+    const totalPoints = strength + agility + intelligence;
+
+    if (totalPoints > character.freePoints) {
+      throw new Error('Not enough free points');
+    }
+
+    if (strength < 0 || agility < 0 || intelligence < 0) {
+      throw new Error('Stat points cannot be negative');
+    }
+
+    await this.prisma.character.update({
+      where: { id: characterId },
+      data: {
+        strength: character.strength + strength,
+        agility: character.agility + agility,
+        intelligence: character.intelligence + intelligence,
+        freePoints: character.freePoints - totalPoints,
+      },
+    });
+  }
+
+  /**
+   * Получить информацию о прогрессе уровня
+   */
+  async getLevelProgress(characterId: number): Promise<{
+    currentLevel: number;
+    currentExp: number;
+    requiredExp: number;
+    progress: number; // процент от 0 до 100
+    freePoints: number;
+  }> {
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+    });
+
+    if (!character) {
+      throw new Error('Character not found');
+    }
+
+    const requiredExp = this.calculateRequiredExp(character.level);
+    const progress = Math.min(100, (character.experience / requiredExp) * 100);
+
+    return {
+      currentLevel: character.level,
+      currentExp: character.experience,
+      requiredExp,
+      progress,
+      freePoints: character.freePoints,
+    };
+  }
+}
