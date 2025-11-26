@@ -1,5 +1,9 @@
 FROM node:20-alpine AS builder
 
+# Принимаем build arguments
+ARG VITE_API_URL
+ARG VITE_WS_URL
+
 WORKDIR /app
 
 # Настраиваем npm для более надежной работы
@@ -22,7 +26,11 @@ COPY shared ../shared
 # Копируем исходный код frontend
 COPY frontend .
 
-# Собираем production build
+# Устанавливаем переменные окружения для Vite
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_WS_URL=$VITE_WS_URL
+
+# Собираем production build с переменными окружения
 RUN npm run build
 
 # Production образ с Nginx
