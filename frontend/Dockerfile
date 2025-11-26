@@ -2,11 +2,19 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Настраиваем npm для более надежной работы
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000
+
 # Копируем package.json
 COPY frontend/package*.json ./
 
-# Устанавливаем зависимости
-RUN npm ci
+# Устанавливаем зависимости с retry при сетевых ошибках
+RUN npm ci || \
+    (echo "First attempt failed, retrying..." && sleep 5 && npm ci) || \
+    (echo "Second attempt failed, retrying..." && sleep 10 && npm ci) || \
+    (echo "Using npm install as fallback..." && npm install)
 
 # Копируем shared типы
 COPY shared ../shared
