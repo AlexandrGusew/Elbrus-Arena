@@ -77,4 +77,4 @@ EXPOSE 3000
 RUN echo "=== Final dist structure ===" && \
     find dist -type f -name "*.js" | head -20
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/app/src/main.js"]
