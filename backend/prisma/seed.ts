@@ -75,90 +75,111 @@ async function main() {
     },
   });
 
-  await prisma.item.createMany({
-    data: [
-      // Оружие
-      {
-        name: 'Ржавый меч',
-        type: 'weapon',
-        damage: 5,
-        price: 10,
-        minStrength: 0,
-        minLevel: 1,
-      },
-      {
-        name: 'Стальной меч',
-        type: 'weapon',
-        damage: 10,
-        price: 50,
-        minStrength: 10,
-        minLevel: 3,
-      },
-      {
-        name: 'Меч героя',
-        type: 'weapon',
-        damage: 20,
-        price: 200,
-        minStrength: 20,
-        minLevel: 10,
-      },
-      // Броня
-      {
-        name: 'Кожанка',
-        type: 'armor',
-        armor: 5,
-        price: 15,
-        minStrength: 0,
-        minLevel: 1,
-      },
-      {
-        name: 'Кольчуга',
-        type: 'armor',
-        armor: 10,
-        price: 60,
-        minStrength: 15,
-        minLevel: 5,
-      },
-      // Шлем
-      {
-        name: 'Шапка',
-        type: 'helmet',
-        armor: 2,
-        price: 5,
-        minLevel: 1,
-      },
-      {
-        name: 'Шлем',
-        type: 'helmet',
-        armor: 5,
-        price: 25,
-        minStrength: 10,
-        minLevel: 3,
-      },
-      // Остальное
-      {
-        name: 'Сапоги',
-        type: 'legs',
-        armor: 3,
-        price: 10,
-        minLevel: 1,
-      },
-      {
-        name: 'Пояс',
-        type: 'belt',
-        armor: 2,
-        bonusStr: 1,
-        price: 20,
-        minStrength: 5,
-        minLevel: 2,
-      },
-      {
-        name: 'Зелье HP',
-        type: 'potion',
-        price: 20,
-        minLevel: 1,
-      },
-    ],
+  const rustySword = await prisma.item.create({
+    data: {
+      name: 'Ржавый меч',
+      type: 'weapon',
+      damage: 5,
+      price: 10,
+      minStrength: 0,
+      minLevel: 1,
+    },
+  });
+
+  const steelSword = await prisma.item.create({
+    data: {
+      name: 'Стальной меч',
+      type: 'weapon',
+      damage: 10,
+      price: 50,
+      minStrength: 10,
+      minLevel: 3,
+    },
+  });
+
+  const heroSword = await prisma.item.create({
+    data: {
+      name: 'Меч героя',
+      type: 'weapon',
+      damage: 20,
+      price: 200,
+      minStrength: 20,
+      minLevel: 10,
+    },
+  });
+
+  const leatherArmor = await prisma.item.create({
+    data: {
+      name: 'Кожанка',
+      type: 'armor',
+      armor: 5,
+      price: 15,
+      minStrength: 0,
+      minLevel: 1,
+    },
+  });
+
+  const chainmail = await prisma.item.create({
+    data: {
+      name: 'Кольчуга',
+      type: 'armor',
+      armor: 10,
+      price: 60,
+      minStrength: 15,
+      minLevel: 5,
+    },
+  });
+
+  const hat = await prisma.item.create({
+    data: {
+      name: 'Шапка',
+      type: 'helmet',
+      armor: 2,
+      price: 5,
+      minLevel: 1,
+    },
+  });
+
+  const helmet = await prisma.item.create({
+    data: {
+      name: 'Шлем',
+      type: 'helmet',
+      armor: 5,
+      price: 25,
+      minStrength: 10,
+      minLevel: 3,
+    },
+  });
+
+  const boots = await prisma.item.create({
+    data: {
+      name: 'Сапоги',
+      type: 'legs',
+      armor: 3,
+      price: 10,
+      minLevel: 1,
+    },
+  });
+
+  const belt = await prisma.item.create({
+    data: {
+      name: 'Пояс',
+      type: 'belt',
+      armor: 2,
+      bonusStr: 1,
+      price: 20,
+      minStrength: 5,
+      minLevel: 2,
+    },
+  });
+
+  const potion = await prisma.item.create({
+    data: {
+      name: 'Зелье HP',
+      type: 'potion',
+      price: 20,
+      minLevel: 1,
+    },
   });
 
   const easyDungeon = await prisma.dungeon.create({
@@ -225,6 +246,43 @@ async function main() {
     ],
   });
 
+  // ЛУТОВЫЕ ТАБЛИЦЫ ДЛЯ МОНСТРОВ
+  await prisma.monsterLoot.createMany({
+    data: [
+      // Крыса - дропает зелья и простые вещи
+      { monsterId: rat.id, itemId: potion.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
+      { monsterId: rat.id, itemId: rustySword.id, dropChance: 0.15, minCount: 1, maxCount: 1 },
+      { monsterId: rat.id, itemId: hat.id, dropChance: 0.2, minCount: 1, maxCount: 1 },
+
+      // Гоблин - дропает начальное снаряжение
+      { monsterId: goblin.id, itemId: rustySword.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
+      { monsterId: goblin.id, itemId: leatherArmor.id, dropChance: 0.2, minCount: 1, maxCount: 1 },
+      { monsterId: goblin.id, itemId: boots.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
+      { monsterId: goblin.id, itemId: potion.id, dropChance: 0.4, minCount: 1, maxCount: 2 },
+
+      // Скелет - дропает среднее снаряжение
+      { monsterId: skeleton.id, itemId: steelSword.id, dropChance: 0.2, minCount: 1, maxCount: 1 },
+      { monsterId: skeleton.id, itemId: helmet.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
+      { monsterId: skeleton.id, itemId: belt.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
+      { monsterId: skeleton.id, itemId: potion.id, dropChance: 0.5, minCount: 1, maxCount: 3 },
+
+      // Орк - дропает хорошее снаряжение
+      { monsterId: orc.id, itemId: steelSword.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
+      { monsterId: orc.id, itemId: chainmail.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
+      { monsterId: orc.id, itemId: helmet.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
+      { monsterId: orc.id, itemId: belt.id, dropChance: 0.35, minCount: 1, maxCount: 1 },
+      { monsterId: orc.id, itemId: potion.id, dropChance: 0.6, minCount: 2, maxCount: 4 },
+
+      // Демон (босс) - дропает лучшее снаряжение с высоким шансом
+      { monsterId: demon.id, itemId: heroSword.id, dropChance: 0.5, minCount: 1, maxCount: 1 },
+      { monsterId: demon.id, itemId: chainmail.id, dropChance: 0.7, minCount: 1, maxCount: 1 },
+      { monsterId: demon.id, itemId: helmet.id, dropChance: 0.7, minCount: 1, maxCount: 1 },
+      { monsterId: demon.id, itemId: belt.id, dropChance: 0.6, minCount: 1, maxCount: 1 },
+      { monsterId: demon.id, itemId: potion.id, dropChance: 0.9, minCount: 3, maxCount: 5 },
+    ],
+  });
+
+  console.log('✅ Сиды успешно загружены!');
 }
 
 main()

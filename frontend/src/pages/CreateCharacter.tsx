@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../services/api';
+import { useCreateCharacterMutation, useGetCharacterByNameQuery } from '../store/api/characterApi';
 import { CHARACTER_CLASSES } from '../types/api';
-import type { CharacterClass, Character } from '../types/api';
+import type { CharacterClass } from '../types/api';
 import { styles } from './CreateCharacter.styles';
 
 const CLASS_INFO = {
@@ -13,10 +13,42 @@ const CLASS_INFO = {
 
 const CreateCharacter = () => {
   const navigate = useNavigate();
+  const [mode, setMode] = useState<'login' | 'create'>('login');
+  const [loginName, setLoginName] = useState('');
   const [name, setName] = useState('');
   const [selectedClass, setSelectedClass] = useState<CharacterClass>('warrior');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const [createCharacter, { isLoading }] = useCreateCharacterMutation();
+  const [searchName, setSearchName] = useState<string | null>(null);
+
+  const { data: foundCharacter, isLoading: isSearching, isError, isSuccess } = useGetCharacterByNameQuery(
+    searchName || '',
+    { skip: !searchName }
+  );
+
+  // Отслеживаем результат поиска
+  useEffect(() => {
+    if (searchName && isSuccess) {
+      if (foundCharacter) {
+        localStorage.setItem('characterId', foundCharacter.id.toString());
+        navigate('/dashboard');
+      } else {
+        setError('Персонаж не найден');
+        setSearchName(null);
+      }
+    }
+  }, [foundCharacter, isSuccess, searchName, navigate]);
+
+  const handleLogin = async () => {
+    if (!loginName.trim()) {
+      setError('Введите имя персонажа');
+      return;
+    }
+
+    setError('');
+    setSearchName(loginName.trim());
+  };
 
   const handleCreate = async () => {
     if (!name.trim()) {
@@ -24,76 +56,134 @@ const CreateCharacter = () => {
       return;
     }
 
-    setLoading(true);
     setError('');
 
     try {
       // Генерируем случайный telegramId для теста (в проде это придет из Telegram)
       const fakeTelegramId = Math.floor(Math.random() * 1000000000);
 
-      const response = await api.post<Character>('/character', {
+      const character = await createCharacter({
         telegramId: fakeTelegramId,
         name: name.trim(),
         class: selectedClass,
-      });
-
-      const character = response.data;
+      }).unwrap();
 
       localStorage.setItem('characterId', character.id.toString());
 
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Ошибка при создании персонажа');
-    } finally {
-      setLoading(false);
+      setError(err.data?.message || err.message || 'Ошибка при создании персонажа');
     }
   };
 
   return (
     <div style={styles.container}>
-      <h1>Создание персонажа</h1>
+      <h1>{mode === 'login' ? 'Вход в игру' : 'Создание персонажа'}</h1>
 
-      <div style={styles.inputGroup}>
-        <label style={styles.label}>Имя персонажа:</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Введите имя"
-          style={styles.input}
-        />
+      {/* Переключатель режимов */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <button
+          onClick={() => {
+            setMode('login');
+            setError('');
+          }}
+          style={{
+            ...styles.button,
+            ...(mode === 'login' ? styles.buttonActive : styles.buttonDisabled),
+            flex: 1,
+          }}
+        >
+          Войти
+        </button>
+        <button
+          onClick={() => {
+            setMode('create');
+            setError('');
+          }}
+          style={{
+            ...styles.button,
+            ...(mode === 'create' ? styles.buttonActive : styles.buttonDisabled),
+            flex: 1,
+          }}
+        >
+          Создать
+        </button>
       </div>
 
-      <div style={styles.inputGroup}>
-        <label style={styles.classLabel}>Выберите класс:</label>
+      {mode === 'login' ? (
+        /* Форма входа */
+        <>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Имя персонажа:</label>
+            <input
+              type="text"
+              value={loginName}
+              onChange={(e) => setLoginName(e.target.value)}
+              placeholder="Введите имя персонажа"
+              style={styles.input}
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+            />
+          </div>
 
-        {CHARACTER_CLASSES.map((cls) => (
-          <div
-            key={cls}
-            onClick={() => setSelectedClass(cls)}
+          {error && <div style={styles.error}>{error}</div>}
+
+          <button
+            onClick={handleLogin}
+            disabled={isSearching}
             style={{
-              ...styles.classCard,
-              ...(selectedClass === cls ? styles.classCardSelected : styles.classCardDefault),
+              ...styles.button,
+              ...(isSearching ? styles.buttonDisabled : styles.buttonActive),
             }}
           >
-            <div style={styles.className}>{CLASS_INFO[cls].name}</div>
-            <div style={styles.classStats}>{CLASS_INFO[cls].stats}</div>
+            {isSearching ? 'Поиск...' : 'Войти'}
+          </button>
+        </>
+      ) : (
+        /* Форма создания */
+        <>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Имя персонажа:</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Введите имя"
+              style={styles.input}
+            />
           </div>
-        ))}
-      </div>
 
-      {error && <div style={styles.error}>{error}</div>}
+          <div style={styles.inputGroup}>
+            <label style={styles.classLabel}>Выберите класс:</label>
 
-      <button
-        onClick={handleCreate}
-        disabled={loading}
-        style={{
-          ...styles.button,
-          ...(loading ? styles.buttonDisabled : styles.buttonActive),
-        }}
-      >
-        {loading ? 'Создание...' : 'Создать персонажа'}
-      </button>
+            {CHARACTER_CLASSES.map((cls) => (
+              <div
+                key={cls}
+                onClick={() => setSelectedClass(cls)}
+                style={{
+                  ...styles.classCard,
+                  ...(selectedClass === cls ? styles.classCardSelected : styles.classCardDefault),
+                }}
+              >
+                <div style={styles.className}>{CLASS_INFO[cls].name}</div>
+                <div style={styles.classStats}>{CLASS_INFO[cls].stats}</div>
+              </div>
+            ))}
+          </div>
+
+          {error && <div style={styles.error}>{error}</div>}
+
+          <button
+            onClick={handleCreate}
+            disabled={isLoading}
+            style={{
+              ...styles.button,
+              ...(isLoading ? styles.buttonDisabled : styles.buttonActive),
+            }}
+          >
+            {isLoading ? 'Создание...' : 'Создать персонажа'}
+          </button>
+        </>
+      )}
     </div>
   );
 };

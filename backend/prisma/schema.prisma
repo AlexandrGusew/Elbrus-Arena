@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ItemType {
+  weapon
+  helmet
+  armor
+  belt
+  legs
+  accessory
+  potion
+}
+
 model User {
   id         Int        @id @default(autoincrement())
   telegramId BigInt     @unique
@@ -19,28 +29,29 @@ model User {
 }
 
 model Character {
-  id           Int         @id @default(autoincrement())
-  userId       Int         @unique
-  name         String      @unique
-  class        String
-  level        Int         @default(1)
-  experience   Int         @default(0)
-  strength     Int         @default(0)
-  agility      Int         @default(0)
-  intelligence Int         @default(0)
-  freePoints   Int         @default(0)
-  maxHp        Int         @default(100)
-  currentHp    Int         @default(100)
-  armor        Int         @default(10)
-  gold         Int         @default(100)
-  stamina      Int         @default(100)
-  rating       Int         @default(0)
-  createdAt    DateTime    @default(now())
-  user         User        @relation(fields: [userId], references: [id])
-  inventory    Inventory?
-  pveBattles   PveBattle[]
-  pvpBattles1  PvpBattle[] @relation("Player1")
-  pvpBattles2  PvpBattle[] @relation("Player2")
+  id                Int         @id @default(autoincrement())
+  userId            Int         @unique
+  name              String      @unique
+  class             String
+  level             Int         @default(1)
+  experience        Int         @default(0)
+  strength          Int         @default(0)
+  agility           Int         @default(0)
+  intelligence      Int         @default(0)
+  freePoints        Int         @default(0)
+  maxHp             Int         @default(100)
+  currentHp         Int         @default(100)
+  armor             Int         @default(10)
+  gold              Int         @default(100)
+  stamina           Int         @default(100)
+  lastStaminaUpdate DateTime    @default(now())
+  rating            Int         @default(0)
+  createdAt         DateTime    @default(now())
+  user              User        @relation(fields: [userId], references: [id])
+  inventory         Inventory?
+  pveBattles        PveBattle[]
+  pvpBattles1       PvpBattle[] @relation("Player1")
+  pvpBattles2       PvpBattle[] @relation("Player2")
 
   @@map("characters")
 }
@@ -53,6 +64,7 @@ model Monster {
   armor    Int
   isBoss   Boolean          @default(false)
   dungeons DungeonMonster[]
+  loots    MonsterLoot[]
 
   @@map("monsters")
 }
@@ -84,7 +96,7 @@ model DungeonMonster {
 model Item {
   id              Int             @id @default(autoincrement())
   name            String
-  type            String
+  type            ItemType
   description     String          @default("")
   damage          Int             @default(0)
   armor           Int             @default(0)
@@ -97,6 +109,7 @@ model Item {
   minIntelligence Int             @default(0)
   minLevel        Int             @default(1)
   inventoryItems  InventoryItem[]
+  monsterLoots    MonsterLoot[]
 
   @@map("items")
 }
@@ -149,9 +162,26 @@ model PveBattle {
   monsterHp      Int
   status         String
   rounds         Json
+  playerFirst    Boolean   @default(true)
+  lootedItems    Json?
+  expGained      Int?
+  goldGained     Int?
   createdAt      DateTime  @default(now())
   character      Character @relation(fields: [characterId], references: [id])
   dungeon        Dungeon   @relation(fields: [dungeonId], references: [id])
 
   @@map("pve_battles")
+}
+
+model MonsterLoot {
+  id         Int     @id @default(autoincrement())
+  monsterId  Int
+  itemId     Int
+  dropChance Float
+  minCount   Int     @default(1)
+  maxCount   Int     @default(1)
+  monster    Monster @relation(fields: [monsterId], references: [id])
+  item       Item    @relation(fields: [itemId], references: [id])
+
+  @@map("monster_loots")
 }

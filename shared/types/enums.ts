@@ -3,7 +3,7 @@ export const CHARACTER_CLASSES = ['warrior', 'mage', 'assassin'] as const;
 export type CharacterClass = typeof CHARACTER_CLASSES[number];
 
 
-export const ITEM_TYPES = ['weapon', 'helmet', 'armor', 'belt', 'legs', 'potion'] as const;
+export const ITEM_TYPES = ['weapon', 'helmet', 'armor', 'belt', 'legs', 'accessory', 'potion'] as const;
 export type ItemType = typeof ITEM_TYPES[number];
 
 

@@ -63,10 +63,18 @@ export function useBattle(battleId: string | null) {
       }));
     });
 
-    newSocket.on('battle-end', (data: { status: 'won' | 'lost' }) => {
+    newSocket.on('battle-end', (data: {
+      status: 'won' | 'lost';
+      lootedItems?: any[];
+      expGained?: number;
+      goldGained?: number;
+    }) => {
       setBattleState((prev) => ({
         ...prev,
         status: data.status,
+        lootedItems: data.lootedItems,
+        expGained: data.expGained,
+        goldGained: data.goldGained,
       }));
     });
 

@@ -76,6 +76,13 @@ export class CharacterService {
     }) as Promise<Character | null>;
   }
 
+  async findByName(name: string): Promise<Character | null> {
+    return this.prisma.character.findFirst({
+      where: { name },
+      include: CHARACTER_INCLUDE,
+    }) as Promise<Character | null>;
+  }
+
   async equipItem(characterId: number, inventoryItemId: number): Promise<Character> {
     await this.inventoryService.equipItem(characterId, inventoryItemId);
     return this.findById(characterId) as Promise<Character>;
