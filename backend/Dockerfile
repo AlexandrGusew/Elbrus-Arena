@@ -1,5 +1,8 @@
 FROM node:20-alpine AS builder
 
+# Устанавливаем OpenSSL 1.1 для Prisma
+RUN apk add --no-cache openssl1.1-compat
+
 WORKDIR /app
 
 # Настраиваем npm для более надежной работы
@@ -38,6 +41,9 @@ RUN echo "=== Checking dist directory ===" && \
 
 # Production образ
 FROM node:20-alpine
+
+# Устанавливаем OpenSSL 1.1 для Prisma
+RUN apk add --no-cache openssl1.1-compat
 
 WORKDIR /app
 
