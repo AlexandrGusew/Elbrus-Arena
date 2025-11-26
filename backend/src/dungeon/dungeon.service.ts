@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import type { DungeonWithMonsters } from '../../../shared/types';
+import type { DungeonWithMonsters } from '@shared/types';
 
 @Injectable()
 export class DungeonService {

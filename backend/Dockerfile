@@ -26,10 +26,20 @@ COPY shared ../shared
 COPY backend .
 
 # Генерируем Prisma Client
-RUN npx prisma generate
+RUN echo "=== Generating Prisma Client ===" && \
+    npx prisma generate && \
+    echo "=== Prisma Client generated successfully ==="
 
-# Собираем проект
-RUN npm run build || (echo "BUILD FAILED" && exit 1)
+# Проверяем структуру shared
+RUN echo "=== Checking shared directory ===" && \
+    ls -la ../shared/ && \
+    echo "=== Checking shared/types ===" && \
+    ls -la ../shared/types/ || echo "No shared/types directory"
+
+# Собираем проект с выводом прогресса
+RUN echo "=== Starting TypeScript compilation ===" && \
+    npm run build -- --verbose || (echo "BUILD FAILED" && exit 1) && \
+    echo "=== Build completed successfully ==="
 
 # Проверяем, что сборка прошла успешно
 RUN echo "=== Checking dist directory ===" && \
@@ -73,4 +83,4 @@ COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
 
-CMD ["node", "dist/app/src/main.js"]
+CMD ["node", "dist/src/main.js"]

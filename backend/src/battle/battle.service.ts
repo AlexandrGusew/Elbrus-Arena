@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import type { Zone, RoundActions, RoundResult, Battle } from '../../../shared/types/battle.types';
+import type { Zone, RoundActions, RoundResult, Battle } from '@shared/types/battle.types';
 import { StatsCalculator } from '../character/utils/stats-calculator';
 import { CombatCalculator } from './utils/combat-calculator';
 import { MonsterAI } from './utils/monster-ai';

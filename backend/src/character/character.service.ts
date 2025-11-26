@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
-import type { CharacterClass, Character } from '../../../shared/types';
+import type { CharacterClass, Character } from '@shared/types';
 import { CHARACTER_INCLUDE, CLASS_STATS } from './character.constants';
 
 @Injectable()

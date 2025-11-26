@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { DungeonService } from './dungeon.service';
-import type { DungeonWithMonsters } from '../../../shared/types';
+import type { DungeonWithMonsters } from '@shared/types';
 
 @Controller('dungeons')
 export class DungeonController {

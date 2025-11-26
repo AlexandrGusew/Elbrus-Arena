@@ -1,4 +1,4 @@
-import type { Zone } from '../../../../shared/types/battle.types';
+import type { Zone } from '@shared/types/battle.types';
 
 export class CombatCalculator {
   static calculateDamage(

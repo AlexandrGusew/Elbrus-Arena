@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Body, Param } from '@nestjs/common';
 import { CharacterService } from './character.service';
-import type { CreateCharacterDto, Character } from '../../../shared/types';
+import type { CreateCharacterDto, Character } from '@shared/types';
 
 @Controller('character')
 export class CharacterController {

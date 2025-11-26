@@ -1,4 +1,4 @@
-import type { Zone, RoundActions } from '../../../../shared/types/battle.types';
+import type { Zone, RoundActions } from '@shared/types/battle.types';
 
 export class MonsterAI {
   private static readonly ZONES: Zone[] = ['head', 'body', 'legs', 'arms'];

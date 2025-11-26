@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { ItemService } from './item.service';
-import type { Item } from '../../../shared/types';
+import type { Item } from '@shared/types';
 
 @Controller('items')
 export class ItemController {
