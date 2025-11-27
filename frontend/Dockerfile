@@ -58,7 +58,7 @@ COPY frontend/vite.config.ts frontend/tsconfig*.json frontend/index.html ./
 
 # Копируем public директорию (обычно небольшая)
 RUN echo "=== Step 2/3: Copying public directory ==="
-COPY frontend/public ./public 2>/dev/null || echo "No public directory"
+COPY frontend/public ./public
 
 # Копируем src (включая 63MB медиа - займет 1-2 минуты)
 RUN echo "=== Step 3/3: Copying source files (63MB assets, please wait) ==="
