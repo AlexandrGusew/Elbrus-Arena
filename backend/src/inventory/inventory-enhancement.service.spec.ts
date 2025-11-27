@@ -98,14 +98,14 @@ describe('InventoryEnhancementService', () => {
   describe('enhanceOffhandWithSuperPoint', () => {
     it('should successfully enhance offhand item with superPoint', async () => {
       jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacterWithOffhand);
-
-      const updatedItem = { ...mockOffhandItem, enhancement: 3 };
-      jest.spyOn(prisma, '$transaction').mockResolvedValue([updatedItem, null]);
+      jest.spyOn(prisma.item, 'update').mockResolvedValue({} as any);
+      jest.spyOn(prisma, '$transaction').mockResolvedValue([null]);
 
       const result = await service.enhanceOffhandWithSuperPoint(1);
 
+      // Для щита воина удваивается броня, а не enhancement
       expect(result).toEqual({
-        newEnhancementLevel: 3,
+        newEnhancementLevel: 2, // enhancement не меняется для щитов
         itemName: 'Щит воина',
         bonusType: expect.any(String),
         bonusValue: expect.any(Number),
@@ -221,27 +221,29 @@ describe('InventoryEnhancementService', () => {
       };
 
       jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(charWithHighEnhancement);
-
-      const updatedItem = { ...highEnhancementItem, enhancement: 6 };
-      jest.spyOn(prisma, '$transaction').mockResolvedValue([updatedItem, null]);
+      jest.spyOn(prisma.item, 'update').mockResolvedValue({} as any);
+      jest.spyOn(prisma, '$transaction').mockResolvedValue([null]);
 
       const result = await service.enhanceOffhandWithSuperPoint(1);
 
-      expect(result.newEnhancementLevel).toBe(6);
+      // Для щита воина удваивается броня, а не enhancement
+      expect(result.newEnhancementLevel).toBe(5);
     });
 
     it('should use transaction for atomic operation', async () => {
       jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacterWithOffhand);
+      jest.spyOn(prisma.item, 'update').mockResolvedValue({} as any);
 
-      const updatedItem = { ...mockOffhandItem, enhancement: 3 };
-      const transactionSpy = jest.spyOn(prisma, '$transaction').mockResolvedValue([updatedItem, null]);
+      const transactionSpy = jest.spyOn(prisma, '$transaction').mockResolvedValue([null]);
 
       await service.enhanceOffhandWithSuperPoint(1);
 
-      // Проверяем что транзакция вызвана с двумя операциями
+      // Проверяем что транзакция вызвана
       expect(transactionSpy).toHaveBeenCalledTimes(1);
       const transactionOps = transactionSpy.mock.calls[0][0];
-      expect(transactionOps).toHaveLength(2); // Должно быть 2 операции: update item + update character
+      // Для щита воина только одна операция в транзакции: update character (superPoints)
+      // Обновление брони щита происходит отдельно через prisma.item.update
+      expect(transactionOps).toHaveLength(1);
     });
   });
 

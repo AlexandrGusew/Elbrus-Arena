@@ -119,6 +119,37 @@ describe('StatsCalculator', () => {
 
       expect(result).toBe(15); // 5 (базовая) + 10 (броня)
     });
+
+    it('должен применять бонус от заточки +1 (+10% к броне)', () => {
+      const equippedItems = [
+        createInventoryItem(1, mockArmor, true, 1), // 10 брони + 10% = 11
+      ];
+
+      const result = StatsCalculator.calculateEffectiveArmor(mockCharacter, equippedItems);
+
+      expect(result).toBe(16); // 5 (базовая) + 11 (броня +1)
+    });
+
+    it('должен применять бонус от заточки +3 (+30% к броне)', () => {
+      const equippedItems = [
+        createInventoryItem(1, mockArmor, true, 3), // 10 брони + 30% = 13
+      ];
+
+      const result = StatsCalculator.calculateEffectiveArmor(mockCharacter, equippedItems);
+
+      expect(result).toBe(18); // 5 (базовая) + 13 (броня +3)
+    });
+
+    it('должен применять заточку к нескольким предметам', () => {
+      const equippedItems = [
+        createInventoryItem(1, mockArmor, true, 2),  // 10 + 20% = 12
+        createInventoryItem(2, mockHelmet, true, 1), // 5 + 10% = 5 (floor)
+      ];
+
+      const result = StatsCalculator.calculateEffectiveArmor(mockCharacter, equippedItems);
+
+      expect(result).toBe(22); // 5 (базовая) + 12 + 5
+    });
   });
 
   describe('calculateEffectiveStrength', () => {
@@ -268,6 +299,47 @@ describe('StatsCalculator', () => {
       // Эффективная ловкость: 10 + 2 + 1 = 13
       // Формула: 28 + floor(13/2) + 15 = 28 + 6 + 15 = 49
       expect(result).toBe(49);
+    });
+
+    it('должен применять заточку к урону оружия', () => {
+      const equippedItems = [
+        createInventoryItem(1, mockWeapon, true, 2), // 15 dmg + 20% = 18 dmg
+      ];
+
+      const result = StatsCalculator.calculatePlayerDamage(mockCharacter, equippedItems);
+
+      // Эффективная сила: 20 + floor(5 + 5*0.2) = 20 + floor(6) = 26
+      // Эффективная ловкость: 10 + floor(2 + 2*0.2) = 10 + floor(2.4) = 12
+      // Урон оружия: floor(15 + 15*0.2) = floor(18) = 18
+      // Формула: 26 + floor(12/2) + 18 = 26 + 6 + 18 = 50
+      expect(result).toBe(50);
+    });
+
+    it('должен применять заточку +5 к оружию (+50%)', () => {
+      const equippedItems = [
+        createInventoryItem(1, mockWeapon, true, 5), // 15 dmg + 50% = 22
+      ];
+
+      const result = StatsCalculator.calculatePlayerDamage(mockCharacter, equippedItems);
+
+      // Эффективная сила: 20 + floor(5 + 5*0.5) = 20 + floor(7.5) = 27
+      // Эффективная ловкость: 10 + floor(2 + 2*0.5) = 10 + floor(3) = 13
+      // Урон оружия: floor(15 + 15*0.5) = floor(22.5) = 22
+      // Формула: 27 + floor(13/2) + 22 = 27 + 6 + 22 = 55
+      expect(result).toBe(55);
+    });
+
+    it('должен применять заточку к бонусам статов от предметов', () => {
+      const equippedItems = [
+        createInventoryItem(1, mockArmor, true, 3), // +2 Str + 30% = 2, +1 Agi + 30% = 1
+      ];
+
+      const result = StatsCalculator.calculatePlayerDamage(mockCharacter, equippedItems);
+
+      // Эффективная сила: 20 + (2 + 30%) = 20 + 2 = 22
+      // Эффективная ловкость: 10 + (1 + 30%) = 10 + 1 = 11
+      // Формула: 22 + floor(11/2) = 22 + 5 = 27
+      expect(result).toBe(27);
     });
   });
 

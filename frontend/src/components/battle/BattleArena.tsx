@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Zone, RoundActions, BattleState } from '../../hooks/useBattle';
 import type { Character } from '../../types/api';
 import { BattleStats } from './BattleStats';
@@ -12,14 +12,16 @@ type BattleArenaProps = {
   isConnected: boolean;
   onSubmitActions: (actions: RoundActions) => void;
   onReset: () => void;
+  backgroundImage?: string;
 };
 
 const ZONES_4: Zone[] = ['head', 'body', 'legs', 'arms'];
 const ZONES_5: Zone[] = ['head', 'body', 'legs', 'arms', 'back'];
 
-export const BattleArena = ({ character, battleState, isConnected, onSubmitActions, onReset }: BattleArenaProps) => {
+export const BattleArena = ({ character, battleState, isConnected, onSubmitActions, onReset, backgroundImage }: BattleArenaProps) => {
   const [selectedAttacks, setSelectedAttacks] = useState<Zone[]>([]);
   const [selectedDefenses, setSelectedDefenses] = useState<Zone[]>([]);
+  const [waitingForResult, setWaitingForResult] = useState(false);
 
   // SHADOW_DANCER имеет 5 зон атаки (включая спину)
   const isShadowDancer = character.specialization?.branch === 'SHADOW_DANCER';
@@ -55,6 +57,13 @@ export const BattleArena = ({ character, battleState, isConnected, onSubmitActio
     };
   }, [battleState.lastRoundResult]);
 
+  // Сбрасываем состояние ожидания когда приходит новый результат
+  useEffect(() => {
+    if (battleState.lastRoundResult && waitingForResult) {
+      setWaitingForResult(false);
+    }
+  }, [battleState.lastRoundResult, waitingForResult]);
+
   const toggleAttack = (zone: Zone) => {
     if (selectedAttacks.includes(zone)) {
       setSelectedAttacks(selectedAttacks.filter(z => z !== zone));
@@ -84,6 +93,7 @@ export const BattleArena = ({ character, battleState, isConnected, onSubmitActio
     onSubmitActions(actions);
     setSelectedAttacks([]);
     setSelectedDefenses([]);
+    setWaitingForResult(true);
   };
 
   const getStatusText = () => {
@@ -96,7 +106,34 @@ export const BattleArena = ({ character, battleState, isConnected, onSubmitActio
   };
 
   return (
-    <div style={styles.container}>
+    <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      {/* Фоновое изображение для боя */}
+      {backgroundImage && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 0,
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: '100% 100%',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }} />
+      )}
+
+      <div style={{
+        position: 'relative',
+        zIndex: 1,
+        width: '100vw',
+        height: '100vh',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
 
       {battleState.currentMonster && battleState.totalMonsters && (
         <DungeonProgress
@@ -130,8 +167,8 @@ export const BattleArena = ({ character, battleState, isConnected, onSubmitActio
             selectedZones={selectedAttacks}
             maxSelections={2}
             onToggle={toggleAttack}
-            lastRoundHits={lastRoundResults.playerHits}
-            lastRoundMisses={lastRoundResults.playerMisses}
+            lastRoundHits={waitingForResult ? [] : lastRoundResults.playerHits}
+            lastRoundMisses={waitingForResult ? [] : lastRoundResults.playerMisses}
           />
 
           <ZoneSelector
@@ -140,8 +177,8 @@ export const BattleArena = ({ character, battleState, isConnected, onSubmitActio
             selectedZones={selectedDefenses}
             maxSelections={3}
             onToggle={toggleDefense}
-            lastRoundBlocked={lastRoundResults.monsterBlocked}
-            lastRoundMisses={lastRoundResults.monsterHits}
+            lastRoundBlocked={waitingForResult ? [] : lastRoundResults.monsterBlocked}
+            lastRoundMisses={waitingForResult ? [] : lastRoundResults.monsterHits}
           />
 
           <button
@@ -204,6 +241,7 @@ export const BattleArena = ({ character, battleState, isConnected, onSubmitActio
           </button>
         </>
       )}
+      </div>
     </div>
   );
 };

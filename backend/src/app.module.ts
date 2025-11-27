@@ -11,6 +11,7 @@ import { BattleModule } from './battle/battle.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { AuthModule } from './auth/auth.module';
 import { SpecializationModule } from './specialization/specialization.module';
+import { PvpModule } from './pvp/pvp.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
@@ -24,6 +25,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     BattleModule,
     InventoryModule,
     SpecializationModule,
+    PvpModule,
   ],
   controllers: [AppController],
   providers: [
