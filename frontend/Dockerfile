@@ -76,23 +76,25 @@ RUN echo "=== All files copied successfully ===" && \
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_WS_URL=$VITE_WS_URL
 
-# Собираем production build с проверкой результата
-RUN echo "=== Starting build ===" && \
-    npm run build 2>&1 | tee build.log && \
-    echo "=== Checking build result ===" && \
+# Собираем production build с улучшенным логированием
+RUN echo "=== Starting Vite build ===" && \
+    npm run build 2>&1 | tee build.log; \
+    BUILD_EXIT_CODE=$?; \
+    echo "=== Build exit code: $BUILD_EXIT_CODE ===" && \
+    echo "=== Last 50 lines of build log ===" && \
+    tail -50 build.log && \
+    echo "=== Current directory contents ===" && \
+    ls -lah && \
+    if [ $BUILD_EXIT_CODE -ne 0 ]; then \
+        echo "=== BUILD FAILED ===" && \
+        exit 1; \
+    fi && \
     if [ ! -d "dist" ]; then \
-        echo "ERROR: dist directory not found!" && \
-        echo "=== Build log (last 100 lines) ===" && \
-        tail -100 build.log && \
-        echo "=== Current directory contents ===" && \
-        ls -lah && \
+        echo "=== ERROR: dist directory not found! ===" && \
         exit 1; \
     fi && \
     echo "=== Build successful ===" && \
-    echo "=== Dist directory size ===" && \
-    du -sh dist/ && \
-    echo "=== Dist contents (first 20 files) ===" && \
-    find dist -type f | head -20
+    du -sh dist/
 
 # Production образ с Nginx
 FROM nginx:alpine

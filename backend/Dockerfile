@@ -10,6 +10,9 @@ RUN npm config set fetch-retries 5 && \
     npm config set fetch-retry-mintimeout 20000 && \
     npm config set fetch-retry-maxtimeout 120000
 
+# Увеличиваем память для Node.js при сборке
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 # Копируем package.json из backend
 COPY backend/package*.json ./
 
@@ -25,10 +28,14 @@ COPY shared ../shared
 COPY backend .
 
 # Генерируем Prisma Client
-RUN npx prisma generate
+RUN echo "=== Generating Prisma Client ===" && \
+    npx prisma generate && \
+    echo "=== Prisma Client generated ==="
 
-# Собираем проект
-RUN npm run build
+# Собираем проект (может занять несколько минут)
+RUN echo "=== Starting NestJS build (this may take 2-5 minutes) ===" && \
+    npm run build 2>&1 | tee build.log && \
+    echo "=== Build completed ==="
 
 # Проверяем, что сборка прошла успешно
 RUN echo "=== Checking dist directory ===" && \
