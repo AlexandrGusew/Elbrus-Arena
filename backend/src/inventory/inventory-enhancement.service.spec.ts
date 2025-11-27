@@ -78,6 +78,9 @@ describe('InventoryEnhancementService', () => {
               findUnique: jest.fn(),
               update: jest.fn(),
             },
+            item: {
+              update: jest.fn(),
+            },
             $transaction: jest.fn(),
           },
         },
@@ -104,6 +107,8 @@ describe('InventoryEnhancementService', () => {
       expect(result).toEqual({
         newEnhancementLevel: 3,
         itemName: 'Щит воина',
+        bonusType: expect.any(String),
+        bonusValue: expect.any(Number),
       });
 
       expect(prisma.$transaction).toHaveBeenCalled();
@@ -196,6 +201,8 @@ describe('InventoryEnhancementService', () => {
       expect(result).toEqual({
         newEnhancementLevel: 3,
         itemName: 'Кинжал',
+        bonusType: expect.any(String),
+        bonusValue: expect.any(Number),
       });
     });
 

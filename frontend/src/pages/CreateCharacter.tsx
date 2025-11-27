@@ -5,7 +5,7 @@ import type { CharacterClass } from '../types/api';
 
 // Импортируем изображения, видео и музыку
 import backgroundVideo from '../assets/choosePlayer/animatedBackground.mp4';
-import backgroundMusic from '../assets/choosePlayer/backgroundIntro.mp3';
+import backgroundMusic from '../assets/choosePlayer/backgroundIntro2.mp3';
 import warriorImg from '../assets/choosePlayer/warrior (1).png';
 import mageImg from '../assets/choosePlayer/mage (1).png';
 import rogueImg from '../assets/choosePlayer/rogue (1).png';
@@ -118,18 +118,18 @@ const CreateCharacter = () => {
   const classButtonStyle = (cls: CharacterClass): React.CSSProperties => {
     const isSelected = selectedClass === cls;
     const isHovered = hoveredClass === cls;
+    const isActive = isSelected || isHovered; // При выборе ИЛИ наведении - одинаковый эффект
 
     return {
-      width: '245px', // 350 * 0.7
-      height: '315px', // 450 * 0.7
+      width: '490px', // 245 * 2
+      height: '630px', // 315 * 2
       cursor: 'pointer',
       transition: 'all 0.3s ease',
       position: 'relative',
       border: 'none',
-      background: isSelected ? 'radial-gradient(circle, rgba(255, 253, 208, 0.3) 0%, rgba(255, 247, 153, 0.2) 50%, transparent 70%)' : 'transparent',
       padding: 0,
-      filter: isHovered ? 'brightness(1.2) drop-shadow(0 0 20px rgba(255, 253, 208, 0.6))' : 'brightness(1)',
-      transform: isHovered ? 'scale(1.08)' : 'scale(1)',
+      filter: isActive ? 'brightness(1.2) drop-shadow(0 0 20px rgba(255, 253, 208, 0.6))' : 'brightness(1)',
+      transform: isActive ? 'scale(1.08)' : 'scale(1)',
       borderRadius: '10px',
     };
   };
@@ -366,15 +366,23 @@ const CreateCharacter = () => {
           </div>
         </>
       ) : (
-        /* Форма входа (простая версия) */
+        /* Форма входа */
         <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '40px',
+          background: 'rgba(0, 0, 0, 0.85)',
+          padding: '50px 60px',
           borderRadius: '20px',
           border: '3px solid #ffd700',
           zIndex: 2,
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.8)',
+          maxWidth: '450px',
         }}>
-          <h2 style={{ color: '#ffd700', marginBottom: '20px', textAlign: 'center' }}>
+          <h2 style={{
+            color: '#ffd700',
+            marginBottom: '30px',
+            textAlign: 'center',
+            fontSize: '28px',
+            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)'
+          }}>
             Вход в игру
           </h2>
           <input
@@ -383,9 +391,18 @@ const CreateCharacter = () => {
             onChange={(e) => setLoginName(e.target.value)}
             placeholder="Введите имя персонажа"
             style={{
-              ...inputStyle,
-              width: '300px',
-              marginBottom: '20px',
+              width: '100%',
+              padding: '15px 20px',
+              fontSize: '18px',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              border: '2px solid #ffd700',
+              background: 'rgba(0, 0, 0, 0.5)',
+              color: '#fff',
+              borderRadius: '8px',
+              outline: 'none',
+              marginBottom: '25px',
+              boxSizing: 'border-box',
             }}
             onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
           />
@@ -395,7 +412,7 @@ const CreateCharacter = () => {
             style={{
               width: '100%',
               padding: '15px',
-              fontSize: '18px',
+              fontSize: '20px',
               fontWeight: 'bold',
               background: isSearching ? '#666' : '#ffd700',
               color: '#000',
@@ -403,16 +420,19 @@ const CreateCharacter = () => {
               borderRadius: '8px',
               cursor: isSearching ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
+              boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
             }}
             onMouseEnter={(e) => {
               if (!isSearching) {
                 e.currentTarget.style.background = '#ffed4e';
                 e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.6)';
               }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = isSearching ? '#666' : '#ffd700';
               e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.4)';
             }}
           >
             {isSearching ? 'Поиск...' : 'Войти'}

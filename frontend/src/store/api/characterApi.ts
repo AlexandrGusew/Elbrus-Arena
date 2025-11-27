@@ -110,7 +110,12 @@ export const characterApi = baseApi.injectEndpoints({
     }),
 
     enhanceOffhand: builder.mutation<
-      { newEnhancementLevel: number; itemName: string },
+      {
+        newEnhancementLevel: number;
+        itemName: string;
+        bonusType: string;
+        bonusValue: number;
+      },
       number
     >({
       query: (characterId) => ({
