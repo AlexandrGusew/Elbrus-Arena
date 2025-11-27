@@ -32,8 +32,23 @@ COPY frontend .
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_WS_URL=$VITE_WS_URL
 
-# Собираем production build с переменными окружения и логированием
-RUN npm run build 2>&1 | tee build.log || (echo "BUILD FAILED" && cat build.log && exit 1)
+# Собираем production build с проверкой результата
+RUN echo "=== Starting build ===" && \
+    npm run build 2>&1 | tee build.log && \
+    echo "=== Checking build result ===" && \
+    if [ ! -d "dist" ]; then \
+        echo "ERROR: dist directory not found!" && \
+        echo "=== Build log (last 100 lines) ===" && \
+        tail -100 build.log && \
+        echo "=== Current directory contents ===" && \
+        ls -lah && \
+        exit 1; \
+    fi && \
+    echo "=== Build successful ===" && \
+    echo "=== Dist directory size ===" && \
+    du -sh dist/ && \
+    echo "=== Dist contents (first 20 files) ===" && \
+    find dist -type f | head -20
 
 # Production образ с Nginx
 FROM nginx:alpine

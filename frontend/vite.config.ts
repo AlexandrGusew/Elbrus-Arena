@@ -10,6 +10,24 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../shared'),
     },
   },
+  build: {
+    // Явно указываем выходную директорию
+    outDir: 'dist',
+    // Увеличиваем лимит размера чанка
+    chunkSizeWarningLimit: 1000,
+    // Оптимизация для больших файлов
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          redux: ['@reduxjs/toolkit', 'react-redux'],
+          socket: ['socket.io-client'],
+        },
+      },
+    },
+    minify: 'esbuild',
+    sourcemap: false,
+  },
   // Убрал настройки ngrok для локальной разработки
   // Раскомментируй когда будешь деплоить через ngrok:
   // server: {
