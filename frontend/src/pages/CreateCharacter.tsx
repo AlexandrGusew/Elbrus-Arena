@@ -26,7 +26,10 @@ const CreateCharacter = () => {
   const [selectedClass, setSelectedClass] = useState<CharacterClass | null>(null);
   const [hoveredClass, setHoveredClass] = useState<CharacterClass | null>(null);
   const [error, setError] = useState('');
-  const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
+    const savedMusicState = localStorage.getItem('musicPlaying');
+    return savedMusicState !== null ? savedMusicState === 'true' : true;
+  });
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const [createCharacter, { isLoading }] = useCreateCharacterMutation();
@@ -61,7 +64,9 @@ const CreateCharacter = () => {
   }, [isMusicPlaying]);
 
   const toggleMusic = () => {
-    setIsMusicPlaying(!isMusicPlaying);
+    const newState = !isMusicPlaying;
+    setIsMusicPlaying(newState);
+    localStorage.setItem('musicPlaying', String(newState));
   };
 
   const handleLogin = async () => {
@@ -109,8 +114,8 @@ const CreateCharacter = () => {
 
   const classButtonsContainerStyle: React.CSSProperties = {
     display: 'flex',
-    gap: '45px',
-    marginBottom: '20px',
+    gap: '30px',
+    marginBottom: '5px',
     position: 'relative',
     zIndex: 2,
   };
@@ -121,8 +126,8 @@ const CreateCharacter = () => {
     const isActive = isSelected || isHovered; // При выборе ИЛИ наведении - одинаковый эффект
 
     return {
-      width: '490px', // 245 * 2
-      height: '630px', // 315 * 2
+      width: '340px',
+      height: '440px',
       cursor: 'pointer',
       transition: 'all 0.3s ease',
       position: 'relative',
@@ -136,13 +141,13 @@ const CreateCharacter = () => {
 
   const inputContainerStyle: React.CSSProperties = {
     position: 'relative',
-    width: '700px', // Базовый размер, можно масштабировать
-    height: '250px', // Базовый размер, можно масштабировать
+    width: '600px',
+    height: '210px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '60px', // Увеличил отступ снизу, чтобы не прилипал к иконкам
-    marginTop: '20px', // Опустил вниз
+    marginBottom: '30px',
+    marginTop: '0px',
     zIndex: 2,
   };
 
@@ -168,12 +173,12 @@ const CreateCharacter = () => {
 
   const createButtonContainerStyle: React.CSSProperties = {
     position: 'relative',
-    width: '700px', // Уменьшил в 1.5 раза (1050 / 1.5)
-    height: '360px', // Уменьшил в 1.5 раза (540 / 1.5)
+    width: '600px',
+    height: '310px',
     cursor: isLoading ? 'not-allowed' : 'pointer',
     transition: 'all 0.3s ease',
     zIndex: 2,
-    marginTop: '-60px',
+    marginTop: '-70px',
   };
 
   const errorStyle: React.CSSProperties = {
