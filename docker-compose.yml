@@ -16,7 +16,7 @@ services:
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
       - PORT=3000
       - FRONTEND_URL=${FRONTEND_URL}
-      - CORS_ORIGIN=${CORS_ORIGIN}
+      - CORS_ORIGINS=${CORS_ORIGINS}
     networks:
       - app-network
     healthcheck:
