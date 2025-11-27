@@ -56,10 +56,10 @@ RUN npm config set fetch-retries 5 && \
 COPY backend/package*.json ./
 
 # Устанавливаем только production зависимости с retry
-RUN npm ci --only=production || \
-    (echo "First attempt failed, retrying..." && sleep 5 && npm ci --only=production) || \
-    (echo "Second attempt failed, retrying..." && sleep 10 && npm ci --only=production) || \
-    (echo "Using npm install as fallback..." && npm install --only=production)
+RUN npm ci --omit=dev || \
+    (echo "First attempt failed, retrying..." && sleep 5 && npm ci --omit=dev) || \
+    (echo "Second attempt failed, retrying..." && sleep 10 && npm ci --omit=dev) || \
+    (echo "Using npm install as fallback..." && npm install --omit=dev)
 
 # Копируем shared типы для runtime
 COPY shared ../shared
