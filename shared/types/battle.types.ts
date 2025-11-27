@@ -1,7 +1,7 @@
 // Единый источник типов для боевой системы
 // Используется на фронте и бэке
 
-export type Zone = 'head' | 'body' | 'legs' | 'arms';
+export type Zone = 'head' | 'body' | 'legs' | 'arms' | 'back';
 
 export interface BattleAbility {
   id: number;

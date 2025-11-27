@@ -30,6 +30,7 @@ export class CharacterLevelUpService {
     let currentLevel = character.level;
     let currentExp = character.experience;
     let currentFreePoints = character.freePoints;
+    let currentSuperPoints = character.superPoints;
     let levelsGained = 0;
 
     // Повышаем уровень пока хватает опыта
@@ -43,6 +44,13 @@ export class CharacterLevelUpService {
       // Повышаем уровень
       currentLevel++;
       currentFreePoints += 3; // 3 свободных очка за уровень
+
+      // Начисление superPoints каждые 5 уровней после 15-го
+      // Уровни: 20, 25, 30, 35, 40...
+      if (currentLevel >= 20 && (currentLevel - 15) % 5 === 0) {
+        currentSuperPoints += 1;
+      }
+
       levelsGained++;
     }
 
@@ -53,6 +61,7 @@ export class CharacterLevelUpService {
         data: {
           level: currentLevel,
           freePoints: currentFreePoints,
+          superPoints: currentSuperPoints,
         },
       });
     }

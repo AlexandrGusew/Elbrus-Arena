@@ -109,6 +109,7 @@ const Dungeon = () => {
 
   return (
     <BattleArena
+      character={character}
       battleState={battleState}
       isConnected={isConnected}
       onSubmitActions={sendRoundActions}

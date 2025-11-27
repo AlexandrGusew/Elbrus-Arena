@@ -89,6 +89,15 @@ describe('SpecializationService', () => {
             specializationAbility: {
               findMany: jest.fn(),
             },
+            item: {
+              findFirst: jest.fn(),
+            },
+            inventoryItem: {
+              create: jest.fn(),
+            },
+            inventory: {
+              findUnique: jest.fn(),
+            },
           },
         },
       ],
@@ -131,8 +140,33 @@ describe('SpecializationService', () => {
 
   describe('chooseBranch', () => {
     it('должен успешно выбрать ветку для персонажа 10 уровня', async () => {
-      const characterWithoutSpec = { ...mockCharacter, specialization: null };
+      const characterWithoutSpec = {
+        ...mockCharacter,
+        specialization: null,
+        inventory: { id: 1, characterId: 1, size: 20 }
+      };
+      const mockItem = {
+        id: 1,
+        name: 'Щит новичка',
+        type: 'shield',
+        damage: 0,
+        armor: 5,
+        strength: 0,
+        agility: 0,
+        intelligence: 0,
+        requiredLevel: 1,
+        sellPrice: 10,
+      };
       jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(characterWithoutSpec);
+      jest.spyOn(prisma.inventory, 'findUnique').mockResolvedValue({ id: 1, characterId: 1, size: 20 });
+      jest.spyOn(prisma.item, 'findFirst').mockResolvedValue(mockItem);
+      jest.spyOn(prisma.inventoryItem, 'create').mockResolvedValue({
+        id: 1,
+        itemId: 1,
+        inventoryId: 1,
+        enhancement: 0,
+        isEquipped: false,
+      });
       jest.spyOn(prisma.specialization, 'create').mockResolvedValue(mockSpecialization);
 
       const result = await service.chooseBranch(1, SpecializationBranch.PALADIN);

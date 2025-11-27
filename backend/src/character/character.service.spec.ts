@@ -251,6 +251,7 @@ describe('CharacterService', () => {
               },
             },
           },
+          specialization: true,
         },
       });
     });
@@ -283,6 +284,7 @@ describe('CharacterService', () => {
               },
             },
           },
+          specialization: true,
         },
       });
     });
@@ -315,6 +317,7 @@ describe('CharacterService', () => {
               },
             },
           },
+          specialization: true,
         },
       });
     });
@@ -344,6 +347,7 @@ describe('CharacterService', () => {
               },
             },
           },
+          specialization: true,
         },
       });
     });

@@ -1,22 +1,29 @@
 import { useState, useMemo } from 'react';
 import type { Zone, RoundActions, BattleState } from '../../hooks/useBattle';
+import type { Character } from '../../types/api';
 import { BattleStats } from './BattleStats';
 import { ZoneSelector } from './ZoneSelector';
 import { DungeonProgress } from './DungeonProgress';
 import { styles } from '../../pages/Dungeon.styles';
 
 type BattleArenaProps = {
+  character: Character;
   battleState: BattleState;
   isConnected: boolean;
   onSubmitActions: (actions: RoundActions) => void;
   onReset: () => void;
 };
 
-const ZONES: Zone[] = ['head', 'body', 'legs', 'arms'];
+const ZONES_4: Zone[] = ['head', 'body', 'legs', 'arms'];
+const ZONES_5: Zone[] = ['head', 'body', 'legs', 'arms', 'back'];
 
-export const BattleArena = ({ battleState, isConnected, onSubmitActions, onReset }: BattleArenaProps) => {
+export const BattleArena = ({ character, battleState, isConnected, onSubmitActions, onReset }: BattleArenaProps) => {
   const [selectedAttacks, setSelectedAttacks] = useState<Zone[]>([]);
   const [selectedDefenses, setSelectedDefenses] = useState<Zone[]>([]);
+
+  // SHADOW_DANCER имеет 5 зон атаки (включая спину)
+  const isShadowDancer = character.specialization?.branch === 'SHADOW_DANCER';
+  const ZONES = isShadowDancer ? ZONES_5 : ZONES_4;
 
   // Анализ результатов последнего раунда
   const lastRoundResults = useMemo(() => {

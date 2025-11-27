@@ -182,6 +182,53 @@ async function main() {
     },
   });
 
+  // Щиты для паладина
+  const woodenShield = await prisma.item.create({
+    data: {
+      name: 'Деревянный щит',
+      type: 'shield',
+      description: 'Базовый щит для паладина',
+      armor: 5,
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  // Яды для отравителя
+  const basicPoison = await prisma.item.create({
+    data: {
+      name: 'Базовый яд',
+      type: 'offhand',
+      description: 'Базовый яд для отравителя',
+      damage: 3,
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  // Петы для магов
+  const waterElemental = await prisma.item.create({
+    data: {
+      name: 'Водный элементаль',
+      type: 'offhand',
+      description: 'Призванный элементаль для мага льда (Tier 1)',
+      damage: 5,
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  const imp = await prisma.item.create({
+    data: {
+      name: 'Бес',
+      type: 'offhand',
+      description: 'Призванный бес для чернокнижника (Tier 1)',
+      damage: 4,
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
   const easyDungeon = await prisma.dungeon.create({
     data: {
       name: 'Подземелье',

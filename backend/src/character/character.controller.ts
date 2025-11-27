@@ -105,4 +105,9 @@ export class CharacterController {
   async testLevelBoost(@Param('id') id: string) {
     return this.levelUpService.testLevelBoost(Number(id));
   }
+
+  @Post(':id/enhance-offhand')
+  async enhanceOffhand(@Param('id') id: string) {
+    return this.enhancementService.enhanceOffhandWithSuperPoint(Number(id));
+  }
 }

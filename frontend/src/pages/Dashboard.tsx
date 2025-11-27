@@ -182,6 +182,13 @@ const Dashboard = () => {
             </button>
           </Link>
         )}
+        {character.specialization && (
+          <Link to="/class-mentor" style={styles.linkButton}>
+            <button style={{ ...styles.buttonDungeon, background: '#ff9800' }}>
+              Классовый наставник {character.superPoints > 0 && `(${character.superPoints})`}
+            </button>
+          </Link>
+        )}
       </div>
 
       {/* Кнопка выхода */}

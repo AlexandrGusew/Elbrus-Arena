@@ -108,6 +108,19 @@ export const characterApi = baseApi.injectEndpoints({
         { type: 'Character', id: characterId },
       ],
     }),
+
+    enhanceOffhand: builder.mutation<
+      { newEnhancementLevel: number; itemName: string },
+      number
+    >({
+      query: (characterId) => ({
+        url: `/character/${characterId}/enhance-offhand`,
+        method: 'POST',
+      }),
+      invalidatesTags: (result, error, characterId) => [
+        { type: 'Character', id: characterId },
+      ],
+    }),
   }),
 })
 
@@ -123,4 +136,5 @@ export const {
   useDistributeStatsMutation,
   useGetStaminaInfoQuery,
   useTestLevelBoostMutation,
+  useEnhanceOffhandMutation,
 } = characterApi

@@ -330,4 +330,130 @@ describe('BattleService', () => {
       expect(result.playerDamage).toBeGreaterThanOrEqual(0);
     });
   });
+
+  describe('SHADOW_DANCER - валидация зоны "back"', () => {
+    const mockShadowDancer = {
+      ...mockCharacter,
+      class: 'rogue',
+      specialization: {
+        id: 1,
+        characterId: 1,
+        branch: 'SHADOW_DANCER',
+        tier1Unlocked: true,
+        tier2Unlocked: false,
+        tier3Unlocked: false,
+      },
+    };
+
+    const mockWarrior = {
+      ...mockCharacter,
+      class: 'warrior',
+      specialization: {
+        id: 2,
+        characterId: 2,
+        branch: 'BARBARIAN',
+        tier1Unlocked: true,
+        tier2Unlocked: false,
+        tier3Unlocked: false,
+      },
+    };
+
+    it('SHADOW_DANCER должен иметь возможность атаковать в зону "back"', async () => {
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockShadowDancer,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+      jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['back', 'body'] as [Zone, Zone],
+        defenses: ['head', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      const result = await service.processRound('test-battle-123', playerActions);
+
+      expect(result).toBeDefined();
+      expect(result.playerActions.attacks).toContain('back');
+    });
+
+    it('SHADOW_DANCER должен иметь возможность защищать зону "back"', async () => {
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockShadowDancer,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+      jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['head', 'body'] as [Zone, Zone],
+        defenses: ['back', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      const result = await service.processRound('test-battle-123', playerActions);
+
+      expect(result).toBeDefined();
+      expect(result.playerActions.defenses).toContain('back');
+    });
+
+    it('НЕ-SHADOW_DANCER НЕ должен иметь возможность атаковать в зону "back"', async () => {
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockWarrior,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['back', 'body'] as [Zone, Zone],
+        defenses: ['head', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      await expect(service.processRound('test-battle-123', playerActions)).rejects.toThrow(
+        'Зона "спина" доступна только для Shadow Dancer',
+      );
+    });
+
+    it('НЕ-SHADOW_DANCER НЕ должен иметь возможность защищать зону "back"', async () => {
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockWarrior,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['head', 'body'] as [Zone, Zone],
+        defenses: ['back', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      await expect(service.processRound('test-battle-123', playerActions)).rejects.toThrow(
+        'Зона "спина" доступна только для Shadow Dancer',
+      );
+    });
+
+    it('Персонаж без специализации НЕ должен иметь возможность использовать зону "back"', async () => {
+      const characterNoSpec = {
+        ...mockCharacter,
+        specialization: null,
+      };
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: characterNoSpec,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['back', 'body'] as [Zone, Zone],
+        defenses: ['head', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      await expect(service.processRound('test-battle-123', playerActions)).rejects.toThrow(
+        'Зона "спина" доступна только для Shadow Dancer',
+      );
+    });
+  });
 });

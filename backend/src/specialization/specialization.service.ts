@@ -50,13 +50,78 @@ export class SpecializationService {
     }
 
     // Создаем специализацию
-    return this.prisma.specialization.create({
+    const specialization = await this.prisma.specialization.create({
       data: {
         characterId,
         branch,
         tier1Unlocked: true,
         tier2Unlocked: false,
         tier3Unlocked: false,
+      },
+    });
+
+    // Автоматически даем offhand предмет для Tier 1
+    await this.grantTier1Item(characterId, branch);
+
+    return specialization;
+  }
+
+  /**
+   * Выдает и экипирует Tier 1 предмет в зависимости от специализации
+   */
+  private async grantTier1Item(characterId: number, branch: SpecializationBranch) {
+    // Определяем какой предмет выдать
+    let itemName: string | null = null;
+
+    switch (branch) {
+      case SpecializationBranch.PALADIN:
+        itemName = 'Деревянный щит';
+        break;
+      case SpecializationBranch.POISONER:
+        itemName = 'Базовый яд';
+        break;
+      case SpecializationBranch.FROST_MAGE:
+        itemName = 'Водный элементаль';
+        break;
+      case SpecializationBranch.WARLOCK:
+        itemName = 'Бес';
+        break;
+      // BARBARIAN - не нужен предмет, просто разблокирован слот для второго оружия
+      // SHADOW_DANCER - будет реализовано позже (механика 5 зон атаки)
+      default:
+        return; // Не выдаем предмет
+    }
+
+    if (!itemName) return;
+
+    // Находим предмет
+    const item = await this.prisma.item.findFirst({
+      where: { name: itemName },
+    });
+
+    if (!item) {
+      console.error(`Tier 1 item not found: ${itemName}`);
+      return;
+    }
+
+    // Находим инвентарь персонажа
+    const inventory = await this.prisma.inventory.findUnique({
+      where: { characterId },
+    });
+
+    if (!inventory) {
+      console.error(`Inventory not found for character ${characterId}`);
+      return;
+    }
+
+    // Добавляем предмет в инвентарь и сразу экипируем
+    await this.prisma.inventoryItem.create({
+      data: {
+        inventoryId: inventory.id,
+        itemId: item.id,
+        quantity: 1,
+        enhancement: 0,
+        isEquipped: true, // Автоматически экипируем
       },
     });
   }

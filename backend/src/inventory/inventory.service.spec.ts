@@ -308,6 +308,13 @@ describe('InventoryService', () => {
       const equippedItem = {
         ...mockInventoryItem,
         isEquipped: true,
+        inventory: {
+          ...mockInventory,
+          character: {
+            ...mockCharacter,
+            specialization: null,
+          },
+        },
       };
 
       jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(equippedItem);
@@ -328,6 +335,325 @@ describe('InventoryService', () => {
       jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(null);
 
       await expect(service.unequipItem(1)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('Валидация offhand по специализации', () => {
+    describe('PALADIN - только щиты', () => {
+      it('должен разрешить паладину экипировать щит', async () => {
+        const shieldItem = {
+          ...mockInventoryItem,
+          item: {
+            ...mockItem,
+            type: 'shield',
+            name: 'Щит Новичка',
+          },
+        };
+
+        const paladinCharacter = {
+          ...mockCharacter,
+          specialization: {
+            id: 1,
+            characterId: 1,
+            branch: 'PALADIN',
+            tier1Unlocked: true,
+            tier2Unlocked: false,
+            tier3Unlocked: false,
+          },
+          inventory: {
+            ...mockCharacter.inventory,
+            items: [],
+          },
+        };
+
+        jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(shieldItem);
+        jest.spyOn(prisma.inventory, 'findFirst').mockResolvedValue(mockInventory);
+        jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(paladinCharacter);
+        jest.spyOn(prisma.inventoryItem, 'update').mockResolvedValue(shieldItem);
+
+        await service.equipItem(1, 1);
+
+        expect(prisma.inventoryItem.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { isEquipped: true },
+        });
+      });
+
+      it('должен запретить паладину экипировать оружие в offhand', async () => {
+        const weaponItem = {
+          ...mockInventoryItem,
+          item: {
+            ...mockItem,
+            type: 'weapon',
+            name: 'Кинжал',
+          },
+        };
+
+        // У паладина уже есть основное оружие
+        const equippedMainWeapon = {
+          id: 10,
+          inventoryId: 1,
+          itemId: 10,
+          quantity: 1,
+          enhancement: 0,
+          isEquipped: true,
+          item: {
+            ...mockItem,
+            id: 10,
+            name: 'Основной меч',
+            type: 'weapon',
+          },
+        };
+
+        const paladinCharacter = {
+          ...mockCharacter,
+          specialization: {
+            id: 1,
+            characterId: 1,
+            branch: 'PALADIN',
+            tier1Unlocked: true,
+            tier2Unlocked: false,
+            tier3Unlocked: false,
+          },
+          inventory: {
+            ...mockCharacter.inventory,
+            items: [equippedMainWeapon],
+          },
+        };
+
+        jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(weaponItem);
+        jest.spyOn(prisma.inventory, 'findFirst').mockResolvedValue(mockInventory);
+        jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(paladinCharacter);
+
+        await expect(service.equipItem(1, 1)).rejects.toThrow(
+          new ForbiddenException('Паладин может экипировать только щиты в offhand слот'),
+        );
+      });
+    });
+
+    describe('BARBARIAN - только оружие', () => {
+      it('должен разрешить варвару экипировать оружие в offhand', async () => {
+        const weaponItem = {
+          ...mockInventoryItem,
+          item: {
+            ...mockItem,
+            type: 'weapon',
+            name: 'Топор',
+          },
+        };
+
+        // У варвара уже есть основное оружие
+        const equippedMainWeapon = {
+          id: 11,
+          inventoryId: 1,
+          itemId: 11,
+          quantity: 1,
+          enhancement: 0,
+          isEquipped: true,
+          item: {
+            ...mockItem,
+            id: 11,
+            name: 'Основной топор',
+            type: 'weapon',
+          },
+        };
+
+        const barbarianCharacter = {
+          ...mockCharacter,
+          specialization: {
+            id: 2,
+            characterId: 1,
+            branch: 'BARBARIAN',
+            tier1Unlocked: true,
+            tier2Unlocked: false,
+            tier3Unlocked: false,
+          },
+          inventory: {
+            ...mockCharacter.inventory,
+            items: [equippedMainWeapon],
+          },
+        };
+
+        jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(weaponItem);
+        jest.spyOn(prisma.inventory, 'findFirst').mockResolvedValue(mockInventory);
+        jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(barbarianCharacter);
+        jest.spyOn(prisma.inventoryItem, 'update').mockResolvedValue(weaponItem);
+
+        await service.equipItem(1, 1);
+
+        expect(prisma.inventoryItem.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { isEquipped: true },
+        });
+      });
+
+      it('должен запретить варвару экипировать щит', async () => {
+        const shieldItem = {
+          ...mockInventoryItem,
+          item: {
+            ...mockItem,
+            type: 'shield',
+            name: 'Щит',
+          },
+        };
+
+        const barbarianCharacter = {
+          ...mockCharacter,
+          specialization: {
+            id: 2,
+            characterId: 1,
+            branch: 'BARBARIAN',
+            tier1Unlocked: true,
+            tier2Unlocked: false,
+            tier3Unlocked: false,
+          },
+          inventory: {
+            ...mockCharacter.inventory,
+            items: [],
+          },
+        };
+
+        jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(shieldItem);
+        jest.spyOn(prisma.inventory, 'findFirst').mockResolvedValue(mockInventory);
+        jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(barbarianCharacter);
+
+        await expect(service.equipItem(1, 1)).rejects.toThrow(
+          new ForbiddenException('Варвар может экипировать только оружие в offhand слот'),
+        );
+      });
+    });
+
+    describe('POISONER - нельзя снять яд', () => {
+      it('должен запретить отравителю снять яд', async () => {
+        const poisonItem = {
+          ...mockInventoryItem,
+          item: {
+            ...mockItem,
+            type: 'offhand',
+            name: 'Смертельный яд',
+          },
+          inventory: {
+            ...mockInventory,
+            character: {
+              ...mockCharacter,
+              specialization: {
+                id: 3,
+                characterId: 1,
+                branch: 'POISONER',
+                tier1Unlocked: true,
+                tier2Unlocked: false,
+                tier3Unlocked: false,
+              },
+            },
+          },
+        };
+
+        jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(poisonItem);
+
+        await expect(service.unequipItem(1)).rejects.toThrow(
+          new ForbiddenException('Отравитель не может снять яд - он является частью специализации'),
+        );
+      });
+    });
+
+    describe('FROST_MAGE - нельзя снять элементаля', () => {
+      it('должен запретить ледяному магу снять элементаля', async () => {
+        const elementalItem = {
+          ...mockInventoryItem,
+          item: {
+            ...mockItem,
+            type: 'offhand',
+            name: 'Водный элементаль',
+          },
+          inventory: {
+            ...mockInventory,
+            character: {
+              ...mockCharacter,
+              specialization: {
+                id: 4,
+                characterId: 1,
+                branch: 'FROST_MAGE',
+                tier1Unlocked: true,
+                tier2Unlocked: false,
+                tier3Unlocked: false,
+              },
+            },
+          },
+        };
+
+        jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(elementalItem);
+
+        await expect(service.unequipItem(1)).rejects.toThrow(
+          new ForbiddenException('Ледяной маг не может снять элементаля - он является частью специализации'),
+        );
+      });
+    });
+
+    describe('WARLOCK - нельзя снять беса', () => {
+      it('должен запретить чернокнижнику снять беса', async () => {
+        const demonItem = {
+          ...mockInventoryItem,
+          item: {
+            ...mockItem,
+            type: 'offhand',
+            name: 'Бес',
+          },
+          inventory: {
+            ...mockInventory,
+            character: {
+              ...mockCharacter,
+              specialization: {
+                id: 5,
+                characterId: 1,
+                branch: 'WARLOCK',
+                tier1Unlocked: true,
+                tier2Unlocked: false,
+                tier3Unlocked: false,
+              },
+            },
+          },
+        };
+
+        jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(demonItem);
+
+        await expect(service.unequipItem(1)).rejects.toThrow(
+          new ForbiddenException('Чернокнижник не может снять беса - он является частью специализации'),
+        );
+      });
+    });
+
+    describe('Без специализации - нет ограничений', () => {
+      it('должен разрешить экипировать любой offhand предмет без специализации', async () => {
+        const offhandItem = {
+          ...mockInventoryItem,
+          item: {
+            ...mockItem,
+            type: 'offhand',
+            name: 'Кинжал',
+          },
+        };
+
+        const characterNoSpec = {
+          ...mockCharacter,
+          specialization: null,
+          inventory: {
+            ...mockCharacter.inventory,
+            items: [],
+          },
+        };
+
+        jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(offhandItem);
+        jest.spyOn(prisma.inventory, 'findFirst').mockResolvedValue(mockInventory);
+        jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(characterNoSpec);
+        jest.spyOn(prisma.inventoryItem, 'update').mockResolvedValue(offhandItem);
+
+        await service.equipItem(1, 1);
+
+        expect(prisma.inventoryItem.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { isEquipped: true },
+        });
+      });
     });
   });
 

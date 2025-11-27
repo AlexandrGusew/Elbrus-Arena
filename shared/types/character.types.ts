@@ -1,5 +1,6 @@
 import { CharacterClass } from './enums';
 import { Inventory } from './item.types';
+import { Specialization } from './specialization.types';
 
 export interface Character {
   id: number;
@@ -19,8 +20,10 @@ export interface Character {
   stamina: number;
   lastStaminaUpdate: string;
   rating: number;
+  superPoints: number;
   createdAt: string;
   inventory: Inventory;
+  specialization?: Specialization | null;
 }
 
 export interface CreateCharacterDto {

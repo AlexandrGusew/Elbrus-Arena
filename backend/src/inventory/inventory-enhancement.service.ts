@@ -128,4 +128,73 @@ export class InventoryEnhancementService {
       statBonus,
     };
   }
+
+  /**
+   * Прокачать offhand предмет за super point (Классовый наставник)
+   * Стоимость: 1 super point
+   * Гарантированный успех: enhancement +1
+   * Работает ТОЛЬКО с offhand и shield предметами
+   */
+  async enhanceOffhandWithSuperPoint(characterId: number): Promise<{
+    newEnhancementLevel: number;
+    itemName: string;
+  }> {
+    // Получаем персонажа с инвентарем и специализацией
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+      include: {
+        specialization: true,
+        inventory: {
+          include: {
+            items: {
+              where: { isEquipped: true },
+              include: { item: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!character) {
+      throw new NotFoundException('Character not found');
+    }
+
+    // Проверка наличия super points
+    if (character.superPoints < 1) {
+      throw new BadRequestException('Недостаточно супер-поинтов. Требуется: 1');
+    }
+
+    // Проверка наличия специализации
+    if (!character.specialization) {
+      throw new BadRequestException('У персонажа нет специализации');
+    }
+
+    // Находим экипированный offhand предмет
+    const offhandItem = character.inventory!.items.find(
+      (invItem) => invItem.item.type === 'offhand' || invItem.item.type === 'shield'
+    );
+
+    if (!offhandItem) {
+      throw new BadRequestException('У персонажа нет экипированного offhand предмета');
+    }
+
+    // Выполняем прокачку в транзакции
+    const [updatedItem] = await this.prisma.$transaction([
+      // Увеличиваем enhancement предмета
+      this.prisma.inventoryItem.update({
+        where: { id: offhandItem.id },
+        data: { enhancement: offhandItem.enhancement + 1 },
+      }),
+      // Снимаем super point
+      this.prisma.character.update({
+        where: { id: characterId },
+        data: { superPoints: character.superPoints - 1 },
+      }),
+    ]);
+
+    return {
+      newEnhancementLevel: updatedItem.enhancement,
+      itemName: offhandItem.item.name,
+    };
+  }
 }

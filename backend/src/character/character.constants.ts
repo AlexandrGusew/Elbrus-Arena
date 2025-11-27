@@ -10,6 +10,7 @@ export const CHARACTER_INCLUDE = {
       },
     },
   },
+  specialization: true,
 } satisfies Prisma.CharacterInclude;
 
 export const CLASS_STATS = {
@@ -27,7 +28,7 @@ export const CLASS_STATS = {
     maxHp: 100,
     currentHp: 100,
   },
-  assassin: {
+  rogue: {
     strength: 10,
     agility: 15,
     intelligence: 8,
