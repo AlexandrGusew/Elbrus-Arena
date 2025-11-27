@@ -11,7 +11,7 @@ export const BattleStats = ({ playerHp, monsterHp }: BattleStatsProps) => {
       <div style={styles.statsBlock}>
         <h3>Игрок</h3>
         <div style={{ fontSize: '24px', margin: '10px 0' }}>
-          ❤️ {playerHp}
+           {playerHp}
         </div>
       </div>
       <div style={styles.statsBlock}>
