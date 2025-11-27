@@ -100,4 +100,14 @@ export class CharacterController {
   ) {
     return this.inventoryService.sellItem(Number(characterId), Number(inventoryItemId));
   }
+
+  @Post(':id/test-level-boost')
+  async testLevelBoost(@Param('id') id: string) {
+    return this.levelUpService.testLevelBoost(Number(id));
+  }
+
+  @Post(':id/enhance-offhand')
+  async enhanceOffhand(@Param('id') id: string) {
+    return this.enhancementService.enhanceOffhandWithSuperPoint(Number(id));
+  }
 }

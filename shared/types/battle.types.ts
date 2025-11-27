@@ -1,11 +1,21 @@
 // Единый источник типов для боевой системы
 // Используется на фронте и бэке
 
-export type Zone = 'head' | 'body' | 'legs' | 'arms';
+export type Zone = 'head' | 'body' | 'legs' | 'arms' | 'back';
+
+export interface BattleAbility {
+  id: number;
+  name: string;
+  description: string;
+  cooldown: number;
+  currentCooldown: number;  // Сколько ходов осталось до доступности
+  effects: Record<string, any>;  // Эффекты способности
+}
 
 export interface RoundActions {
   attacks: [Zone, Zone];  // 2 атаки
   defenses: [Zone, Zone, Zone];  // 3 защиты (из 4 зон одна остается открытой)
+  abilityId?: number;  // ID использованной способности (опционально)
 }
 
 export interface RoundResult {
@@ -28,6 +38,7 @@ export interface Battle {
   monsterHp: number;
   status: 'active' | 'won' | 'lost';
   rounds: RoundResult[];
+  availableAbilities?: BattleAbility[];  // Доступные способности персонажа
 }
 
 export interface LootedItem {

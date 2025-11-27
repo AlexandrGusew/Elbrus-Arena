@@ -14,6 +14,8 @@ import Dungeon from './pages/Dungeon'
 import Blacksmith from './pages/Blacksmith'
 import Inventory from './pages/Inventory'
 import LevelUp from './pages/LevelUp'
+import Specialization from './pages/Specialization'
+import ClassMentor from './pages/ClassMentor'
 
 // Автоматическая авторизация при старте
 async function initAuth() {
@@ -70,6 +72,14 @@ const router = createBrowserRouter([
       {
         path: 'levelup',
         element: <ProtectedRoute><LevelUp /></ProtectedRoute>
+      },
+      {
+        path: 'specialization',
+        element: <ProtectedRoute><Specialization /></ProtectedRoute>
+      },
+      {
+        path: 'class-mentor',
+        element: <ProtectedRoute><ClassMentor /></ProtectedRoute>
       }
     ]
   },

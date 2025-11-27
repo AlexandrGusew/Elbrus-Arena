@@ -1,11 +1,24 @@
 import type { Zone } from '../../hooks/useBattle';
 import { styles } from '../../pages/Dungeon.styles';
 
+// Импортируем изображения из папки fight
+import headImg from '../../assets/fight/head (1).png';
+import chestImg from '../../assets/fight/chest (1).png';
+import legsImg from '../../assets/fight/legs (1).png';
+import armsImg from '../../assets/fight/arms (1).png';
+
 const ZONE_NAMES: Record<Zone, string> = {
   head: 'Голова',
   body: 'Тело',
   legs: 'Ноги',
   arms: 'Руки',
+};
+
+const ZONE_IMAGES: Record<Zone, string> = {
+  head: headImg,
+  body: chestImg,
+  legs: legsImg,
+  arms: armsImg,
 };
 
 type ZoneSelectorProps = {
@@ -56,29 +69,72 @@ export const ZoneSelector = ({
     return '2px';
   };
 
+  const title = type === 'attack' ? 'ATTACK' : 'DEFENCE';
+
   return (
     <div style={styles.statsBlock}>
-      <h4>Выберите {maxSelections} {maxSelections === 2 ? 'зоны' : 'зон'} для {label} ({selectedZones.length}/{maxSelections}):</h4>
-      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '10px' }}>
+      <h4 style={{ fontSize: '24px', fontWeight: 'bold', color: selectedColor, marginBottom: '15px' }}>
+        {title} - {selectedZones.length}/{maxSelections}
+      </h4>
+      <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '10px' }}>
         {zones.map(zone => (
-          <button
+          <div
             key={zone}
             onClick={() => onToggle(zone)}
             style={{
-              padding: '15px 20px',
-              fontSize: '16px',
+              width: '180px',
+              height: '180px',
+              position: 'relative',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
               border: 'solid',
               borderWidth: getZoneBorderWidth(zone),
               borderColor: getZoneBorderColor(zone),
-              background: selectedZones.includes(zone) ? selectedColor : '#333',
-              color: 'white',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              background: selectedZones.includes(zone) ? `${selectedColor}33` : 'transparent',
+              opacity: selectedZones.includes(zone) ? 1 : 0.7,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.opacity = '1';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.opacity = selectedZones.includes(zone) ? '1' : '0.7';
             }}
           >
-            {ZONE_NAMES[zone]}
-          </button>
+            <img
+              src={ZONE_IMAGES[zone]}
+              alt={ZONE_NAMES[zone]}
+              style={{
+                width: '120%',
+                height: '120%',
+                objectFit: 'cover',
+                pointerEvents: 'none',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
+            {/* Подпись под картинкой */}
+            <div style={{
+              position: 'absolute',
+              bottom: '5px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(0, 0, 0, 0.7)',
+              color: 'white',
+              padding: '3px 8px',
+              borderRadius: '5px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              whiteSpace: 'nowrap',
+            }}>
+              {ZONE_NAMES[zone]}
+            </div>
+          </div>
         ))}
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetCharacterQuery, useEquipItemMutation, useUnequipItemMutation, useSellItemMutation } from '../store/api/characterApi';
 import type { InventoryItem } from '../types/api';
@@ -12,7 +13,9 @@ const SLOT_ICONS: Record<ItemType, string> = {
   belt: '🔗',
   legs: '👖',
   accessory: '💍',
-  potion: '🧪'
+  potion: '🧪',
+  shield: '🛡️',
+  offhand: '🗡️'
 };
 
 const SLOT_NAMES: Record<ItemType, string> = {
@@ -22,7 +25,9 @@ const SLOT_NAMES: Record<ItemType, string> = {
   belt: 'Пояс',
   legs: 'Штаны',
   accessory: 'Аксессуар',
-  potion: 'Зелье'
+  potion: 'Зелье',
+  shield: 'Щит',
+  offhand: 'Левая рука'
 };
 
 const Inventory = () => {
@@ -37,6 +42,10 @@ const Inventory = () => {
   const [equipItem] = useEquipItemMutation();
   const [unequipItem] = useUnequipItemMutation();
   const [sellItem] = useSellItemMutation();
+
+  // Drag & Drop состояние
+  const [draggedItem, setDraggedItem] = useState<InventoryItem | null>(null);
+  const [dragOverSlot, setDragOverSlot] = useState<ItemType | null>(null);
 
   const handleEquip = async (invItem: InventoryItem) => {
     if (!character) return;
@@ -68,6 +77,55 @@ const Inventory = () => {
     } catch (err: any) {
       alert(`Ошибка продажи: ${err.data?.message || 'Неизвестная ошибка'}`);
     }
+  };
+
+  // Drag & Drop обработчики
+  const handleDragStart = (e: React.DragEvent, invItem: InventoryItem) => {
+    setDraggedItem(invItem);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverSlot(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, slotType: ItemType) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverSlot(slotType);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverSlot(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, slotType: ItemType) => {
+    e.preventDefault();
+    setDragOverSlot(null);
+
+    if (!draggedItem || !character) return;
+
+    // Проверка: можно ли поместить предмет в этот слот
+    const isOffhandSlot = slotType === 'shield' || slotType === 'offhand';
+    const itemType = draggedItem.item.type;
+
+    // Для offhand слота принимаем shield и offhand
+    if (isOffhandSlot) {
+      if (itemType !== 'shield' && itemType !== 'offhand') {
+        alert('Этот предмет не может быть экипирован в offhand слот');
+        return;
+      }
+    } else if (itemType !== slotType) {
+      // Для обычных слотов проверяем соответствие типа
+      alert(`Этот предмет не может быть экипирован в слот ${SLOT_NAMES[slotType]}`);
+      return;
+    }
+
+    // Экипируем предмет
+    await handleEquip(draggedItem);
+    setDraggedItem(null);
   };
 
   if (!characterId) {
@@ -166,8 +224,24 @@ const Inventory = () => {
           <div style={styles.equipmentSlots}>
             {slots.map(slotType => {
               const equippedItem = getEquippedItemByType(slotType);
+              const isHighlighted = dragOverSlot === slotType;
+
               return (
-                <div key={slotType} style={styles.equipmentSlot}>
+                <div
+                  key={slotType}
+                  style={{
+                    ...styles.equipmentSlot,
+                    ...(isHighlighted && {
+                      background: 'linear-gradient(135deg, #4a5a4e 0%, #3a4a3e 100%)',
+                      border: '2px solid #4CAF50',
+                      transform: 'scale(1.02)',
+                      transition: 'all 0.2s ease'
+                    })
+                  }}
+                  onDragOver={(e) => handleDragOver(e, slotType)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, slotType)}
+                >
                   <div style={styles.slotIcon}>{SLOT_ICONS[slotType]}</div>
                   <div style={styles.slotContent}>
                     <div style={styles.slotName}>{SLOT_NAMES[slotType]}</div>
@@ -193,6 +267,69 @@ const Inventory = () => {
               );
             })}
           </div>
+
+          {/* Offhand слот - специальный слот для специализаций */}
+          <div style={{
+            background: 'linear-gradient(135deg, #3a2a4e 0%, #2a1a3e 100%)',
+            padding: '15px',
+            borderRadius: '10px',
+            marginTop: '15px',
+            border: '2px solid #6a4a8a'
+          }}>
+            <h3 style={{ margin: '0 0 10px 0', color: '#fff', fontSize: '14px' }}>
+              Offhand слот {character.specialization ? '(разблокирован)' : '(требуется Tier 1 специализация)'}
+            </h3>
+            {(() => {
+              const offhandItem = getEquippedItemByType('shield') || getEquippedItemByType('offhand');
+              const offhandSlotType: ItemType = 'offhand';
+              const isOffhandHighlighted = dragOverSlot === offhandSlotType;
+
+              return (
+                <div
+                  style={{
+                    ...styles.equipmentSlot,
+                    ...(isOffhandHighlighted && {
+                      background: 'linear-gradient(135deg, #5a4a6e 0%, #4a3a5e 100%)',
+                      border: '2px solid #9C27B0',
+                      transform: 'scale(1.02)',
+                      transition: 'all 0.2s ease'
+                    })
+                  }}
+                  onDragOver={(e) => handleDragOver(e, offhandSlotType)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, offhandSlotType)}
+                >
+                  <div style={styles.slotIcon}>
+                    {offhandItem ? SLOT_ICONS[offhandItem.item.type] : '🔒'}
+                  </div>
+                  <div style={styles.slotContent}>
+                    <div style={styles.slotName}>
+                      {offhandItem ? SLOT_NAMES[offhandItem.item.type] : 'Левая рука'}
+                    </div>
+                    {offhandItem ? (
+                      <div
+                        style={styles.slotItem}
+                        onClick={() => handleEquip(offhandItem)}
+                      >
+                        <div style={styles.slotItemName}>
+                          {offhandItem.item.name}
+                          {offhandItem.enhancement > 0 && ` +${offhandItem.enhancement}`}
+                        </div>
+                        <div style={styles.slotItemStats}>
+                          {offhandItem.item.damage > 0 && `Урон: ${offhandItem.item.damage} `}
+                          {offhandItem.item.armor > 0 && `Броня: ${offhandItem.item.armor}`}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={styles.slotEmpty}>
+                        {character.specialization ? 'Пусто' : 'Заблокирован'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </div>
 
         <div style={styles.inventorySection}>
@@ -209,7 +346,16 @@ const Inventory = () => {
                 return (
                   <div
                     key={invItem.id}
-                    style={styles.inventoryItem}
+                    style={{
+                      ...styles.inventoryItem,
+                      ...(draggedItem?.id === invItem.id && {
+                        opacity: 0.5,
+                        transform: 'scale(0.95)',
+                      })
+                    }}
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(e, invItem)}
+                    onDragEnd={handleDragEnd}
                   >
                     <div style={styles.itemHeader}>
                       <div style={styles.itemIcon}>{SLOT_ICONS[invItem.item.type]}</div>

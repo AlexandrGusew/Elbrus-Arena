@@ -35,6 +35,7 @@ export class InventoryService {
     const character = await this.prisma.character.findUnique({
       where: { id: characterId },
       include: {
+        specialization: true,
         inventory: {
           include: {
             items: {
@@ -69,6 +70,18 @@ export class InventoryService {
       (item) => item.item.type === inventoryItem.item.type && item.isEquipped
     );
 
+    // Валидация offhand предметов по специализации
+    // 1. Если это offhand или shield - всегда проверяем
+    // 2. Если это weapon И уже есть экипированное оружие - это попытка экипировать в offhand (dual-wield)
+    const isOffhandSlot =
+      inventoryItem.item.type === 'offhand' ||
+      inventoryItem.item.type === 'shield' ||
+      (inventoryItem.item.type === 'weapon' && sameTypeItems.length > 0);
+
+    if (isOffhandSlot) {
+      this.validateOffhandEquipment(character, inventoryItem.item);
+    }
+
     for (const item of sameTypeItems) {
       await this.prisma.inventoryItem.update({
         where: { id: item.id },
@@ -85,16 +98,85 @@ export class InventoryService {
   async unequipItem(inventoryItemId: number) {
     const inventoryItem = await this.prisma.inventoryItem.findUnique({
       where: { id: inventoryItemId },
+      include: {
+        item: true,
+        inventory: {
+          include: {
+            character: {
+              include: {
+                specialization: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!inventoryItem) {
       throw new NotFoundException('Inventory item not found');
     }
 
+    // Валидация: нельзя снимать определенные offhand предметы
+    this.validateOffhandUnequip(inventoryItem.inventory.character, inventoryItem.item);
+
     await this.prisma.inventoryItem.update({
       where: { id: inventoryItemId },
       data: { isEquipped: false },
     });
+  }
+
+  /**
+   * Валидация экипировки offhand предметов по специализации
+   */
+  private validateOffhandEquipment(character: any, item: any): void {
+    if (!character.specialization) {
+      return; // Если нет специализации, нет ограничений
+    }
+
+    const branch = character.specialization.branch;
+
+    // PALADIN может экипировать только щиты в offhand
+    if (branch === 'PALADIN') {
+      if (item.type !== 'shield') {
+        throw new ForbiddenException('Паладин может экипировать только щиты в offhand слот');
+      }
+    }
+
+    // BARBARIAN может экипировать только оружие в offhand
+    if (branch === 'BARBARIAN') {
+      if (item.type !== 'weapon') {
+        throw new ForbiddenException('Варвар может экипировать только оружие в offhand слот');
+      }
+    }
+
+    // SHADOW_DANCER не имеет ограничений на offhand (может экипировать оружие)
+    // POISONER, FROST_MAGE, WARLOCK - их offhand предметы проверяются при снятии
+  }
+
+  /**
+   * Валидация снятия offhand предметов
+   */
+  private validateOffhandUnequip(character: any, item: any): void {
+    if (!character.specialization) {
+      return;
+    }
+
+    const branch = character.specialization.branch;
+
+    // POISONER не может снять яд
+    if (branch === 'POISONER' && item.type === 'offhand' && item.name.toLowerCase().includes('яд')) {
+      throw new ForbiddenException('Отравитель не может снять яд - он является частью специализации');
+    }
+
+    // FROST_MAGE не может снять элементаля
+    if (branch === 'FROST_MAGE' && item.type === 'offhand' && item.name.toLowerCase().includes('элементал')) {
+      throw new ForbiddenException('Ледяной маг не может снять элементаля - он является частью специализации');
+    }
+
+    // WARLOCK не может снять беса
+    if (branch === 'WARLOCK' && item.type === 'offhand' && item.name.toLowerCase().includes('бес')) {
+      throw new ForbiddenException('Чернокнижник не может снять беса - он является частью специализации');
+    }
   }
 
   /**

@@ -30,6 +30,7 @@ export class CharacterLevelUpService {
     let currentLevel = character.level;
     let currentExp = character.experience;
     let currentFreePoints = character.freePoints;
+    let currentSuperPoints = character.superPoints;
     let levelsGained = 0;
 
     // Повышаем уровень пока хватает опыта
@@ -43,6 +44,13 @@ export class CharacterLevelUpService {
       // Повышаем уровень
       currentLevel++;
       currentFreePoints += 3; // 3 свободных очка за уровень
+
+      // Начисление superPoints каждые 5 уровней после 15-го
+      // Уровни: 20, 25, 30, 35, 40...
+      if (currentLevel >= 20 && (currentLevel - 15) % 5 === 0) {
+        currentSuperPoints += 1;
+      }
+
       levelsGained++;
     }
 
@@ -53,6 +61,7 @@ export class CharacterLevelUpService {
         data: {
           level: currentLevel,
           freePoints: currentFreePoints,
+          superPoints: currentSuperPoints,
         },
       });
     }
@@ -125,6 +134,45 @@ export class CharacterLevelUpService {
       requiredExp,
       progress,
       freePoints: character.freePoints,
+    };
+  }
+
+  /**
+   * ТЕСТОВЫЙ МЕТОД: Дает персонажу +20000 опыта для быстрого тестирования
+   */
+  async testLevelBoost(characterId: number): Promise<{
+    message: string;
+    oldLevel: number;
+    newLevel: number;
+    expGained: number;
+  }> {
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+    });
+
+    if (!character) {
+      throw new Error('Character not found');
+    }
+
+    const oldLevel = character.level;
+    const expBoost = 20000;
+
+    // Добавляем опыт
+    await this.prisma.character.update({
+      where: { id: characterId },
+      data: {
+        experience: character.experience + expBoost,
+      },
+    });
+
+    // Автоматически повышаем уровни
+    const levelsGained = await this.checkAndLevelUp(characterId);
+
+    return {
+      message: `Получено ${expBoost} опыта! Уровень: ${oldLevel} → ${oldLevel + levelsGained}`,
+      oldLevel,
+      newLevel: oldLevel + levelsGained,
+      expGained: expBoost,
     };
   }
 }

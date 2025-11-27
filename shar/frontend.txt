@@ -1,0 +1,152 @@
+# FRONTEND АРХИТЕКТУРА
+
+## СТРУКТУРА ПРОЕКТА
+
+### Технологии
+- React 18 + TypeScript
+- Vite - сборщик
+- React Router - роутинг
+- Axios - HTTP клиент
+- Socket.io - WebSocket для боевой системы
+
+## СТРАНИЦЫ (PAGES)
+
+### CreateCharacter.tsx
+Создание нового персонажа. Форма с выбором имени и класса (warrior/mage/assassin).
+После создания сохраняет characterId в localStorage и переходит на Dashboard.
+
+### Dashboard.tsx
+Главная страница персонажа. Отображает:
+- Имя, уровень, класс
+- Характеристики (сила, ловкость, интеллект, свободные очки)
+- HP bar с цветовой индикацией
+- Золото и опыт
+- Экипированные предметы из инвентаря
+- Кнопки навигации: В подземелье, Кузница
+
+Использует хук useCharacter() для загрузки данных персонажа.
+
+### Blacksmith.tsx
+Кузница - управление экипировкой. Отображает список предметов из инвентаря с возможностью надеть/снять каждый предмет.
+При клике отправляет PUT запрос на /api/character/:id/equip или /api/character/:id/unequip.
+
+Использует хук useCharacter() для загрузки и обновления персонажа.
+
+### Dungeon.tsx
+Выбор подземелья и начало боя. Загружает список подземелий, показывает сложность и монстров.
+При выборе подземелья создает бой через POST /api/battle/start и переходит в боевой режим.
+
+## БОЕВАЯ СИСТЕМА
+
+### useBattle.ts (хук)
+Управляет WebSocket подключением для боя:
+- Подключается к серверу через Socket.io
+- Слушает события: round-start, round-complete, battle-end, error
+- Отправляет round-actions с выбранными зонами атаки/защиты
+- Хранит состояние боя: roundNumber, playerHp, monsterHp, status
+
+Состояния боя:
+- waiting - ожидание подключения
+- active - бой идет
+- won - победа
+- lost - поражение
+
+## HOOKS
+
+### useCharacter.ts
+Загружает персонажа по characterId из localStorage. Использует useAsync внутри.
+Возвращает: character, loading, error, refetch, setCharacter
+
+### useAsync.ts
+Универсальный хук для асинхронных операций. Управляет состояниями loading, error, data.
+Принимает asyncFunction и immediate флаг.
+Возвращает: data, loading, error, execute, setData
+
+### useBattle.ts
+Управляет WebSocket подключением для боевой системы (описан выше).
+
+## SERVICES
+
+### api.ts
+Настроенный экземпляр Axios с:
+- baseURL из VITE_API_BASE_URL (по умолчанию http://localhost:3000/api)
+- timeout 30 секунд
+- автоматическое добавление JWT токена из localStorage
+- interceptors для логирования в dev mode
+- обработка ошибок 401/403/500
+- автоматический logout при 401
+
+## ТИПЫ (TYPES)
+
+### api.ts
+Экспортирует типы из shared/types и добавляет фронтенд-специфичные:
+- ApiError - ошибка от API
+- Re-export всех типов: Character, Item, Dungeon, Battle и т.д.
+- Re-export констант: CHARACTER_CLASSES, DUNGEON_DIFFICULTIES, ITEM_TYPES
+
+## СТИЛИ
+
+### common.styles.ts
+Централизованная система стилей с:
+- colors - цветовая палитра проекта
+- commonStyles - переиспользуемые компоненты стилей (контейнеры, карточки, кнопки, гриды)
+- mergeStyles() - хелпер для объединения стилей
+
+Используется во всех .styles.ts файлах страниц для DRY.
+
+### [Page].styles.ts
+Стили для каждой страницы. Импортируют commonStyles и colors, добавляют специфичные стили для конкретной страницы.
+
+## РОУТИНГ
+
+main.tsx настраивает React Router:
+- / - CreateCharacter
+- /dashboard - Dashboard
+- /blacksmith - Blacksmith
+- /dungeon - Dungeon
+
+## КОНФИГУРАЦИЯ
+
+### .env
+- VITE_API_BASE_URL - URL бэкенда API
+- VITE_WS_URL - URL WebSocket сервера
+- VITE_DEV_MODE - флаг dev режима
+
+### vite.config.ts
+- Алиас @shared для доступа к shared/types
+- React plugin
+- Настройки для ngrok (закомментированы)
+
+## ЛОГИКА ВЗАИМОДЕЙСТВИЯ
+
+### Загрузка персонажа
+1. Страница вызывает useCharacter()
+2. Хук читает characterId из localStorage
+3. Делает GET /api/character/:id через api.ts
+4. При успехе возвращает персонажа, при ошибке - редирект на /
+
+### Экипировка предмета
+1. Пользователь кликает на предмет в Blacksmith
+2. Вызывается handleEquip()
+3. Отправляется PUT /api/character/:id/equip/:itemId
+4. Обновляется состояние персонажа через setCharacter()
+
+### Боевая система
+1. Пользователь выбирает подземелье
+2. POST /api/battle/start создает бой
+3. useBattle подключается через WebSocket (join-battle)
+4. Сервер отправляет round-start с состоянием
+5. UI отображает HP, номер раунда, текущего монстра
+6. Пользователь выбирает 2 зоны атаки и 3 зоны защиты
+7. Отправляется round-actions
+8. Сервер отвечает round-complete с результатом
+9. UI показывает результаты урона
+10. Через 2 секунды начинается следующий раунд или отправляется battle-end
+
+## СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+
+localStorage:
+- characterId - ID текущего персонажа
+- auth_token - JWT токен (для будущей авторизации)
+
+Каждая страница загружает данные независимо через API (без глобального state).

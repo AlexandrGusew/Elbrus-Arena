@@ -128,4 +128,160 @@ export class InventoryEnhancementService {
       statBonus,
     };
   }
+
+  /**
+   * Прокачать offhand предмет за super point (Классовый наставник)
+   * Стоимость: 1 super point
+   * Бонусы зависят от класса и специализации:
+   * - ROGUE/POISONER: +20% урон к яду
+   * - MAGE (Elemental/Demon): +20% урон к питомцу
+   * - WARRIOR/PALADIN (щит): +20% к броне щита
+   * - WARRIOR/BARBARIAN (оружие): +20% к урону оружия
+   */
+  async enhanceOffhandWithSuperPoint(characterId: number): Promise<{
+    newEnhancementLevel: number;
+    itemName: string;
+    bonusType: string;
+    bonusValue: number;
+  }> {
+    // Получаем персонажа с инвентарем и специализацией
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+      include: {
+        specialization: true,
+        inventory: {
+          include: {
+            items: {
+              where: { isEquipped: true },
+              include: { item: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!character) {
+      throw new NotFoundException('Character not found');
+    }
+
+    // Проверка наличия super points
+    if (character.superPoints < 1) {
+      throw new BadRequestException('Недостаточно супер-поинтов. Требуется: 1');
+    }
+
+    // Проверка наличия специализации
+    if (!character.specialization) {
+      throw new BadRequestException('У персонажа нет специализации');
+    }
+
+    // Находим экипированный offhand предмет
+    const offhandItem = character.inventory!.items.find(
+      (invItem) => invItem.item.type === 'offhand' || invItem.item.type === 'shield'
+    );
+
+    if (!offhandItem) {
+      throw new BadRequestException('У персонажа нет экипированного offhand предмета');
+    }
+
+    // Определяем тип улучшения в зависимости от класса и предмета
+    let bonusType = 'enhancement';
+    let bonusValue = 1;
+    const updates: any = {};
+
+    const isPoison = offhandItem.item.name.toLowerCase().includes('яд');
+    const isPet =
+      offhandItem.item.name.toLowerCase().includes('элементаль') ||
+      offhandItem.item.name.toLowerCase().includes('бес');
+    const isShield = offhandItem.item.type === 'shield';
+    const isWeapon = offhandItem.item.type === 'offhand' && offhandItem.item.damage > 0;
+
+    // ROGUE + яд: ×2 урон
+    if (character.class.toUpperCase() === 'ROGUE' && isPoison) {
+      const currentDamage = offhandItem.item.damage;
+      const newDamage = currentDamage * 2; // Удваиваем урон
+
+      await this.prisma.item.update({
+        where: { id: offhandItem.item.id },
+        data: { damage: newDamage },
+      });
+
+      bonusType = 'урон (яд)';
+      bonusValue = currentDamage; // Показываем прирост
+    }
+    // MAGE + питомец: ×2 урон
+    else if (character.class.toUpperCase() === 'MAGE' && isPet) {
+      const currentDamage = offhandItem.item.damage;
+      const newDamage = currentDamage * 2; // Удваиваем урон
+
+      await this.prisma.item.update({
+        where: { id: offhandItem.item.id },
+        data: { damage: newDamage },
+      });
+
+      bonusType = 'урон (питомец)';
+      bonusValue = currentDamage; // Показываем прирост
+    }
+    // WARRIOR + щит: ×2 броня
+    else if (character.class.toUpperCase() === 'WARRIOR' && isShield) {
+      const currentArmor = offhandItem.item.armor;
+      const newArmor = currentArmor * 2; // Удваиваем броню
+
+      await this.prisma.item.update({
+        where: { id: offhandItem.item.id },
+        data: { armor: newArmor },
+      });
+
+      bonusType = 'броня (щит)';
+      bonusValue = currentArmor; // Показываем прирост
+    }
+    // WARRIOR + оружие: ×2 урон
+    else if (character.class.toUpperCase() === 'WARRIOR' && isWeapon) {
+      const currentDamage = offhandItem.item.damage;
+      const newDamage = currentDamage * 2; // Удваиваем урон
+
+      await this.prisma.item.update({
+        where: { id: offhandItem.item.id },
+        data: { damage: newDamage },
+      });
+
+      bonusType = 'урон (оружие)';
+      bonusValue = currentDamage; // Показываем прирост
+    }
+    // Fallback: просто enhancement +1
+    else {
+      updates.enhancement = offhandItem.enhancement + 1;
+      bonusType = 'enhancement';
+      bonusValue = 1;
+    }
+
+    // Выполняем прокачку в транзакции
+    const transactionOperations: any[] = [];
+
+    // Обновляем enhancement если нужно
+    if (Object.keys(updates).length > 0) {
+      transactionOperations.push(
+        this.prisma.inventoryItem.update({
+          where: { id: offhandItem.id },
+          data: updates,
+        })
+      );
+    }
+
+    // Снимаем super point
+    transactionOperations.push(
+      this.prisma.character.update({
+        where: { id: characterId },
+        data: { superPoints: character.superPoints - 1 },
+      })
+    );
+
+    await this.prisma.$transaction(transactionOperations);
+
+    return {
+      newEnhancementLevel: offhandItem.enhancement + (updates.enhancement ? 1 : 0),
+      itemName: offhandItem.item.name,
+      bonusType,
+      bonusValue,
+    };
+  }
 }

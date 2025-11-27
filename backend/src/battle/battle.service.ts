@@ -22,6 +22,7 @@ export class BattleService {
   async startBattle(characterId: number, dungeonId: number): Promise<Battle> {
     const character = await this.prisma.character.findUnique({
       where: { id: characterId },
+      include: { specialization: true },
     });
 
     if (!character) {
@@ -62,6 +63,9 @@ export class BattleService {
       },
     });
 
+    // Загружаем доступные способности персонажа
+    const availableAbilities = await this.loadCharacterAbilities(character);
+
     return {
       id: battle.id,
       characterId: battle.characterId,
@@ -72,6 +76,7 @@ export class BattleService {
       monsterHp: battle.monsterHp,
       status: battle.status as 'active' | 'won' | 'lost',
       rounds: [],
+      availableAbilities,
     };
   }
 
@@ -129,6 +134,7 @@ export class BattleService {
       include: {
         character: {
           include: {
+            specialization: true,
             inventory: {
               include: {
                 items: {
@@ -163,6 +169,14 @@ export class BattleService {
 
     if (!dungeon || !dungeon.monsters || dungeon.monsters.length === 0) {
       throw new Error('Dungeon not found or has no monsters');
+    }
+
+    // Проверка: зона 'back' доступна только для SHADOW_DANCER
+    const isShadowDancer = character.specialization?.branch === 'SHADOW_DANCER';
+    const allPlayerZones = [...playerActions.attacks, ...playerActions.defenses];
+
+    if (!isShadowDancer && allPlayerZones.includes('back')) {
+      throw new BadRequestException('Зона "спина" доступна только для Shadow Dancer');
     }
 
     const currentMonster =
@@ -330,6 +344,43 @@ export class BattleService {
     });
 
     return roundResult;
+  }
+
+  /**
+   * Загружает доступные способности персонажа
+   */
+  private async loadCharacterAbilities(character: any): Promise<any[]> {
+    // Если нет специализации, возвращаем пустой массив
+    if (!character.specialization) {
+      return [];
+    }
+
+    const spec = character.specialization;
+
+    // Определяем какие тиры разблокированы
+    const unlockedTiers: number[] = [];
+    if (spec.tier1Unlocked) unlockedTiers.push(1);
+    if (spec.tier2Unlocked) unlockedTiers.push(2);
+    if (spec.tier3Unlocked) unlockedTiers.push(3);
+
+    // Загружаем способности для разблокированных тиров
+    const abilities = await this.prisma.specializationAbility.findMany({
+      where: {
+        branch: spec.branch,
+        tier: { in: unlockedTiers },
+      },
+      orderBy: { tier: 'asc' },
+    });
+
+    // Преобразуем в формат BattleAbility с currentCooldown = 0 (доступны сразу)
+    return abilities.map((ability) => ({
+      id: ability.id,
+      name: ability.name,
+      description: ability.description,
+      cooldown: ability.cooldown,
+      currentCooldown: 0,  // В начале боя все способности доступны
+      effects: ability.effects,
+    }));
   }
 
 }

@@ -182,6 +182,53 @@ async function main() {
     },
   });
 
+  // Щиты для паладина
+  const woodenShield = await prisma.item.create({
+    data: {
+      name: 'Деревянный щит',
+      type: 'shield',
+      description: 'Базовый щит для паладина',
+      armor: 5,
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  // Яды для отравителя
+  const basicPoison = await prisma.item.create({
+    data: {
+      name: 'Базовый яд',
+      type: 'offhand',
+      description: 'Базовый яд для отравителя',
+      damage: 3,
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  // Петы для магов
+  const waterElemental = await prisma.item.create({
+    data: {
+      name: 'Водный элементаль',
+      type: 'offhand',
+      description: 'Призванный элементаль для мага льда (Tier 1)',
+      damage: 5,
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  const imp = await prisma.item.create({
+    data: {
+      name: 'Бес',
+      type: 'offhand',
+      description: 'Призванный бес для чернокнижника (Tier 1)',
+      damage: 4,
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
   const easyDungeon = await prisma.dungeon.create({
     data: {
       name: 'Подземелье',
@@ -279,6 +326,167 @@ async function main() {
       { monsterId: demon.id, itemId: helmet.id, dropChance: 0.7, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: belt.id, dropChance: 0.6, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: potion.id, dropChance: 0.9, minCount: 3, maxCount: 5 },
+    ],
+  });
+
+  // СПЕЦИАЛИЗАЦИИ - 18 способностей (6 веток × 3 тира)
+  await prisma.specializationAbility.createMany({
+    data: [
+      // WARRIOR - PALADIN
+      {
+        branch: 'PALADIN',
+        tier: 1,
+        name: 'Мастерство щита',
+        description: 'Открывает слот щита. +10% к броне',
+        cooldown: 0,
+        effects: { type: 'passive', armorBonus: 10 },
+      },
+      {
+        branch: 'PALADIN',
+        tier: 2,
+        name: 'Божественное благословение',
+        description: '+30% к броне на 3 хода',
+        cooldown: 5,
+        effects: { type: 'buff', armorBonus: 30, duration: 3 },
+      },
+      {
+        branch: 'PALADIN',
+        tier: 3,
+        name: 'Божественный щит',
+        description: 'Неуязвимость на 1 ход',
+        cooldown: 10,
+        effects: { type: 'ultimate', invulnerability: true, duration: 1 },
+      },
+
+      // WARRIOR - BARBARIAN
+      {
+        branch: 'BARBARIAN',
+        tier: 1,
+        name: 'Двойное оружие',
+        description: 'Открывает второй слот оружия. +15% к урону',
+        cooldown: 0,
+        effects: { type: 'passive', damageBonus: 15 },
+      },
+      {
+        branch: 'BARBARIAN',
+        tier: 2,
+        name: 'Боевая ярость',
+        description: '+40% к урону на 3 хода',
+        cooldown: 5,
+        effects: { type: 'buff', damageBonus: 40, duration: 3 },
+      },
+      {
+        branch: 'BARBARIAN',
+        tier: 3,
+        name: 'Кровожадность',
+        description: '+100% к урону, кровотечение (+10% урона 2 хода)',
+        cooldown: 10,
+        effects: { type: 'ultimate', damageBonus: 100, bleed: { damageBonus: 10, duration: 2 } },
+      },
+
+      // ROGUE - SHADOW_DANCER
+      {
+        branch: 'SHADOW_DANCER',
+        tier: 1,
+        name: 'Удар в спину',
+        description: 'Создает 5-ю зону атаки (враг защищает 3 из 5)',
+        cooldown: 0,
+        effects: { type: 'passive', zones: 5, defendZones: 3 },
+      },
+      {
+        branch: 'SHADOW_DANCER',
+        tier: 2,
+        name: 'Теневой шаг',
+        description: '+50% к уклонению на 2 хода',
+        cooldown: 4,
+        effects: { type: 'buff', evasionBonus: 50, duration: 2 },
+      },
+      {
+        branch: 'SHADOW_DANCER',
+        tier: 3,
+        name: 'Теневой клон',
+        description: 'Призывает клона с 50% характеристик на 3 хода',
+        cooldown: 8,
+        effects: { type: 'ultimate', summon: 'clone', statsPercent: 50, duration: 3 },
+      },
+
+      // ROGUE - POISONER
+      {
+        branch: 'POISONER',
+        tier: 1,
+        name: 'Мастерство яда',
+        description: 'Все атаки наносят яд (+5% урона в ход)',
+        cooldown: 0,
+        effects: { type: 'passive', poison: { damagePercent: 5 } },
+      },
+      {
+        branch: 'POISONER',
+        tier: 2,
+        name: 'Токсичное покрытие',
+        description: 'Яд наносит +15% урона в ход на 4 хода',
+        cooldown: 5,
+        effects: { type: 'buff', poison: { damagePercent: 15, duration: 4 } },
+      },
+      {
+        branch: 'POISONER',
+        tier: 3,
+        name: 'Смертельный токсин',
+        description: 'Яд наносит 50% текущего HP врага за 5 ходов',
+        cooldown: 10,
+        effects: { type: 'ultimate', poison: { hpPercent: 50, duration: 5 } },
+      },
+
+      // MAGE - FROST_MAGE
+      {
+        branch: 'FROST_MAGE',
+        tier: 1,
+        name: 'Призыв водного элементаля',
+        description: 'Призывает элементаля с 50% характеристик',
+        cooldown: 0,
+        effects: { type: 'passive', summon: 'water_elemental', statsPercent: 50 },
+      },
+      {
+        branch: 'FROST_MAGE',
+        tier: 2,
+        name: 'Ледяная броня',
+        description: 'Враг не может защищаться на 2 хода',
+        cooldown: 6,
+        effects: { type: 'buff', disableDefense: true, duration: 2 },
+      },
+      {
+        branch: 'FROST_MAGE',
+        tier: 3,
+        name: 'Ледяная гробница',
+        description: 'Враг заморожен на 2 хода (не атакует, не защищается)',
+        cooldown: 12,
+        effects: { type: 'ultimate', freeze: true, duration: 2 },
+      },
+
+      // MAGE - WARLOCK
+      {
+        branch: 'WARLOCK',
+        tier: 1,
+        name: 'Призыв беса',
+        description: 'Призывает беса. Страх: враг защищает 2 из 4 зон',
+        cooldown: 0,
+        effects: { type: 'passive', summon: 'imp', fear: { zones: 4, defendZones: 2 } },
+      },
+      {
+        branch: 'WARLOCK',
+        tier: 2,
+        name: 'Темный пакт',
+        description: 'Жертвует 20% HP, получает +50% урона на 3 хода',
+        cooldown: 5,
+        effects: { type: 'buff', hpCost: 20, damageBonus: 50, duration: 3 },
+      },
+      {
+        branch: 'WARLOCK',
+        tier: 3,
+        name: 'Демонический пакт',
+        description: 'Превращается в демона: +100% ко всем характеристикам на 3 хода',
+        cooldown: 10,
+        effects: { type: 'ultimate', transform: 'demon', allStatsBonus: 100, duration: 3 },
+      },
     ],
   });
 

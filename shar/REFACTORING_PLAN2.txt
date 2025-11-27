@@ -1,0 +1,392 @@
+═══════════════════════════════════════════════════════════════════════════════
+                        ПЛАН РЕФАКТОРИНГА ПРОЕКТА v2
+                    Незавершенные задачи + RTK Query
+═══════════════════════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════════════════════
+                    НОВЫЙ ФУНКЦИОНАЛ - RTK QUERY (7 задач)
+═══════════════════════════════════════════════════════════════════════════════
+
+[✓] 1. Установка и настройка RTK Query
+    Решение:
+      - npm install @reduxjs/toolkit react-redux
+      - Настроить store с RTK
+      - Создать базовый API slice
+    Файлы: frontend/package.json,
+           frontend/src/store/index.ts (создан),
+           frontend/src/store/api/baseApi.ts (создан)
+
+[✓] 2. Создать API endpoints для персонажа
+    Решение:
+      - Создать characterApi.ts с endpoints
+      - getCharacter, createCharacter, updateCharacter
+      - equipItem, unequipItem, enhanceItem
+    Файлы: frontend/src/store/api/characterApi.ts (создан)
+
+[✓] 3. Создать API endpoints для боя
+    Решение:
+      - Создать battleApi.ts с endpoints
+      - startBattle, getDungeons
+    Файлы: frontend/src/store/api/battleApi.ts (создан)
+
+[ ] 4. Создать API endpoints для инвентаря (ОПЦИОНАЛЬНО)
+    Решение:
+      - Создать inventoryApi.ts с endpoints
+      - getInventory, buyItem, sellItem
+    Файлы: frontend/src/store/api/inventoryApi.ts (создать)
+    Статус: Пока не нужно, endpoints для инвентаря в characterApi
+
+[✓] 5. Мигрировать Dashboard на RTK Query
+    Решение:
+      - Заменить useCharacter на useGetCharacterQuery
+      - Убрать локальное состояние loading/error
+      - Использовать автоматическое кэширование
+    Файлы: frontend/src/pages/Dashboard.tsx (обновлен)
+
+[✓] 6. Мигрировать Blacksmith на RTK Query
+    Решение:
+      - Использовать useGetCharacterQuery
+      - Использовать useEquipItemMutation, useUnequipItemMutation
+      - Автоматическая инвалидация кэша
+    Файлы: frontend/src/pages/Blacksmith.tsx (обновлен)
+
+[✓] 7. Мигрировать Dungeon на RTK Query
+    Решение:
+      - Использовать useStartBattleMutation
+      - Использовать useGetDungeonsQuery
+      - Интеграция с WebSocket (оставлено как есть)
+    Файлы: frontend/src/pages/Dungeon.tsx (обновлен)
+
+[✓] 8. Удалить старые API утилиты
+    Решение:
+      - Удалить api.ts
+      - Удалить хук useCharacter
+      - Удалить хук useAsync
+    Файлы: frontend/src/services/api.ts (удален),
+           frontend/src/hooks/useCharacter.ts (удален),
+           frontend/src/hooks/useAsync.ts (удален)
+    Статус: ВЫПОЛНЕНО - все старые API файлы удалены
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    🐛 КРИТИЧЕСКИЕ БАГИ (из AUDIT_REPORT.md)
+═══════════════════════════════════════════════════════════════════════════════
+
+[✓] БАГ #1: Несоответствие стоимости заточки Frontend vs Backend
+    Где: frontend/src/pages/Blacksmith.tsx vs backend/.../inventory-enhancement.service.ts
+    Проблема: Frontend показывает 400 gold, Backend берёт 100 gold
+    Решение: Backend теперь использует формулу 100 * (level + 1)²
+    Файлы: backend/src/inventory/inventory-enhancement.service.ts:171
+    Статус: ИСПРАВЛЕНО ✅
+
+[✓] БАГ #2: Награды за подземелье захардкожены
+    Где: backend/src/battle/battle.service.ts:250-291
+    Проблема: Вместо значений из БД используются константы (10 gold, 25 exp)
+    Решение: Используем dungeon.goldReward и dungeon.expReward из БД
+    Файлы: backend/src/battle/battle.service.ts:250-291
+    Статус: ИСПРАВЛЕНО ✅
+
+[✓] БАГ #4: Нет валидации DTO для действий в бою
+    Где: backend/src/battle/battle.gateway.ts
+    Проблема: Нет проверки attacks/defenses на количество и валидность
+    Решение: Создан RoundActionsDto с class-validator, применён ValidationPipe
+    Файлы: backend/src/battle/dto/round-actions.dto.ts (новый),
+           backend/src/main.ts:11-20,
+           backend/src/battle/battle.gateway.ts:9-11,62
+    Статус: ИСПРАВЛЕНО ✅
+
+[✓] БАГ #6: Проверка stamina использует хардкод вместо динамической стоимости
+    Где: frontend/src/pages/Dungeon.tsx
+    Проблема: Проверка на 10 stamina, хотя dungeons требуют 20
+    Решение: Динамическая проверка selectedDungeon.staminaCost
+    Файлы: frontend/src/pages/Dungeon.tsx:29-99
+    Статус: ИСПРАВЛЕНО ✅
+
+[✓] БАГ #10: Отсутствуют поля armor и lastStaminaUpdate в Character types
+    Где: shared/types/character.types.ts
+    Проблема: Несоответствие между Prisma schema и TypeScript типами
+    Решение: Добавлены поля armor: number и lastStaminaUpdate: string
+    Файлы: shared/types/character.types.ts:17-20
+    Статус: ИСПРАВЛЕНО ✅
+
+═══════════════════════════════════════════════════════════════════════════════
+                    🐛 БАГИ - ИСПРАВЛЕНИЯ (добавляются по мере обнаружения)
+═══════════════════════════════════════════════════════════════════════════════
+
+[✓] БАГ-1: Не отображается дроп предметов после победы над монстром
+    Где: frontend/src/components/battle/BattleArena.tsx
+    Проблема: Предметы добавляются в инвентарь, но не показываются на экране
+    Решение: Добавить loot в battle-end event на бэкенде
+    Файлы: backend/src/battle/battle.gateway.ts,
+           backend/src/battle/battle.service.ts
+    Статус: ИСПРАВЛЕНО - добавлены поля lootedItems, expGained, goldGained в PveBattle
+
+[ ] БАГ-2: Зелья HP надеваются вместо использования
+    Где: frontend/src/pages/Inventory.tsx
+    Проблема: Зелья работают как экипировка, а не как расходник
+    Решение: Создать систему использования зелий в бою (1 раз за бой)
+    Файлы: backend/src/battle/battle.service.ts,
+           frontend/src/components/battle/BattleArena.tsx
+
+[ ] БАГ-3: Заточка не работает на бэкенде
+    Где: frontend/src/pages/Blacksmith.tsx
+    Проблема: Кнопка заточки показывает заглушку
+    Решение: Реализовать endpoint для заточки предметов
+    Файлы: backend/src/inventory/inventory-enhancement.service.ts,
+           backend/src/inventory/inventory.controller.ts
+
+[ ] БАГ-4: Нет визуальной индикации попаданий в бою
+    Где: frontend/src/components/battle/BattleArena.tsx
+    Проблема: Непонятно куда попал игрок и враг
+    Решение: Добавить цветовую индикацию:
+      - Зеленый = попал по врагу
+      - Красный = промах/получил урон
+      - Синий = успешная защита
+    Файлы: frontend/src/components/battle/ZoneSelector.tsx,
+           frontend/src/components/battle/RoundLog.tsx
+
+[✓] БАГ-5: Стамина не отображается визуально
+    Где: frontend/src/pages/Dashboard.tsx
+    Проблема: Нет прогресс-бара для стамины, непонятно сколько восстанавливается
+    Решение: Добавить прогресс-бар как для HP, показывать скорость восстановления
+    Файлы: frontend/src/pages/Dashboard.txt,
+           frontend/src/pages/Dashboard.styles.ts
+    Статус: ИСПРАВЛЕНО - добавлен визуальный прогресс-бар и подсказка о восстановлении
+
+[ ] БАГ-6: Нет возможности продавать предметы
+    Где: frontend/src/pages/Inventory.tsx
+    Проблема: Игрок не может продать ненужные предметы за золото
+    Решение: Добавить кнопку продажи за 50% от стоимости предмета
+    Файлы: backend/src/inventory/inventory.controller.ts,
+           backend/src/inventory/inventory.service.ts,
+           frontend/src/store/api/characterApi.ts,
+           frontend/src/pages/Inventory.tsx
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 1 - БЕЗОПАСНОСТЬ (4 задачи)
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] 9. Нет аутентификации
+    Где: frontend/src/main.tsx:16-20 fake token
+    Проблема: Любой может делать запросы с любым characterId
+    Решение: Реализовать проверку Telegram initData
+    Файлы: backend/src/auth/ (создать модуль)
+
+[ ] 10. Нет проверки владения персонажем
+    Где: Все endpoints персонажа и боя
+    Проблема: Игрок может управлять чужими персонажами
+    Решение: Создать AuthGuard, проверять userId
+    Файлы: backend/src/auth/guards/auth.guard.ts (создать)
+
+[ ] 11. SQL Injection потенциал
+    Где: character.controller.ts:14-22 Number(id) без валидации
+    Проблема: NaN при невалидном ID
+    Решение: Добавить ValidationPipe, DTO с @IsNumber()
+    Файлы: backend/src/main.ts, все контроллеры
+
+[ ] 12. Нет rate limiting
+    Проблема: Возможна DDoS атака
+    Решение: Добавить @nestjs/throttler
+    Файлы: backend/src/app.module.ts
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 2 - АРХИТЕКТУРА (1 задача)
+═══════════════════════════════════════════════════════════════════════════════
+
+[~] 13. Отсутствие валидации DTO
+    Где: Все контроллеры
+    Решение: Добавить class-validator, создать DTO классы
+    Файлы: backend/src/character/dto/ (создать),
+           backend/src/battle/dto/ (создан - RoundActionsDto),
+           backend/src/main.ts (ValidationPipe добавлен)
+    Статус: ЧАСТИЧНО - Battle DTO готов, нужны DTO для Character (create, distribute-stats)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 3 - ЛОГИКА И ВАЛИДАЦИЯ (5 задач)
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] 14. Stamina не тратится и не восстанавливается
+    Где: Dungeon.tsx:100 проверяет, но не вычитает
+    Решение: Реализовать механику траты/восстановления
+    Файлы: backend/src/character/character.service.ts,
+           backend/src/battle/battle.service.ts
+
+[ ] 15. Нет системы опыта и левел-апа
+    Где: Нет логики повышения уровня
+    Решение: Создать систему начисления опыта и level-up
+    Файлы: backend/src/character/character-levelup.service.ts (создать)
+
+[ ] 16. N+1 проблема в БД запросах
+    Где: battle.service.ts:104-149 три отдельных запроса
+    Решение: Оптимизировать через единый запрос с include
+    Файлы: backend/src/battle/battle.service.ts
+
+[ ] 17. Валидация имени персонажа
+    Где: CreateCharacter.tsx:22-25
+    Решение: Проверка длины 3-20, только буквы/цифры, обработка ошибки уникальности
+    Файлы: frontend/src/pages/CreateCharacter.tsx,
+           backend/src/character/dto/create-character.dto.ts (создать)
+
+[✓] 18. Валидация действий в бою
+    Где: battle.service.ts:104-107
+    Решение: Проверить количество, валидность зон, дубликаты
+    Файлы: backend/src/battle/dto/round-actions.dto.ts (создан)
+    Статус: ИСПРАВЛЕНО - см. БАГ #4 выше
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 4 - ФРОНТЕНД (4 задачи)
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] 19. Небезопасное использование localStorage
+    Где: CreateCharacter.tsx:44, main.tsx:16-20
+    Решение: Создать утилиту safeStorage
+    Файлы: frontend/src/utils/storage.ts (создать)
+
+[ ] 20. Хардкод строк и magic numbers
+    Где: CreateCharacter.tsx:32, :8-12, DifficultySelector.tsx:4-8
+    Решение: Создать frontend/src/constants/game.ts
+    Файлы: frontend/src/constants/game.ts (создать)
+
+[ ] 21. Отсутствие обработки edge cases
+    Где: Dashboard.tsx:57, CharacterStats.tsx:9 (деление на ноль)
+    Решение: Добавить проверки maxHp > 0
+    Файлы: frontend/src/pages/Dashboard.tsx,
+           frontend/src/components/battle/CharacterStats.tsx
+
+[ ] 22. Проблемы с WebSocket
+    Где: useBattle.ts:23-95 нет реконнекта
+    Решение: Добавить автоматический реконнект
+    Файлы: frontend/src/hooks/useBattle.ts
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 5 - ПРОИЗВОДИТЕЛЬНОСТЬ (2 задачи)
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] 23. Чрезмерное JSON.parse/stringify
+    Где: battle.service.ts:212
+    Решение: Убрать двойное преобразование
+    Файлы: backend/src/battle/battle.service.ts
+
+[ ] 24. Нет индексов в БД
+    Решение: Добавить индексы для userId, telegramId
+    Файлы: backend/prisma/schema.prisma
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                    ПРИОРИТЕТ 6 - ФИНАЛЬНЫЕ ШТРИХИ (2 задачи)
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] 25. Несогласованность настроек ngrok
+    Где: Закомментировано в vite.config.ts, но активно в backend CORS
+    Решение: Создать docs/ngrok/ с конфигами
+    Файлы: docs/ngrok/README.md (создать),
+           docs/ngrok/vite.config.ngrok.ts (создать)
+
+[ ] 26. Нет тестов
+    Решение: Написать тесты для:
+      - BattleService
+      - CharacterService
+      - CombatCalculator
+      - Frontend компонентов
+    Файлы: backend/src/**/*.spec.ts (создать),
+           frontend/src/**/*.test.tsx (создать)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            ПОРЯДОК ВЫПОЛНЕНИЯ
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 ЭТАП 1: RTK Query интеграция (задачи 1-8)
+  └─ 8 задач, современная архитектура стейт-менеджмента
+
+🔒 ЭТАП 2: Безопасность (задачи 9-12)
+  └─ 4 задачи, защита приложения
+
+🏗️ ЭТАП 3: Валидация и архитектура (задачи 13, 17-18)
+  └─ 3 задачи, DTO валидация
+
+⚙️ ЭТАП 4: Логика и оптимизация (задачи 14-16, 23-24)
+  └─ 5 задач, завершение игровой механики
+
+🎨 ЭТАП 5: Фронтенд улучшения (задачи 19-22)
+  └─ 4 задачи, UX и обработка ошибок
+
+📝 ЭТАП 6: Финальные штрихи (задачи 25-26)
+  └─ 2 задачи, документация и тесты
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            ПРОГРЕСС: 13/26 (50%) 🎉
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ ЭТАП 1: RTK Query интеграция - 7/8 (87%) - ПОЧТИ ЗАВЕРШЕН!
+  [✓] Задачи 1-3, 5-8: RTK Query настроен, интегрирован, старые файлы удалены (ВЫПОЛНЕНО)
+  [✓] Миграция CreateCharacter.tsx на RTK Query (ВЫПОЛНЕНО)
+  [✓] Создана страница Inventory с визуальными слотами для экипировки (БОНУС)
+  [✓] Переработан Blacksmith для системы заточки предметов (БОНУС)
+  [✓] Добавлена система отображения лута после боя (БОНУС)
+  [ ] Задача 4: inventoryApi (ОПЦИОНАЛЬНО - пока не нужно)
+
+🔥 КРИТИЧЕСКИЕ БАГИ: 5/5 (100%) - ВСЕ ИСПРАВЛЕНЫ!
+  [✓] БАГ #1: Стоимость заточки - формула приведена к единому виду
+  [✓] БАГ #2: Награды из БД - используются значения из dungeon
+  [✓] БАГ #4: DTO валидация - RoundActionsDto + ValidationPipe
+  [✓] БАГ #6: Stamina check - динамическая проверка
+  [✓] БАГ #10: Character types - добавлены armor, lastStaminaUpdate
+
+🟡 ЭТАП 3: Валидация - 1/3 (33%)
+  [✓] Задача 18: Валидация действий в бою (RoundActionsDto)
+  [~] Задача 13: DTO валидация (частично - нужны Character DTOs)
+  [ ] Задача 17: Валидация имени персонажа
+
+Чтобы отметить задачу как выполненную, замени [ ] на [✓]
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                        ЧТО ДЕЛАТЬ ДАЛЬШЕ? (ПРИОРИТЕТЫ)
+═══════════════════════════════════════════════════════════════════════════════
+
+🔴 ВЫСОКИЙ ПРИОРИТЕТ (исправить в первую очередь):
+  • БАГ-3: Заточка не работает (хотя показывается) - нужен endpoint
+  • БАГ-6: Нет продажи предметов - добавить sell endpoint
+  • Задача 14-15: Stamina тратится, но нет опыта/левел-апа
+  • Задача 17: Валидация имени персонажа (CreateCharacterDto)
+  • Задача 13: DistributeStatsDto для раздачи очков
+
+🟡 СРЕДНИЙ ПРИОРИТЕТ (улучшения игрового опыта):
+  • БАГ-2: Зелья как экипировка - сделать расходниками
+  • БАГ-4: Визуальная индикация попаданий в бою
+  • Задача 16: N+1 проблема в БД запросах
+  • Задача 21: Edge cases (деление на 0)
+  • Задача 22: WebSocket реконнект
+
+🟢 НИЗКИЙ ПРИОРИТЕТ (после основного функционала):
+  • Задачи 9-12: Безопасность (auth, guards, rate limiting)
+  • Задачи 19-20: Фронтенд утилиты (storage, константы)
+  • Задачи 23-24: Оптимизация (JSON, индексы)
+  • Задачи 25-26: Документация, тесты
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            КРАТКИЙ ПЛАН RTK QUERY
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Установить: @reduxjs/toolkit react-redux
+2. Создать store и baseApi
+3. Создать API slices: characterApi, battleApi, inventoryApi
+4. Мигрировать компоненты: Dashboard → Blacksmith → Dungeon
+5. Удалить старые API утилиты
+
+ПРЕИМУЩЕСТВА RTK QUERY:
+✅ Автоматическое кэширование
+✅ Автоматическая инвалидация кэша
+✅ Меньше boilerplate кода
+✅ Встроенные состояния loading/error
+✅ Оптимистичные обновления
+✅ Polling и refetching
+✅ TypeScript из коробки
