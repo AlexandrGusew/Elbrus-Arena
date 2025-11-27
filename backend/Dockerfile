@@ -1,7 +1,7 @@
 FROM node:20-alpine AS builder
 
-# Устанавливаем OpenSSL для Prisma
-RUN apk add --no-cache openssl libc6-compat
+# Устанавливаем OpenSSL для Prisma и build tools для компиляции bcrypt
+RUN apk add --no-cache openssl libc6-compat python3 make g++
 
 WORKDIR /app
 
