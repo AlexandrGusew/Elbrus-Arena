@@ -72,25 +72,30 @@ export const ZoneSelector = ({
   const title = type === 'attack' ? 'ATTACK' : 'DEFENCE';
 
   return (
-    <div style={styles.statsBlock}>
-      <h4 style={{ fontSize: '24px', fontWeight: 'bold', color: selectedColor, marginBottom: '15px' }}>
+    <div style={{
+      background: 'rgba(0, 0, 0, 0.6)',
+      borderRadius: '10px',
+      padding: '15px 20px',
+      border: `2px solid ${selectedColor}33`,
+    }}>
+      <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: selectedColor, marginBottom: '8px', textAlign: 'center' }}>
         {title} - {selectedZones.length}/{maxSelections}
       </h4>
-      <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '10px' }}>
+      <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
         {zones.map(zone => (
           <div
             key={zone}
             onClick={() => onToggle(zone)}
             style={{
-              width: '180px',
-              height: '180px',
+              width: '120px',
+              height: '120px',
               position: 'relative',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               border: 'solid',
               borderWidth: getZoneBorderWidth(zone),
               borderColor: getZoneBorderColor(zone),
-              borderRadius: '10px',
+              borderRadius: '8px',
               overflow: 'hidden',
               background: selectedZones.includes(zone) ? `${selectedColor}33` : 'transparent',
               opacity: selectedZones.includes(zone) ? 1 : 0.7,
@@ -124,11 +129,11 @@ export const ZoneSelector = ({
               bottom: '5px',
               left: '50%',
               transform: 'translateX(-50%)',
-              background: 'rgba(0, 0, 0, 0.7)',
+              background: 'rgba(0, 0, 0, 0.8)',
               color: 'white',
               padding: '3px 8px',
               borderRadius: '5px',
-              fontSize: '12px',
+              fontSize: '11px',
               fontWeight: 'bold',
               whiteSpace: 'nowrap',
             }}>

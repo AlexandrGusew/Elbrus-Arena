@@ -42,7 +42,7 @@ const Dungeon = () => {
   const { data: dungeons = [], isLoading: dungeonsLoading } = useGetDungeonsQuery();
   const [startBattleMutation] = useStartBattleMutation();
 
-  const { battleState, sendRoundActions, isConnected } = useBattle(battleId);
+  const { battleState, roundHistory, sendRoundActions, isConnected } = useBattle(battleId);
 
   const selectedDungeon = dungeons.find(d => d.difficulty === selectedDifficulty);
   const requiredStamina = selectedDungeon?.staminaCost || 20;
@@ -76,11 +76,13 @@ const Dungeon = () => {
     }
 
     try {
+      console.log('🎯 Starting battle with dungeonId:', selectedDungeon.id);
       const result = await startBattleMutation({
         characterId: character.id,
         dungeonId: selectedDungeon.id,
       }).unwrap();
 
+      console.log('✅ Battle created:', result);
       setBattleId(result.id);
     } catch (err: any) {
       alert('Ошибка при создании боя: ' + (err?.data?.message || err.message || 'Неизвестная ошибка'));
@@ -254,10 +256,12 @@ const Dungeon = () => {
     <BattleArena
       character={character}
       battleState={battleState}
+      roundHistory={roundHistory}
       isConnected={isConnected}
       onSubmitActions={sendRoundActions}
       onReset={resetBattle}
       backgroundImage={DIFFICULTY_BACKGROUNDS[selectedDifficulty]}
+      fallbackDungeonId={selectedDungeon?.id}
     />
   );
 };

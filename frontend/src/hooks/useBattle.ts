@@ -18,6 +18,7 @@ export function useBattle(battleId: string | null) {
     currentMonster: 1,
     totalMonsters: 1,
   });
+  const [roundHistory, setRoundHistory] = useState<RoundResult[]>([]);
 
   // Подключение к WebSocket
   useEffect(() => {
@@ -43,7 +44,12 @@ export function useBattle(battleId: string | null) {
       monsterHp: number;
       currentMonster: number;
       totalMonsters: number;
+      dungeonId: number;
     }) => {
+      // Отладка - выводим данные из события в консоль
+      console.log('📡 round-start event received:', data);
+      console.log('🏰 dungeonId from server:', data.dungeonId);
+
       setBattleState({
         roundNumber: data.roundNumber,
         playerHp: data.playerHp,
@@ -51,7 +57,12 @@ export function useBattle(battleId: string | null) {
         status: 'active',
         currentMonster: data.currentMonster,
         totalMonsters: data.totalMonsters,
+        dungeonId: data.dungeonId,
       });
+      // Сбрасываем историю при начале нового боя (раунд 1)
+      if (data.roundNumber === 1) {
+        setRoundHistory([]);
+      }
     });
 
     newSocket.on('round-complete', (result: RoundResult) => {
@@ -61,6 +72,8 @@ export function useBattle(battleId: string | null) {
         monsterHp: result.monsterHp,
         lastRoundResult: result,
       }));
+      // Добавляем результат раунда в историю
+      setRoundHistory((prev) => [...prev, result]);
     });
 
     newSocket.on('battle-end', (data: {
@@ -106,6 +119,7 @@ export function useBattle(battleId: string | null) {
 
   return {
     battleState,
+    roundHistory,
     sendRoundActions,
     isConnected: socket?.connected || false,
   };

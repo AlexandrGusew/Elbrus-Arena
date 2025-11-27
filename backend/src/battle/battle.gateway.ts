@@ -55,6 +55,7 @@ export class BattleGateway {
       monsterHp: battle.monsterHp,
       currentMonster: battle.currentMonster,
       totalMonsters: battle.totalMonsters,
+      dungeonId: battle.dungeonId,
     });
   }
 
@@ -105,6 +106,7 @@ export class BattleGateway {
             monsterHp: battle.monsterHp,
             currentMonster: battle.currentMonster,
             totalMonsters: battle.totalMonsters,
+            dungeonId: battle.dungeonId,
           });
         }, 2000);
       }
