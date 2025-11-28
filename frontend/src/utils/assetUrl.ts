@@ -52,9 +52,16 @@ export function getAssetUrl(assetPath: string, options: AssetUrlOptions = {}): s
     // Убираем leading slash если есть
     const cleanPath = assetPath.startsWith('/') ? assetPath.slice(1) : assetPath;
 
+    // Кодируем каждую часть пути (для обработки пробелов и спецсимволов)
+    // Разбиваем по /, кодируем каждую часть, собираем обратно
+    const encodedPath = cleanPath
+      .split('/')
+      .map(part => encodeURIComponent(part))
+      .join('/');
+
     // Формируем URL к MinIO
     // Формат: http://minio.example.com/bucket-name/path/to/file.mp4
-    const url = `${MINIO_URL}/${MINIO_BUCKET}/${cleanPath}`;
+    const url = `${MINIO_URL}/${MINIO_BUCKET}/${encodedPath}`;
 
     return url;
   }
