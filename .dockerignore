@@ -51,3 +51,13 @@ README.md
 *.tmp
 .cache
 .temp
+
+# Media assets (served from MinIO)
+frontend/src/assets/**/*.mp4
+frontend/src/assets/**/*.mp3
+frontend/src/assets/**/*.png
+frontend/src/assets/**/*.jpg
+frontend/src/assets/**/*.jpeg
+frontend/src/assets/**/*.gif
+frontend/src/assets/**/*.webp
+frontend/src/assets/**/*.svg

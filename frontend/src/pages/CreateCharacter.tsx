@@ -2,20 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateCharacterMutation, useGetCharacterByNameQuery } from '../store/api/characterApi';
 import type { CharacterClass } from '../types/api';
-
-// Импортируем изображения, видео и музыку
-import backgroundVideo from '../assets/choosePlayer/animatedBackground.mp4';
-import backgroundMusic from '../assets/choosePlayer/backgroundIntro2.mp3';
-import warriorImg from '../assets/choosePlayer/warrior (1).png';
-import mageImg from '../assets/choosePlayer/mage (1).png';
-import rogueImg from '../assets/choosePlayer/rogue (1).png';
-import enterNameImg from '../assets/choosePlayer/enterName (1).png';
-import createCharacterImg from '../assets/choosePlayer/createCharacter (1).png';
+import { getAssetUrl } from '../utils/assetUrl';
 
 const CLASS_INFO: Record<CharacterClass, { name: string; image: string }> = {
-  warrior: { name: 'Воин', image: warriorImg },
-  mage: { name: 'Маг', image: mageImg },
-  rogue: { name: 'Разбойник', image: rogueImg },
+  warrior: { name: 'Воин', image: getAssetUrl('choosePlayer/warrior (1).png') },
+  mage: { name: 'Маг', image: getAssetUrl('choosePlayer/mage (1).png') },
+  rogue: { name: 'Разбойник', image: getAssetUrl('choosePlayer/rogue (1).png') },
 };
 
 const CreateCharacter = () => {
@@ -245,12 +237,12 @@ const CreateCharacter = () => {
           zIndex: 1,
         }}
       >
-        <source src={backgroundVideo} type="video/mp4" />
+        <source src={getAssetUrl('choosePlayer/animatedBackground.mp4')} type="video/mp4" />
       </video>
 
       {/* Фоновая музыка */}
       <audio ref={audioRef} loop>
-        <source src={backgroundMusic} type="audio/mpeg" />
+        <source src={getAssetUrl('choosePlayer/backgroundIntro2.mp3')} type="audio/mpeg" />
       </audio>
 
       {/* Кнопка управления музыкой */}
@@ -313,7 +305,7 @@ const CreateCharacter = () => {
           {/* Поле ввода имени */}
           <div style={inputContainerStyle}>
             <img
-              src={enterNameImg}
+              src={getAssetUrl('choosePlayer/enterName (1).png')}
               alt="Enter Name"
               style={{
                 width: '100%',
@@ -354,7 +346,7 @@ const CreateCharacter = () => {
             }}
           >
             <img
-              src={createCharacterImg}
+              src={getAssetUrl('choosePlayer/createCharacter (1).png')}
               alt="Create Character"
               style={{
                 width: '100%',

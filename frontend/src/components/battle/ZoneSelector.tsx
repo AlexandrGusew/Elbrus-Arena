@@ -1,11 +1,6 @@
 import type { Zone } from '../../hooks/useBattle';
 import { styles } from '../../pages/Dungeon.styles';
-
-// Импортируем изображения из папки fight
-import headImg from '../../assets/fight/head (1).png';
-import chestImg from '../../assets/fight/chest (1).png';
-import legsImg from '../../assets/fight/legs (1).png';
-import armsImg from '../../assets/fight/arms (1).png';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 const ZONE_NAMES: Record<Zone, string> = {
   head: 'Голова',
@@ -15,10 +10,10 @@ const ZONE_NAMES: Record<Zone, string> = {
 };
 
 const ZONE_IMAGES: Record<Zone, string> = {
-  head: headImg,
-  body: chestImg,
-  legs: legsImg,
-  arms: armsImg,
+  head: getAssetUrl('fight/head (1).png'),
+  body: getAssetUrl('fight/chest (1).png'),
+  legs: getAssetUrl('fight/legs (1).png'),
+  arms: getAssetUrl('fight/arms (1).png'),
 };
 
 type ZoneSelectorProps = {

@@ -8,21 +8,12 @@ import { styles } from './Dungeon.styles';
 import { CharacterStats } from '../components/battle/CharacterStats';
 import { DifficultySelector } from '../components/battle/DifficultySelector';
 import { BattleArena } from '../components/battle/BattleArena';
-
-// Импортируем ресурсы для enterDungeon
-import enterDungeonMusic from '../assets/enterDungeon/enterDungeonMusic.mp3';
-import enterDungeonButton from '../assets/enterDungeon/enterDungeonButton.png';
-import enterDungeonBackground from '../assets/enterDungeon/enterDungeonBackground.mp4';
-
-// Импортируем фоновые изображения для каждого уровня сложности
-import easyBackground from '../assets/enterDungeon/dungeons/easy/easy_level_background.png';
-import mediumBackground from '../assets/enterDungeon/dungeons/medium/medium_level_background.png';
-import hardBackground from '../assets/enterDungeon/dungeons/hard/hard_level_background.png';
+import { getAssetUrl } from '../utils/assetUrl';
 
 const DIFFICULTY_BACKGROUNDS: Record<DungeonDifficulty, string> = {
-  easy: easyBackground,
-  medium: mediumBackground,
-  hard: hardBackground,
+  easy: getAssetUrl('enterDungeon/dungeons/easy/easy_level_background.png'),
+  medium: getAssetUrl('enterDungeon/dungeons/medium/medium_level_background.png'),
+  hard: getAssetUrl('enterDungeon/dungeons/hard/hard_level_background.png'),
 };
 
 const Dungeon = () => {
@@ -134,12 +125,12 @@ const Dungeon = () => {
             zIndex: 1,
           }}
         >
-          <source src={enterDungeonBackground} type="video/mp4" />
+          <source src={getAssetUrl('enterDungeon/enterDungeonBackground.mp4')} type="video/mp4" />
         </video>
 
         {/* Фоновая музыка */}
         <audio ref={audioRef} loop>
-          <source src={enterDungeonMusic} type="audio/mpeg" />
+          <source src={getAssetUrl('enterDungeon/enterDungeonMusic.mp3')} type="audio/mpeg" />
         </audio>
 
         {/* Кнопки в левом нижнем углу */}
@@ -222,7 +213,7 @@ const Dungeon = () => {
               }}
             >
               <img
-                src={enterDungeonButton}
+                src={getAssetUrl('enterDungeon/enterDungeonButton.png')}
                 alt="Начать бой"
                 style={{
                   width: '100%',

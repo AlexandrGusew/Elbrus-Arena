@@ -2,22 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useGetCharacterQuery, useGetStaminaInfoQuery, useTestLevelBoostMutation } from '../store/api/characterApi';
 import { styles } from './Dashboard.styles';
 import { useState, useEffect, useRef } from 'react';
-
-// Импортируем видео и музыку
-import backgroundVideo from '../assets/mainCity/mainCityBackground.mp4';
-import backgroundMusic from '../assets/mainCity/mainCity.mp3';
-
-// Импортируем изображения героев
-import warriorImg from '../assets/choosePlayer/warrior (1).png';
-import mageImg from '../assets/choosePlayer/mage (1).png';
-import rogueImg from '../assets/choosePlayer/rogue (1).png';
-
-// Импортируем изображения кнопок
-import dungeonsImg from '../assets/mainCity/dungeons.png';
-import inventoryImg from '../assets/mainCity/inventory.png';
-import blacksmithImg from '../assets/mainCity/blacksmith.png';
-import pvpImg from '../assets/mainCity/pvp.png';
-import lvlupImg from '../assets/mainCity/lvlup.png';
+import { getAssetUrl } from '../utils/assetUrl';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -162,10 +147,10 @@ const Dashboard = () => {
   // Выбор изображения героя по классу
   const getHeroImage = () => {
     const classLower = character.class.toLowerCase();
-    if (classLower === 'warrior') return warriorImg;
-    if (classLower === 'mage') return mageImg;
-    if (classLower === 'rogue') return rogueImg;
-    return warriorImg; // fallback
+    if (classLower === 'warrior') return getAssetUrl('choosePlayer/warrior (1).png');
+    if (classLower === 'mage') return getAssetUrl('choosePlayer/mage (1).png');
+    if (classLower === 'rogue') return getAssetUrl('choosePlayer/rogue (1).png');
+    return getAssetUrl('choosePlayer/warrior (1).png'); // fallback
   };
 
   return (
@@ -186,15 +171,15 @@ const Dashboard = () => {
           zIndex: 1,
         }}
       >
-        <source src={backgroundVideo} type="video/mp4" />
+        <source src={getAssetUrl('mainCity/mainCityBackground.mp4')} type="video/mp4" />
       </video>
 
       {/* Фоновая музыка - два трека для crossfade */}
       <audio ref={audioRef}>
-        <source src={backgroundMusic} type="audio/mpeg" />
+        <source src={getAssetUrl('mainCity/mainCity.mp3')} type="audio/mpeg" />
       </audio>
       <audio ref={audioRef2}>
-        <source src={backgroundMusic} type="audio/mpeg" />
+        <source src={getAssetUrl('mainCity/mainCity.mp3')} type="audio/mpeg" />
       </audio>
 
       {/* Левый нижний угол - кнопки одинакового размера */}
@@ -289,7 +274,7 @@ const Dashboard = () => {
       }}>
         <Link to="/dungeon" style={{ display: 'block' }}>
           <img
-            src={dungeonsImg}
+            src={getAssetUrl('mainCity/dungeons.png')}
             alt="Подземелье"
             style={{
               width: '450px',
@@ -311,7 +296,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/inventory" style={{ display: 'block' }}>
           <img
-            src={inventoryImg}
+            src={getAssetUrl('mainCity/inventory.png')}
             alt="Инвентарь"
             style={{
               width: '450px',
@@ -333,7 +318,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/blacksmith" style={{ display: 'block' }}>
           <img
-            src={blacksmithImg}
+            src={getAssetUrl('mainCity/blacksmith.png')}
             alt="Кузница"
             style={{
               width: '450px',
@@ -355,7 +340,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/pvp" style={{ display: 'block' }}>
           <img
-            src={pvpImg}
+            src={getAssetUrl('mainCity/pvp.png')}
             alt="PvP"
             style={{
               width: '450px',
@@ -500,7 +485,7 @@ const Dashboard = () => {
           display: 'block',
         }}>
           <img
-            src={lvlupImg}
+            src={getAssetUrl('mainCity/lvlup.png')}
             alt="Level Up"
             style={{
               width: '100%',
