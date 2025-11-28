@@ -13,6 +13,11 @@ import { PvpActionsDto } from './dto/pvp.dto';
 const corsOriginsString = process.env.CORS_ORIGINS || '';
 const corsOrigins = corsOriginsString.split(',').filter(Boolean);
 
+// Логирование CORS настроек для отладки
+if (process.env.NODE_ENV === 'production') {
+  console.log('[PvpGateway] CORS origins:', corsOrigins.length > 0 ? corsOrigins : ['http://localhost:5173']);
+}
+
 @WebSocketGateway({
   cors: {
     origin: corsOrigins.length > 0 ? corsOrigins : ['http://localhost:5173'],

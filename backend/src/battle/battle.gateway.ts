@@ -13,6 +13,11 @@ import { RoundActionsDto } from './dto/round-actions.dto';
 const corsOriginsString = process.env.CORS_ORIGINS || '';
 const corsOrigins = corsOriginsString.split(',').filter(Boolean);
 
+// Логирование CORS настроек для отладки
+if (process.env.NODE_ENV === 'production') {
+  console.log('[BattleGateway] CORS origins:', corsOrigins.length > 0 ? corsOrigins : ['http://localhost:5173']);
+}
+
 @WebSocketGateway({
   cors: {
     origin: corsOrigins.length > 0 ? corsOrigins : ['http://localhost:5173'],

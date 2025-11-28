@@ -24,7 +24,15 @@ export function useBattle(battleId: string | null) {
     if (!battleId) return;
 
     // Получаем WebSocket URL из переменной окружения
-    const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
+    const wsUrl = import.meta.env.VITE_WS_URL || (
+      import.meta.env.PROD
+        ? `${window.location.protocol}//${window.location.host}`
+        : 'http://localhost:3000'
+    );
+
+    if (import.meta.env.PROD && !import.meta.env.VITE_WS_URL) {
+      console.warn('[useBattle] VITE_WS_URL not set, using current host:', wsUrl);
+    }
 
     // Создаем подключение
     const newSocket = io(wsUrl, {
