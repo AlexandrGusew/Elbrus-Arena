@@ -30,13 +30,23 @@ const Dungeon = () => {
     { skip: !characterId }
   );
 
-  const { data: dungeons = [], isLoading: dungeonsLoading } = useGetDungeonsQuery();
+  const { data: dungeons = [], isLoading: dungeonsLoading, error: dungeonsError } = useGetDungeonsQuery();
   const [startBattleMutation] = useStartBattleMutation();
 
   const { battleState, sendRoundActions, isConnected } = useBattle(battleId);
 
   const selectedDungeon = dungeons.find(d => d.difficulty === selectedDifficulty);
   const requiredStamina = selectedDungeon?.staminaCost || 20;
+
+  // Логируем загрузку подземелий для отладки
+  useEffect(() => {
+    console.log('📡 Dungeons API state:', {
+      isLoading: dungeonsLoading,
+      dungeonsCount: dungeons.length,
+      dungeons: dungeons,
+      error: dungeonsError,
+    });
+  }, [dungeons, dungeonsLoading, dungeonsError]);
 
   // Управление музыкой
   useEffect(() => {
@@ -54,9 +64,15 @@ const Dungeon = () => {
   };
 
   const startBattle = async () => {
+    console.log('🎮 startBattle called');
+    console.log('📋 dungeons:', dungeons);
+    console.log('🎯 selectedDifficulty:', selectedDifficulty);
+    console.log('🏰 selectedDungeon:', selectedDungeon);
+
     if (!character) return;
 
     if (!selectedDungeon) {
+      console.error('❌ selectedDungeon is undefined!');
       alert('Выберите подземелье');
       return;
     }
@@ -67,11 +83,13 @@ const Dungeon = () => {
     }
 
     try {
+      console.log('🎯 Starting battle with dungeonId:', selectedDungeon.id);
       const result = await startBattleMutation({
         characterId: character.id,
         dungeonId: selectedDungeon.id,
       }).unwrap();
 
+      console.log('✅ Battle created:', result);
       setBattleId(result.id);
     } catch (err: any) {
       alert('Ошибка при создании боя: ' + (err?.data?.message || err.message || 'Неизвестная ошибка'));

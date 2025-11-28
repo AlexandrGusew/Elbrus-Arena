@@ -9,7 +9,12 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(npm run start:*)",
-      "Bash(npm test)"
+      "Bash(npm test)",
+      "Bash(npm run prisma:studio:*)",
+      "Bash(npm run prisma:seed:*)",
+      "Bash(npm run:*)",
+      "Bash(curl:*)",
+      "Bash(timeout /t 5 /nobreak)"
     ],
     "deny": [],
     "ask": []
