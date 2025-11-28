@@ -10,11 +10,17 @@
       "Bash(xargs kill:*)",
       "Bash(npm run start:*)",
       "Bash(npm test)",
+<<<<<<< HEAD
       "Bash(npm run prisma:studio:*)",
       "Bash(npm run prisma:seed:*)",
       "Bash(npm run:*)",
       "Bash(curl:*)",
       "Bash(timeout /t 5 /nobreak)"
+=======
+      "Bash(npm run build:*)",
+      "Bash(npx sharp-cli:*)",
+      "Bash(identify:*)"
+>>>>>>> PvE
     ],
     "deny": [],
     "ask": []

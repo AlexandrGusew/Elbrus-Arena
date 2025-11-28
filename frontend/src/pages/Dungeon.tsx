@@ -33,7 +33,7 @@ const Dungeon = () => {
   const { data: dungeons = [], isLoading: dungeonsLoading, error: dungeonsError } = useGetDungeonsQuery();
   const [startBattleMutation] = useStartBattleMutation();
 
-  const { battleState, sendRoundActions, isConnected } = useBattle(battleId);
+  const { battleState, roundHistory, sendRoundActions, isConnected } = useBattle(battleId);
 
   const selectedDungeon = dungeons.find(d => d.difficulty === selectedDifficulty);
   const requiredStamina = selectedDungeon?.staminaCost || 20;
@@ -296,10 +296,12 @@ const Dungeon = () => {
     <BattleArena
       character={character}
       battleState={battleState}
+      roundHistory={roundHistory}
       isConnected={isConnected}
       onSubmitActions={sendRoundActions}
       onReset={resetBattle}
       backgroundImage={DIFFICULTY_BACKGROUNDS[selectedDifficulty]}
+      fallbackDungeonId={selectedDungeon?.id}
     />
   );
 };
