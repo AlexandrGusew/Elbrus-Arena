@@ -73,14 +73,23 @@ export function getAssetUrl(assetPath: string, options: AssetUrlOptions = {}): s
 /**
  * Генерирует URL для локального файла (для dev режима)
  */
-function getLocalAssetUrl(assetPath: string): string {
-  // В режиме разработки Vite использует /src/assets
-  // В production - файлы будут в /assets благодаря Vite
-  const cleanPath = assetPath.startsWith('/') ? assetPath.slice(1) : assetPath;
+const assetModules = import.meta.glob('../assets/**/*', {
+  eager: true,
+  import: 'default',
+  as: 'url',
+});
 
-  // Vite автоматически обрабатывает импорты из /src/assets
-  // Для динамических путей используем прямой URL
-  return `/src/assets/${cleanPath}`;
+function getLocalAssetUrl(assetPath: string): string {
+  const cleanPath = assetPath.startsWith('/') ? assetPath.slice(1) : assetPath;
+  const key = `../assets/${cleanPath}`;
+  const url = assetModules[key];
+
+  if (!url) {
+    console.warn(`[assetUrl] Asset not found: ${cleanPath}`);
+    return '';
+  }
+
+  return url as string;
 }
 
 /**
