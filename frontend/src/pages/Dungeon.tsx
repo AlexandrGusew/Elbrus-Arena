@@ -144,35 +144,68 @@ const Dungeon = () => {
           zIndex: 10,
         }}>
           {/* Кнопка управления музыкой */}
-          <button onClick={toggleMusic} style={{
-            padding: '10px 20px',
-            border: '2px solid #fff',
-            background: isMusicPlaying ? 'rgba(255, 215, 0, 0.8)' : 'rgba(220, 38, 38, 0.8)',
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            borderRadius: '8px',
-            transition: 'all 0.3s ease',
-          }}>
-            {isMusicPlaying ? '🔊 Музыка' : '🔇 Музыка'}
+          <button
+            onClick={toggleMusic}
+            style={{
+              width: '200px',
+              height: '80px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 0,
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6))';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.filter = isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)';
+            }}
+          >
+            <img
+              src={getAssetUrl('enterDungeon/music.png')}
+              alt="Music"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                filter: isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)',
+              }}
+            />
           </button>
 
           {/* Кнопка "Вернуться назад" */}
           <Link to="/dashboard" style={{ textDecoration: 'none' }}>
-            <button style={{
-              padding: '10px 20px',
-              border: '2px solid #fff',
-              background: 'rgba(100, 100, 100, 0.8)',
-              color: '#fff',
-              fontSize: '20px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              borderRadius: '8px',
-              transition: 'all 0.3s ease',
-              width: '100%',
-            }}>
-              ← Вернуться на базу
+            <button
+              style={{
+                width: '200px',
+                height: '80px',
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: 0,
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.filter = 'brightness(1)';
+              }}
+            >
+              <img
+                src={getAssetUrl('enterDungeon/exit.png')}
+                alt="Exit"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+              />
             </button>
           </Link>
         </div>
@@ -218,7 +251,7 @@ const Dungeon = () => {
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
+                  objectFit: 'cover',
                   pointerEvents: 'none',
                 }}
               />
