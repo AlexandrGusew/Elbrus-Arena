@@ -4,10 +4,7 @@ import { useGetCharacterQuery } from '../store/api/characterApi';
 import { usePvp } from '../hooks/usePvp';
 import { BattleArena } from '../components/battle/BattleArena';
 import type { Zone, RoundActions } from '../hooks/useBattle';
-
-// Импортируем видео и музыку
-import backgroundVideo from '../assets/pvpArena/pvpArena2.mp4';
-import backgroundMusic from '../assets/pvpArena/pvpArena.mp3';
+import { getAssetUrl } from '../utils/assetUrl';
 
 const PvP = () => {
   const navigate = useNavigate();
@@ -163,12 +160,12 @@ const PvP = () => {
           zIndex: 1,
         }}
       >
-        <source src={backgroundVideo} type="video/mp4" />
+        <source src={getAssetUrl('pvpArena/pvpArena2.mp4')} type="video/mp4" />
       </video>
 
       {/* Фоновая музыка */}
       <audio ref={audioRef} loop>
-        <source src={backgroundMusic} type="audio/mpeg" />
+        <source src={getAssetUrl('pvpArena/pvpArena.mp3')} type="audio/mpeg" />
       </audio>
 
       {/* Кнопки в левом нижнем углу */}

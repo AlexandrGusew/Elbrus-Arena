@@ -44,7 +44,15 @@ export function usePvp(characterId: number | null) {
   useEffect(() => {
     if (!characterId) return;
 
-    const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
+    const wsUrl = import.meta.env.VITE_WS_URL || (
+      import.meta.env.PROD
+        ? `${window.location.protocol}//${window.location.host}`
+        : 'http://localhost:3000'
+    );
+
+    if (import.meta.env.PROD && !import.meta.env.VITE_WS_URL) {
+      console.warn('[usePvp] VITE_WS_URL not set, using current host:', wsUrl);
+    }
 
     // Подключаемся к pvp namespace
     const newSocket = io(`${wsUrl}/pvp`, {

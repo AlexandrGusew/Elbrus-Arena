@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+.github
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules
+**/node_modules
+frontend/node_modules
+backend/node_modules
+
+# Build outputs
+dist
+build
+**/dist
+**/build
+
+# Logs
+*.log
+npm-debug.log*
+logs
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage
+test
+*.test.*
+*.spec.*
+
+# Docs
+README.md
+*.md
+!DEPLOYMENT.md
+
+# Temp files
+*.tmp
+.cache
+.temp
+
+# Media assets (served from MinIO)
+frontend/src/assets/**/*.mp4
+frontend/src/assets/**/*.mp3
+frontend/src/assets/**/*.png
+frontend/src/assets/**/*.jpg
+frontend/src/assets/**/*.jpeg
+frontend/src/assets/**/*.gif
+frontend/src/assets/**/*.webp
+frontend/src/assets/**/*.svg
