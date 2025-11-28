@@ -1,23 +1,68 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Zone, RoundActions, BattleState } from '../../hooks/useBattle';
+import type { Character } from '../../types/api';
 import { BattleStats } from './BattleStats';
-import { RoundLog } from './RoundLog';
 import { ZoneSelector } from './ZoneSelector';
 import { DungeonProgress } from './DungeonProgress';
 import { styles } from '../../pages/Dungeon.styles';
 
 type BattleArenaProps = {
+  character: Character;
   battleState: BattleState;
   isConnected: boolean;
   onSubmitActions: (actions: RoundActions) => void;
   onReset: () => void;
+  backgroundImage?: string;
 };
 
-const ZONES: Zone[] = ['head', 'body', 'legs', 'arms'];
+const ZONES_4: Zone[] = ['head', 'body', 'legs', 'arms'];
+const ZONES_5: Zone[] = ['head', 'body', 'legs', 'arms', 'back'];
 
-export const BattleArena = ({ battleState, isConnected, onSubmitActions, onReset }: BattleArenaProps) => {
+export const BattleArena = ({ character, battleState, isConnected, onSubmitActions, onReset, backgroundImage }: BattleArenaProps) => {
   const [selectedAttacks, setSelectedAttacks] = useState<Zone[]>([]);
   const [selectedDefenses, setSelectedDefenses] = useState<Zone[]>([]);
+  const [waitingForResult, setWaitingForResult] = useState(false);
+
+  // SHADOW_DANCER имеет 5 зон атаки (включая спину)
+  const isShadowDancer = character.specialization?.branch === 'SHADOW_DANCER';
+  const ZONES = isShadowDancer ? ZONES_5 : ZONES_4;
+
+  // Анализ результатов последнего раунда
+  const lastRoundResults = useMemo(() => {
+    if (!battleState.lastRoundResult) {
+      return {
+        playerHits: [],
+        playerMisses: [],
+        monsterBlocked: [],
+        monsterHits: [],
+        damageDealt: 0,
+        damageTaken: 0,
+      };
+    }
+
+    const { playerActions, monsterActions, monsterDamage, playerDamage } = battleState.lastRoundResult;
+
+    const playerHits = playerActions.attacks.filter(zone => !monsterActions.defenses.includes(zone));
+    const playerMisses = playerActions.attacks.filter(zone => monsterActions.defenses.includes(zone));
+    const monsterBlocked = playerActions.defenses.filter(zone => monsterActions.attacks.includes(zone));
+    const monsterHits = monsterActions.attacks.filter(zone => !playerActions.defenses.includes(zone));
+
+    return {
+      playerHits,
+      playerMisses,
+      monsterBlocked,
+      monsterHits,
+      damageDealt: monsterDamage,
+      damageTaken: playerDamage,
+    };
+  }, [battleState.lastRoundResult]);
+
+  // Сбрасываем состояние ожидания когда приходит новый результат
+  useEffect(() => {
+    if (battleState.lastRoundResult && waitingForResult) {
+      setWaitingForResult(false);
+    }
+  }, [battleState.lastRoundResult, waitingForResult]);
 
   const toggleAttack = (zone: Zone) => {
     if (selectedAttacks.includes(zone)) {
@@ -48,24 +93,47 @@ export const BattleArena = ({ battleState, isConnected, onSubmitActions, onReset
     onSubmitActions(actions);
     setSelectedAttacks([]);
     setSelectedDefenses([]);
+    setWaitingForResult(true);
   };
 
   const getStatusText = () => {
     switch (battleState.status) {
-      case 'active': return '⚔️ В бою';
-      case 'won': return '🎉 Победа!';
-      case 'lost': return '💀 Поражение';
-      default: return '⏳ Ожидание...';
+      case 'active': return 'В бою';
+      case 'won': return 'Победа!';
+      case 'lost': return 'Поражение';
+      default: return 'Ожидание...';
     }
   };
 
   return (
-    <div style={styles.container}>
-      <h1>⚔️ Бой!</h1>
+    <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      {/* Фоновое изображение для боя */}
+      {backgroundImage && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 0,
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: '100% 100%',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }} />
+      )}
 
-      <div style={{ textAlign: 'center', marginBottom: '10px', fontSize: '12px' }}>
-        {isConnected ? '🟢 Подключено' : '🔴 Отключено'}
-      </div>
+      <div style={{
+        position: 'relative',
+        zIndex: 1,
+        width: '100vw',
+        height: '100vh',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
 
       {battleState.currentMonster && battleState.totalMonsters && (
         <DungeonProgress
@@ -79,9 +147,17 @@ export const BattleArena = ({ battleState, isConnected, onSubmitActions, onReset
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <h3>Раунд {battleState.roundNumber}</h3>
         <div>Статус: {getStatusText()}</div>
+        {battleState.lastRoundResult && (
+          <div style={{ marginTop: '10px', fontSize: '14px' }}>
+            <span style={{ color: '#4CAF50', marginRight: '15px' }}>
+              Нанесено: {lastRoundResults.damageDealt}
+            </span>
+            <span style={{ color: '#f44336' }}>
+              Получено: {lastRoundResults.damageTaken}
+            </span>
+          </div>
+        )}
       </div>
-
-      {battleState.lastRoundResult && <RoundLog roundResult={battleState.lastRoundResult} />}
 
       {battleState.status === 'active' && (
         <>
@@ -91,6 +167,8 @@ export const BattleArena = ({ battleState, isConnected, onSubmitActions, onReset
             selectedZones={selectedAttacks}
             maxSelections={2}
             onToggle={toggleAttack}
+            lastRoundHits={waitingForResult ? [] : lastRoundResults.playerHits}
+            lastRoundMisses={waitingForResult ? [] : lastRoundResults.playerMisses}
           />
 
           <ZoneSelector
@@ -99,6 +177,8 @@ export const BattleArena = ({ battleState, isConnected, onSubmitActions, onReset
             selectedZones={selectedDefenses}
             maxSelections={3}
             onToggle={toggleDefense}
+            lastRoundBlocked={waitingForResult ? [] : lastRoundResults.monsterBlocked}
+            lastRoundMisses={waitingForResult ? [] : lastRoundResults.monsterHits}
           />
 
           <button
@@ -119,6 +199,40 @@ export const BattleArena = ({ battleState, isConnected, onSubmitActions, onReset
           <div style={{ textAlign: 'center', fontSize: '48px', margin: '20px 0' }}>
             {battleState.status === 'won' ? '🎉' : '💀'}
           </div>
+
+          {battleState.status === 'won' && (
+            <div style={styles.lootContainer}>
+              <h3 style={{ textAlign: 'center', marginBottom: '15px' }}>🎁 Награды</h3>
+
+              {battleState.expGained && battleState.expGained > 0 && (
+                <div style={styles.rewardItem}>
+                  ⭐ Опыт: <span style={styles.rewardValue}>+{battleState.expGained}</span>
+                </div>
+              )}
+
+              {battleState.goldGained && battleState.goldGained > 0 && (
+                <div style={styles.rewardItem}>
+                  💰 Золото: <span style={styles.rewardValue}>+{battleState.goldGained}</span>
+                </div>
+              )}
+
+              {battleState.lootedItems && battleState.lootedItems.length > 0 && (
+                <div style={styles.lootSection}>
+                  <h4 style={{ marginBottom: '10px' }}>Выпали предметы:</h4>
+                  {battleState.lootedItems.map((item, index) => (
+                    <div key={index} style={styles.lootItem}>
+                      <span style={styles.lootItemName}>
+                        {item.itemName}
+                        {item.enhancement > 0 && <span style={styles.lootEnhancement}> +{item.enhancement}</span>}
+                      </span>
+                      <span style={styles.lootItemType}>{item.itemType}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <button
             onClick={onReset}
             style={{ ...styles.button, ...styles.buttonActive }}
@@ -127,6 +241,7 @@ export const BattleArena = ({ battleState, isConnected, onSubmitActions, onReset
           </button>
         </>
       )}
+      </div>
     </div>
   );
 };

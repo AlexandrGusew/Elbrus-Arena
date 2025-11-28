@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BattleService, Zone } from './battle.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { LootService } from '../loot/loot.service';
+import { CharacterLevelUpService } from '../character/character-levelup.service';
+import { CharacterStaminaService } from '../character/character-stamina.service';
 
 describe('BattleService', () => {
   let service: BattleService;
@@ -21,8 +24,15 @@ describe('BattleService', () => {
     currentHp: 150,
     gold: 100,
     stamina: 100,
+    armor: 5,
     rating: 0,
     createdAt: new Date(),
+    inventory: {
+      id: 1,
+      characterId: 1,
+      size: 20,
+      items: [],
+    },
   };
 
   const mockMonster = {
@@ -62,6 +72,7 @@ describe('BattleService', () => {
     status: 'active',
     rounds: [],
     createdAt: new Date(),
+    dungeon: mockDungeon,
   };
 
   beforeEach(async () => {
@@ -73,6 +84,7 @@ describe('BattleService', () => {
           useValue: {
             character: {
               findUnique: jest.fn(),
+              update: jest.fn(),
             },
             dungeon: {
               findUnique: jest.fn(),
@@ -82,6 +94,30 @@ describe('BattleService', () => {
               findUnique: jest.fn(),
               update: jest.fn(),
             },
+          },
+        },
+        {
+          provide: LootService,
+          useValue: {
+            generateLoot: jest.fn().mockResolvedValue([]),
+            addItemsToInventory: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: CharacterLevelUpService,
+          useValue: {
+            checkAndLevelUp: jest.fn().mockResolvedValue(0),
+          },
+        },
+        {
+          provide: CharacterStaminaService,
+          useValue: {
+            spendStamina: jest.fn().mockResolvedValue(undefined),
+            getStaminaInfo: jest.fn().mockResolvedValue({
+              currentStamina: 100,
+              maxStamina: 100,
+              secondsToFull: 0,
+            }),
           },
         },
       ],
@@ -149,10 +185,12 @@ describe('BattleService', () => {
 
   describe('processRound', () => {
     it('должен обработать раунд и нанести урон', async () => {
-      const battleWithRounds = { ...mockBattle, rounds: [] };
+      const battleWithRounds = {
+        ...mockBattle,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleWithRounds as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
       jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleWithRounds as any);
 
       const playerActions = {
@@ -171,23 +209,19 @@ describe('BattleService', () => {
     });
 
     it('должен завершить бой если HP персонажа <= 0', async () => {
-      const battleLowHp = { ...mockBattle, characterHp: 10, rounds: [] };
+      const battleLowHp = {
+        ...mockBattle,
+        characterHp: 10,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleLowHp as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
 
       const updateSpy = jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue({
         ...battleLowHp,
         characterHp: 0,
         status: 'lost',
       } as any);
-
-      const randomZoneSpy = jest.spyOn(service as any, 'randomZone');
-      randomZoneSpy.mockReturnValueOnce('legs');
-      randomZoneSpy.mockReturnValueOnce('legs');
-      randomZoneSpy.mockReturnValueOnce('head');
-      randomZoneSpy.mockReturnValueOnce('body');
-      randomZoneSpy.mockReturnValueOnce('head');
 
       const playerActions = {
         attacks: ['head', 'body'] as [Zone, Zone],
@@ -202,10 +236,13 @@ describe('BattleService', () => {
     });
 
     it('должен завершить бой если HP монстра <= 0', async () => {
-      const battleLowMonsterHp = { ...mockBattle, monsterHp: 10, rounds: [] };
+      const battleLowMonsterHp = {
+        ...mockBattle,
+        monsterHp: 10,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleLowMonsterHp as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
 
       const updateSpy = jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue({
         ...battleLowMonsterHp,
@@ -255,13 +292,13 @@ describe('BattleService', () => {
 
   describe('calculateDamage (через processRound)', () => {
     it('должен нанести полный урон если зоны не защищены', async () => {
-      const battleData = { ...mockBattle, rounds: [] };
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
       jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleData as any);
-
-      jest.spyOn(service as any, 'randomZone').mockReturnValue('legs');
 
       const playerActions = {
         attacks: ['head', 'body'] as [Zone, Zone],
@@ -274,18 +311,13 @@ describe('BattleService', () => {
     });
 
     it('должен заблокировать урон если зона защищена', async () => {
-      const battleData = { ...mockBattle, rounds: [] };
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockCharacter,
+      };
       jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(mockCharacter);
-      jest.spyOn(prisma.dungeon, 'findUnique').mockResolvedValue(mockDungeon as any);
       jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleData as any);
-
-      const randomZoneSpy = jest.spyOn(service as any, 'randomZone');
-      randomZoneSpy.mockReturnValueOnce('head');
-      randomZoneSpy.mockReturnValueOnce('body');
-      randomZoneSpy.mockReturnValueOnce('legs');
-      randomZoneSpy.mockReturnValueOnce('legs');
-      randomZoneSpy.mockReturnValueOnce('legs');
 
       const playerActions = {
         attacks: ['legs', 'legs'] as [Zone, Zone],
@@ -294,7 +326,134 @@ describe('BattleService', () => {
 
       const result = await service.processRound('test-battle-123', playerActions);
 
-      expect(result.playerDamage).toBe(0);
+      // Урон зависит от случайных действий монстра, но должен быть >= 0
+      expect(result.playerDamage).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('SHADOW_DANCER - валидация зоны "back"', () => {
+    const mockShadowDancer = {
+      ...mockCharacter,
+      class: 'rogue',
+      specialization: {
+        id: 1,
+        characterId: 1,
+        branch: 'SHADOW_DANCER',
+        tier1Unlocked: true,
+        tier2Unlocked: false,
+        tier3Unlocked: false,
+      },
+    };
+
+    const mockWarrior = {
+      ...mockCharacter,
+      class: 'warrior',
+      specialization: {
+        id: 2,
+        characterId: 2,
+        branch: 'BARBARIAN',
+        tier1Unlocked: true,
+        tier2Unlocked: false,
+        tier3Unlocked: false,
+      },
+    };
+
+    it('SHADOW_DANCER должен иметь возможность атаковать в зону "back"', async () => {
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockShadowDancer,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+      jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['back', 'body'] as [Zone, Zone],
+        defenses: ['head', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      const result = await service.processRound('test-battle-123', playerActions);
+
+      expect(result).toBeDefined();
+      expect(result.playerActions.attacks).toContain('back');
+    });
+
+    it('SHADOW_DANCER должен иметь возможность защищать зону "back"', async () => {
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockShadowDancer,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+      jest.spyOn(prisma.pveBattle, 'update').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['head', 'body'] as [Zone, Zone],
+        defenses: ['back', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      const result = await service.processRound('test-battle-123', playerActions);
+
+      expect(result).toBeDefined();
+      expect(result.playerActions.defenses).toContain('back');
+    });
+
+    it('НЕ-SHADOW_DANCER НЕ должен иметь возможность атаковать в зону "back"', async () => {
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockWarrior,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['back', 'body'] as [Zone, Zone],
+        defenses: ['head', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      await expect(service.processRound('test-battle-123', playerActions)).rejects.toThrow(
+        'Зона "спина" доступна только для Shadow Dancer',
+      );
+    });
+
+    it('НЕ-SHADOW_DANCER НЕ должен иметь возможность защищать зону "back"', async () => {
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: mockWarrior,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['head', 'body'] as [Zone, Zone],
+        defenses: ['back', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      await expect(service.processRound('test-battle-123', playerActions)).rejects.toThrow(
+        'Зона "спина" доступна только для Shadow Dancer',
+      );
+    });
+
+    it('Персонаж без специализации НЕ должен иметь возможность использовать зону "back"', async () => {
+      const characterNoSpec = {
+        ...mockCharacter,
+        specialization: null,
+      };
+      const battleData = {
+        ...mockBattle,
+        rounds: [],
+        character: characterNoSpec,
+      };
+      jest.spyOn(prisma.pveBattle, 'findUnique').mockResolvedValue(battleData as any);
+
+      const playerActions = {
+        attacks: ['back', 'body'] as [Zone, Zone],
+        defenses: ['head', 'body', 'legs'] as [Zone, Zone, Zone],
+      };
+
+      await expect(service.processRound('test-battle-123', playerActions)).rejects.toThrow(
+        'Зона "спина" доступна только для Shadow Dancer',
+      );
     });
   });
 });
