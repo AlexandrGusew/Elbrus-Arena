@@ -153,13 +153,13 @@ const Dashboard = () => {
   const maxStamina = staminaInfo?.maxStamina ?? 100;
   const staminaPercent = (currentStamina / maxStamina) * 100; // Максимум стамины 100
 
-  // Выбор изображения героя по классу
-  const getHeroImage = () => {
+  // Выбор видео героя по классу
+  const getHeroVideo = () => {
     const classLower = character.class.toLowerCase();
-    if (classLower === 'warrior') return getAssetUrl('createCharacter/warrior (1).png');
-    if (classLower === 'mage') return getAssetUrl('createCharacter/mage (1).png');
-    if (classLower === 'rogue') return getAssetUrl('createCharacter/rogue (1).png');
-    return getAssetUrl('createCharacter/warrior (1).png'); // fallback
+    if (classLower === 'warrior') return getAssetUrl('dashboard/warrior.mp4');
+    if (classLower === 'mage') return getAssetUrl('dashboard/mag.mp4');
+    if (classLower === 'rogue') return getAssetUrl('dashboard/sin.mp4');
+    return getAssetUrl('dashboard/warrior.mp4'); // fallback
   };
 
   return (
@@ -465,15 +465,19 @@ const Dashboard = () => {
         zIndex: 1000,
         boxShadow: '0 8px 40px rgba(0, 0, 0, 0.9)',
       }}>
-        <img
-          src={getHeroImage()}
-          alt={character.class}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
           }}
-        />
+        >
+          <source src={getHeroVideo()} type="video/webm" />
+        </video>
       </div>
 
 
@@ -517,79 +521,93 @@ const Dashboard = () => {
         position: 'fixed',
         top: '40px',
         left: '40px',
-        display: 'flex',
-        gap: '10px',
+        width: '500px',
+        height: '100px',
         zIndex: 1000,
       }}>
-        {/* Имя персонажа */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '8px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
-        }}>
-          <div style={{
-            fontSize: '11px',
-            color: '#aaa',
-            marginBottom: '2px',
-          }}>
-            Имя
-          </div>
-          <div style={{
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#ffd700',
-          }}>
-            {character.name}
-          </div>
-        </div>
+        {/* Фоновое изображение */}
+        <img
+          src={getAssetUrl('dashboard/name.png')}
+          alt="Character Info Background"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+            display: 'none',
+          }}
+        />
 
-        {/* Класс персонажа */}
+        {/* Контент поверх фона */}
         <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '8px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+          position: 'relative',
+          zIndex: 2,
+          display: 'flex',
+          gap: '10px',
+          padding: '15px',
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'space-around',
         }}>
+          {/* Имя персонажа */}
           <div style={{
-            fontSize: '11px',
-            color: '#aaa',
-            marginBottom: '2px',
+            textAlign: 'center',
           }}>
-            Класс
+            <div style={{
+              fontSize: '14px',
+              color: '#aaa',
+              marginBottom: '2px',
+            }}>
+              Имя
+            </div>
+            <div style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: '#ffd700',
+            }}>
+              {character.name}
+            </div>
           </div>
-          <div style={{
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#ffd700',
-          }}>
-            {character.class}
-          </div>
-        </div>
 
-        {/* Уровень персонажа */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '8px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
-        }}>
+          {/* Класс персонажа */}
           <div style={{
-            fontSize: '11px',
-            color: '#aaa',
-            marginBottom: '2px',
+            textAlign: 'center',
           }}>
-            Уровень
+            <div style={{
+              fontSize: '14px',
+              color: '#aaa',
+              marginBottom: '2px',
+            }}>
+              Класс
+            </div>
+            <div style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: '#ffd700',
+            }}>
+              {character.class}
+            </div>
           </div>
+
+          {/* Уровень персонажа */}
           <div style={{
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#ffd700',
+            textAlign: 'center',
           }}>
-            {character.level}
+            <div style={{
+              fontSize: '14px',
+              color: '#aaa',
+              marginBottom: '2px',
+            }}>
+              Уровень
+            </div>
+            <div style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: '#ffd700',
+            }}>
+              {character.level}
+            </div>
           </div>
         </div>
       </div>
@@ -597,77 +615,91 @@ const Dashboard = () => {
       {/* HP и Stamina бары */}
       <div style={{
         position: 'fixed',
-        top: '125px',
+        top: '160px',
         left: '40px',
-        width: '300px',
+        width: '500px',
+        height: '180px',
         zIndex: 1000,
       }}>
-        {/* HP Bar */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '10px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
-          marginBottom: '10px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>HP</span>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>
-              {character.currentHp} / {character.maxHp}
-            </span>
-          </div>
-          <div style={{
+        {/* Фоновое изображение */}
+        <img
+          src={getAssetUrl('dashboard/hp.png')}
+          alt="Health and Stamina Background"
+          style={{
+            position: 'absolute',
             width: '100%',
-            height: '20px',
-            background: '#333',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            border: '1px solid #555',
-          }}>
-            <div style={{
-              width: `${hpPercent}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #ff4444, #cc0000)',
-              transition: 'width 0.3s ease',
-            }} />
-          </div>
-        </div>
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+            display: 'none',
+          }}
+        />
 
-        {/* Stamina Bar */}
+        {/* Контент поверх фона */}
         <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '10px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+          position: 'relative',
+          zIndex: 2,
+          padding: '15px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '15px',
+          height: '100%',
+          justifyContent: 'center',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>Выносливость</span>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>
-              {currentStamina} / {maxStamina}
-            </span>
-          </div>
-          <div style={{
-            width: '100%',
-            height: '20px',
-            background: '#333',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            border: '1px solid #555',
-          }}>
+          {/* HP Bar */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+              <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>HP</span>
+              <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>
+                {character.currentHp} / {character.maxHp}
+              </span>
+            </div>
             <div style={{
-              width: `${staminaPercent}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #4CAF50, #2E7D32)',
-              transition: 'width 0.3s ease',
-            }} />
+              width: '100%',
+              height: '20px',
+              background: '#333',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              border: '1px solid #555',
+            }}>
+              <div style={{
+                width: `${hpPercent}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #ff4444, #cc0000)',
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
           </div>
-          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '5px' }}>
-            Восстанавливается: 1/сек
-            {staminaInfo?.secondsToFull && staminaInfo.secondsToFull > 0 && (
-              <span> • Полная через {Math.ceil(staminaInfo.secondsToFull)}с</span>
-            )}
+
+          {/* Stamina Bar */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+              <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>Выносливость</span>
+              <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>
+                {currentStamina} / {maxStamina}
+              </span>
+            </div>
+            <div style={{
+              width: '100%',
+              height: '20px',
+              background: '#333',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              border: '1px solid #555',
+            }}>
+              <div style={{
+                width: `${staminaPercent}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #4CAF50, #2E7D32)',
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
+            <div style={{ fontSize: '14px', color: '#aaa', marginTop: '5px' }}>
+              Восстанавливается: 1/сек
+              {staminaInfo?.secondsToFull && staminaInfo.secondsToFull > 0 && (
+                <span> • Полная через {Math.ceil(staminaInfo.secondsToFull)}с</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -690,92 +722,113 @@ const Dashboard = () => {
       {/* Объединённый блок: Золото + Характеристики */}
       <div style={{
         position: 'fixed',
-        top: '330px',
+        top: '360px',
         left: '40px',
-        width: '300px',
-        background: 'rgba(0, 0, 0, 0.8)',
-        padding: '15px',
-        borderRadius: '8px',
-        border: '2px solid #ffd700',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+        width: '500px',
+        height: '280px',
         zIndex: 1000,
       }}>
-        {/* Золото */}
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '20px',
-          paddingBottom: '15px',
-          borderBottom: '1px solid #ffd700',
-        }}>
-          <div style={{
-            fontSize: '14px',
-            color: '#aaa',
-            marginBottom: '5px',
-          }}>
-            Золото
-          </div>
-          <div style={{
-            fontSize: '32px',
-            fontWeight: 'bold',
-            color: '#FFD700',
-            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-          }}>
-            {character.gold.toLocaleString()}
-          </div>
-        </div>
+        {/* Фоновое изображение */}
+        <img
+          src={getAssetUrl('dashboard/charaktery.png')}
+          alt="Stats and Gold Background"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+            display: 'none',
+          }}
+        />
 
-        {/* Характеристики */}
-        <div>
+        {/* Контент поверх фона */}
+        <div style={{
+          position: 'relative',
+          zIndex: 2,
+          padding: '15px',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}>
+          {/* Золото */}
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '12px',
+            textAlign: 'center',
+            marginBottom: '20px',
+            paddingBottom: '15px',
+            borderBottom: '1px solid #ffd700',
           }}>
-            <h3 style={{
-              margin: 0,
-              color: '#ffd700',
-              fontSize: '16px',
+            <div style={{
+              fontSize: '18px',
+              color: '#aaa',
+              marginBottom: '5px',
             }}>
-              Характеристики
-            </h3>
-            {character.freePoints > 0 && (
-              <Link to="/levelup" style={{ textDecoration: 'none' }}>
-                <button style={{
-                  padding: '4px 12px',
-                  fontSize: '11px',
-                  background: '#4CAF50',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                }}>
-                  Прокачка ({character.freePoints})
-                </button>
-              </Link>
-            )}
+              Золото
+            </div>
+            <div style={{
+              fontSize: '40px',
+              fontWeight: 'bold',
+              color: '#FFD700',
+              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+            }}>
+              {character.gold.toLocaleString()}
+            </div>
           </div>
-          <div style={{
-            display: 'grid',
-            gap: '8px',
-            color: '#fff',
-            fontSize: '14px',
-          }}>
-            <div>Сила: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.strength}</span></div>
-            <div>Ловкость: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.agility}</span></div>
-            <div>Интеллект: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.intelligence}</span></div>
-            {character.freePoints > 0 && (
-              <div style={{
-                marginTop: '4px',
-                padding: '6px',
-                background: 'rgba(76, 175, 80, 0.2)',
-                borderRadius: '4px',
-                textAlign: 'center',
+
+          {/* Характеристики */}
+          <div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '12px',
+            }}>
+              <h3 style={{
+                margin: 0,
+                color: '#ffd700',
+                fontSize: '20px',
               }}>
-                Свободных очков: <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>{character.freePoints}</span>
-              </div>
-            )}
+                Характеристики
+              </h3>
+              {character.freePoints > 0 && (
+                <Link to="/levelup" style={{ textDecoration: 'none' }}>
+                  <button style={{
+                    padding: '6px 14px',
+                    fontSize: '14px',
+                    background: '#4CAF50',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                  }}>
+                    Прокачка ({character.freePoints})
+                  </button>
+                </Link>
+              )}
+            </div>
+            <div style={{
+              display: 'grid',
+              gap: '8px',
+              color: '#fff',
+              fontSize: '18px',
+            }}>
+              <div>Сила: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.strength}</span></div>
+              <div>Ловкость: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.agility}</span></div>
+              <div>Интеллект: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.intelligence}</span></div>
+              {character.freePoints > 0 && (
+                <div style={{
+                  marginTop: '4px',
+                  padding: '6px',
+                  background: 'rgba(76, 175, 80, 0.2)',
+                  borderRadius: '4px',
+                  textAlign: 'center',
+                }}>
+                  Свободных очков: <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>{character.freePoints}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
