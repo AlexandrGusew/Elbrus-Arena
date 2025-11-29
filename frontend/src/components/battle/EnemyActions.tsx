@@ -1,10 +1,5 @@
 import type { Zone, RoundResult } from '../../hooks/useBattle';
-
-// Импортируем изображения зон
-import headImg from '../../assets/fight/head (1).png';
-import chestImg from '../../assets/fight/chest (1).png';
-import legsImg from '../../assets/fight/legs (1).png';
-import armsImg from '../../assets/fight/arms (1).png';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 const ZONE_NAMES: Partial<Record<Zone, string>> = {
   head: 'Голова',
@@ -14,10 +9,10 @@ const ZONE_NAMES: Partial<Record<Zone, string>> = {
 };
 
 const ZONE_IMAGES: Partial<Record<Zone, string>> = {
-  head: headImg,
-  body: chestImg,
-  legs: legsImg,
-  arms: armsImg,
+  head: getAssetUrl('fight/head (1).png'),
+  body: getAssetUrl('fight/chest (1).png'),
+  legs: getAssetUrl('fight/legs (1).png'),
+  arms: getAssetUrl('fight/arms (1).png'),
 };
 
 const ALL_ZONES = ['head', 'body', 'legs', 'arms'] as const;

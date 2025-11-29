@@ -7,31 +7,7 @@ import { DungeonProgress } from './DungeonProgress';
 import { DetailedBattleLog } from './DetailedBattleLog';
 import { EnemyActions } from './EnemyActions';
 import { styles } from '../../pages/Dungeon.styles';
-
-// Импортируем фон для боя
-import fightBackground from '../../assets/fight/PvE-arena.png';
-
-// Импортируем изображения персонажей
-import warriorImg from '../../assets/fight/warrior_character.png';
-import mageImg from '../../assets/fight/mage_character.png';
-import rogueImg from '../../assets/fight/rogue_character.png';
-
-// Импортируем статичные изображения персонажей по классам
-// warriorImg, mageImg, rogueImg уже импортированы выше
-
-// Импортируем изображения мобов для Данжа 1 (Катакомбы)
-import mob1 from '../../assets/mobs/mob-1-skeleton.png';
-import mob2 from '../../assets/mobs/mob-2-archer.png';
-import mob3 from '../../assets/mobs/mob-3-spear.png';
-import mob4 from '../../assets/mobs/mob-4-mage.png';
-import mob5 from '../../assets/mobs/mob-5-boss.png';
-
-// Импортируем изображения мобов для Данжа 2 (Болото)
-import dungeon2Mob1 from '../../assets/mobs/dungeon2-mob-1-slime.png';
-import dungeon2Mob2 from '../../assets/mobs/dungeon2-mob-2-crocodile.png';
-import dungeon2Mob3 from '../../assets/mobs/dungeon2-mob-3-spider.png';
-import dungeon2Mob4 from '../../assets/mobs/dungeon2-mob-4-monster.png';
-import dungeon2Mob5 from '../../assets/mobs/dungeon2-mob-5-leshy-boss.png';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 type BattleArenaProps = {
   character: Character;
@@ -62,10 +38,10 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
   // Выбор изображения персонажа по классу
   const getCharacterImage = () => {
     switch (character.class) {
-      case 'warrior': return warriorImg;
-      case 'mage': return mageImg;
-      case 'rogue': return rogueImg;
-      default: return warriorImg;
+      case 'warrior': return getAssetUrl('fight/warrior_character.png');
+      case 'mage': return getAssetUrl('fight/mage_character.png');
+      case 'rogue': return getAssetUrl('fight/rogue_character.png');
+      default: return getAssetUrl('fight/warrior_character.png');
     }
   };
 
@@ -76,16 +52,28 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
 
     // Данж 1 - Катакомбы (скелеты)
     if (dungeonId === 1 || !dungeonId) {
-      const images = [mob1, mob2, mob3, mob4, mob5];
-      return images[mobNumber - 1] || mob1;
+      const images = [
+        getAssetUrl('mobs/mob-1-skeleton.png'),
+        getAssetUrl('mobs/mob-2-archer.png'),
+        getAssetUrl('mobs/mob-3-spear.png'),
+        getAssetUrl('mobs/mob-4-mage.png'),
+        getAssetUrl('mobs/mob-5-boss.png'),
+      ];
+      return images[mobNumber - 1] || images[0];
     }
     // Данж 2 - Болото (слизни, крокодилы, пауки, леший)
     else if (dungeonId === 2) {
-      const images = [dungeon2Mob1, dungeon2Mob2, dungeon2Mob3, dungeon2Mob4, dungeon2Mob5];
-      return images[mobNumber - 1] || dungeon2Mob1;
+      const images = [
+        getAssetUrl('mobs/dungeon2-mob-1-slime.png'),
+        getAssetUrl('mobs/dungeon2-mob-2-crocodile.png'),
+        getAssetUrl('mobs/dungeon2-mob-3-spider.png'),
+        getAssetUrl('mobs/dungeon2-mob-4-monster.png'),
+        getAssetUrl('mobs/dungeon2-mob-5-leshy-boss.png'),
+      ];
+      return images[mobNumber - 1] || images[0];
     }
     // По умолчанию - данж 1
-    return mob1;
+    return getAssetUrl('mobs/mob-1-skeleton.png');
   };
 
   // Названия мобов
@@ -191,7 +179,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
         width: '100%',
         height: '100%',
         zIndex: 0,
-        backgroundImage: `url(${fightBackground})`,
+        backgroundImage: `url(${getAssetUrl('fight/PvE-arena.png')})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

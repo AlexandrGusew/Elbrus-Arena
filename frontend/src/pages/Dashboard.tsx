@@ -3,11 +3,13 @@ import { useGetCharacterQuery, useGetStaminaInfoQuery, useTestLevelBoostMutation
 import { styles } from './Dashboard.styles';
 import { useState, useEffect, useRef } from 'react';
 import { getAssetUrl } from '../utils/assetUrl';
+import { ChatWindow } from '../components/ChatWindow';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const characterId = localStorage.getItem('characterId');
   const [boostMessage, setBoostMessage] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Загружаем настройку музыки из localStorage
   const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
@@ -229,6 +231,37 @@ const Dashboard = () => {
             borderRadius: '8px',
           }}
         />
+      </button>
+
+      {/* Кнопка чата - левый верхний угол под статами */}
+      <button
+        onClick={() => setIsChatOpen(true)}
+        style={{
+          position: 'fixed',
+          top: '600px',
+          left: '40px',
+          padding: '12px 24px',
+          border: '2px solid #ffd700',
+          background: 'rgba(33, 150, 243, 0.8)',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          borderRadius: '8px',
+          zIndex: 1000,
+          color: '#fff',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          boxShadow: '0 4px 15px rgba(33, 150, 243, 0.4)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.background = 'rgba(33, 150, 243, 1)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.background = 'rgba(33, 150, 243, 0.8)';
+        }}
+      >
+        💬 Чат
       </button>
 
       {/* Кнопка выхода - правый нижний угол */}
@@ -781,6 +814,16 @@ const Dashboard = () => {
       </div>
 
       </div>
+
+      {/* Окно чата */}
+      {character && (
+        <ChatWindow
+          characterId={character.id}
+          characterName={character.name}
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
     </div>
   );
 };

@@ -46,31 +46,35 @@ model User {
 }
 
 model Character {
-  id                Int              @id @default(autoincrement())
-  userId            Int              @unique
-  name              String           @unique
-  class             String
-  level             Int              @default(1)
-  experience        Int              @default(0)
-  strength          Int              @default(0)
-  agility           Int              @default(0)
-  intelligence      Int              @default(0)
-  freePoints        Int              @default(0)
-  maxHp             Int              @default(100)
-  currentHp         Int              @default(100)
-  armor             Int              @default(10)
-  gold              Int              @default(100)
-  stamina           Int              @default(100)
-  lastStaminaUpdate DateTime         @default(now())
-  rating            Int              @default(0)
-  superPoints       Int              @default(0)
-  createdAt         DateTime         @default(now())
-  user              User             @relation(fields: [userId], references: [id])
-  inventory         Inventory?
-  pveBattles        PveBattle[]
-  pvpBattles1       PvpBattle[]      @relation("Player1")
-  pvpBattles2       PvpBattle[]      @relation("Player2")
-  specialization    Specialization?
+  id                 Int                @id @default(autoincrement())
+  userId             Int                @unique
+  name               String             @unique
+  class              String
+  level              Int                @default(1)
+  experience         Int                @default(0)
+  strength           Int                @default(0)
+  agility            Int                @default(0)
+  intelligence       Int                @default(0)
+  freePoints         Int                @default(0)
+  maxHp              Int                @default(100)
+  currentHp          Int                @default(100)
+  armor              Int                @default(10)
+  gold               Int                @default(100)
+  stamina            Int                @default(100)
+  lastStaminaUpdate  DateTime           @default(now())
+  rating             Int                @default(0)
+  superPoints        Int                @default(0)
+  createdAt          DateTime           @default(now())
+  user               User               @relation(fields: [userId], references: [id])
+  inventory          Inventory?
+  pveBattles         PveBattle[]
+  pvpBattles1        PvpBattle[]        @relation("Player1")
+  pvpBattles2        PvpBattle[]        @relation("Player2")
+  specialization     Specialization?
+  chatMessages       ChatMessage[]
+  chatParticipants   ChatParticipant[]
+  sentInvitations    ChatInvitation[]   @relation("SentInvitations")
+  receivedInvitations ChatInvitation[]  @relation("ReceivedInvitations")
 
   @@map("characters")
 }
@@ -241,4 +245,59 @@ model AbilityCooldown {
 
   @@unique([battleId, abilityId])
   @@map("ability_cooldowns")
+}
+
+enum ChatRoomType {
+  GLOBAL    // Общий чат для всех
+  PRIVATE   // Приватный чат между двумя игроками
+  BATTLE    // Чат боя (PvP)
+}
+
+model ChatRoom {
+  id           String            @id @default(uuid())
+  type         ChatRoomType
+  battleId     String?           @unique  // Для чата боя - связь с PvpBattle
+  createdAt    DateTime          @default(now())
+  messages     ChatMessage[]
+  participants ChatParticipant[]
+
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id         Int      @id @default(autoincrement())
+  roomId     String
+  senderId   Int
+  content    String
+  createdAt  DateTime @default(now())
+  room       ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender     Character @relation(fields: [senderId], references: [id])
+
+  @@index([roomId, createdAt])
+  @@map("chat_messages")
+}
+
+model ChatParticipant {
+  id           Int      @id @default(autoincrement())
+  roomId       String
+  characterId  Int
+  joinedAt     DateTime @default(now())
+  room         ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  character    Character @relation(fields: [characterId], references: [id])
+
+  @@unique([roomId, characterId])
+  @@map("chat_participants")
+}
+
+model ChatInvitation {
+  id           Int      @id @default(autoincrement())
+  senderId     Int
+  receiverId   Int
+  status       String   // pending, accepted, rejected
+  createdAt    DateTime @default(now())
+  sender       Character @relation("SentInvitations", fields: [senderId], references: [id])
+  receiver     Character @relation("ReceivedInvitations", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId, status])
+  @@map("chat_invitations")
 }
