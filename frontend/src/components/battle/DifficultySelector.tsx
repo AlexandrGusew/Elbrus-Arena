@@ -1,11 +1,14 @@
 import { DUNGEON_DIFFICULTIES, type DungeonDifficulty } from '../../types/api';
-import { styles } from '../../pages/Dungeon.styles';
-import { getAssetUrl } from '../../utils/assetUrl';
+
+// Импортируем badge изображения
+import easyBadge from '../../assets/enterDungeon/dungeons/easy/easy-level.png';
+import mediumBadge from '../../assets/enterDungeon/dungeons/medium/medium-level.png';
+import hardBadge from '../../assets/enterDungeon/dungeons/hard/hard-level.png';
 
 const DIFFICULTY_INFO = {
-  easy: { name: 'Легкий', desc: 'Для новичков', reward: '10-20 золота', badge: getAssetUrl('enterDungeon/dungeons/easy/easy_level_badge.png') },
-  medium: { name: 'Средний', desc: 'Для опытных воинов', reward: '25-40 золота', badge: getAssetUrl('enterDungeon/dungeons/medium/medium_level_badge.png') },
-  hard: { name: 'Сложный', desc: 'Для мастеров боя', reward: '50-100 золота', badge: getAssetUrl('enterDungeon/dungeons/hard/hard_level_badge.png') },
+  easy: { name: 'Легкий', desc: 'Для новичков', reward: '10-20 золота', badge: easyBadge },
+  medium: { name: 'Средний', desc: 'Для опытных воинов', reward: '25-40 золота', badge: mediumBadge },
+  hard: { name: 'Сложный', desc: 'Для мастеров боя', reward: '50-100 золота', badge: hardBadge },
 };
 
 type DifficultySelectorProps = {
@@ -23,6 +26,22 @@ export const DifficultySelector = ({ selectedDifficulty, onSelect }: DifficultyS
       marginTop: '20px',
       marginBottom: '20px'
     }}>
+      <h1 style={{
+        fontSize: '48px',
+        fontWeight: 'bold',
+        color: '#d4af37',
+        letterSpacing: '3px',
+        textTransform: 'uppercase',
+        margin: '0 0 30px 0',
+        fontFamily: 'serif',
+        background: 'linear-gradient(180deg, #ffd700 0%, #d4af37 50%, #8b6914 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.4))',
+      }}>
+        Выберите подземелье
+      </h1>
       {DUNGEON_DIFFICULTIES.map((diff) => (
         <div
           key={diff}
@@ -32,12 +51,10 @@ export const DifficultySelector = ({ selectedDifficulty, onSelect }: DifficultyS
             height: '150px',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            border: selectedDifficulty === diff ? '4px solid #ffd700' : '2px solid transparent',
             borderRadius: '10px',
             overflow: 'hidden',
             opacity: selectedDifficulty === diff ? 1 : 0.6,
-            transform: selectedDifficulty === diff ? 'scale(1.05)' : 'scale(1)',
-            boxShadow: selectedDifficulty === diff ? '0 0 30px rgba(255, 215, 0, 0.6)' : 'none',
+            transform: selectedDifficulty === diff ? 'scale(1.1)' : 'scale(1)',
             position: 'relative',
           }}
           onMouseEnter={(e) => {
@@ -59,6 +76,7 @@ export const DifficultySelector = ({ selectedDifficulty, onSelect }: DifficultyS
             style={{
               width: '100%',
               height: '100%',
+              display: 'block',
               objectFit: 'contain',
               pointerEvents: 'none',
             }}

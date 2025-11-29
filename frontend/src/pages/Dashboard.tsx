@@ -8,7 +8,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const characterId = localStorage.getItem('characterId');
   const [boostMessage, setBoostMessage] = useState<string | null>(null);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+
+  // Загружаем настройку музыки из localStorage
+  const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
+    const savedMusicState = localStorage.getItem('musicPlaying');
+    return savedMusicState !== null ? savedMusicState === 'true' : true;
+  });
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioRef2 = useRef<HTMLAudioElement>(null);
 
@@ -104,7 +110,10 @@ const Dashboard = () => {
   }, [isMusicPlaying]);
 
   const toggleMusic = () => {
-    setIsMusicPlaying(!isMusicPlaying);
+    const newState = !isMusicPlaying;
+    setIsMusicPlaying(newState);
+    // Сохраняем настройку в localStorage
+    localStorage.setItem('musicPlaying', String(newState));
   };
 
   const handleLevelBoost = async () => {
@@ -182,61 +191,92 @@ const Dashboard = () => {
         <source src={getAssetUrl('mainCity/mainCity.mp3')} type="audio/mpeg" />
       </audio>
 
-      {/* Левый нижний угол - кнопки одинакового размера */}
-      <div style={{
-        position: 'fixed',
-        bottom: '40px',
-        left: '40px',
-        display: 'flex',
-        gap: '10px',
-        zIndex: 1000,
-      }}>
-        {/* Кнопка управления музыкой */}
-        <button
-          onClick={toggleMusic}
+      {/* Кнопка музыки - правый верхний угол */}
+      <button
+        onClick={toggleMusic}
+        style={{
+          position: 'fixed',
+          top: '40px',
+          right: '40px',
+          padding: '0',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          width: '200px',
+          height: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.filter = 'brightness(1.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.filter = 'brightness(1)';
+        }}
+      >
+        <img
+          src={getAssetUrl('mainCity/music.png')}
+          alt="Music"
           style={{
-            padding: '10px',
-            border: '2px solid #fff',
-            background: isMusicPlaying ? 'rgba(255, 215, 0, 0.8)' : 'rgba(220, 38, 38, 0.8)',
-            color: '#fff',
-            fontSize: '24px',
-            cursor: 'pointer',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
             borderRadius: '8px',
-            transition: 'all 0.3s ease',
-            width: '50px',
-            height: '50px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
           }}
-        >
-          {isMusicPlaying ? '🔊' : '🔇'}
-        </button>
+        />
+      </button>
 
-        {/* Кнопка выхода */}
-        <button
-          onClick={() => {
-            localStorage.removeItem('characterId');
-            navigate('/');
-          }}
+      {/* Кнопка выхода - правый нижний угол */}
+      <button
+        onClick={() => {
+          localStorage.removeItem('characterId');
+          navigate('/');
+        }}
+        style={{
+          position: 'fixed',
+          bottom: '40px',
+          right: '40px',
+          padding: '0',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          width: '200px',
+          height: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.filter = 'brightness(1.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.filter = 'brightness(1)';
+        }}
+      >
+        <img
+          src={getAssetUrl('mainCity/exit.png')}
+          alt="Exit"
           style={{
-            padding: '10px',
-            border: '2px solid #fff',
-            background: 'rgba(220, 38, 38, 0.8)',
-            color: '#fff',
-            fontSize: '20px',
-            cursor: 'pointer',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
             borderRadius: '8px',
-            transition: 'all 0.3s ease',
-            width: '50px',
-            height: '50px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
           }}
-        >
-          🚪
-        </button>
+        />
+      </button>
+
+      <div style={{
+        display: 'none',
+      }}>
 
         {/* Кнопка теста */}
         <button
@@ -253,7 +293,7 @@ const Dashboard = () => {
             transition: 'all 0.3s ease',
             width: '50px',
             height: '50px',
-            display: 'flex',
+            display: 'none', // Скрыто
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -283,6 +323,7 @@ const Dashboard = () => {
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
+              borderRadius: '8px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -305,6 +346,7 @@ const Dashboard = () => {
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
+              borderRadius: '8px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -327,6 +369,7 @@ const Dashboard = () => {
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
+              borderRadius: '8px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -349,6 +392,7 @@ const Dashboard = () => {
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
+              borderRadius: '8px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -360,19 +404,18 @@ const Dashboard = () => {
             }}
           />
         </Link>
-        {character.level >= 10 && (
-          <Link to="/specialization" style={{ display: 'block' }}>
-            <button style={{
+        <Link to="/specialization" style={{ display: 'block' }}>
+          <img
+            src={getAssetUrl('mainCity/specialization.png')}
+            alt="Специализация"
+            style={{
               width: '450px',
               height: '240px',
-              background: '#673ab7',
-              color: '#fff',
-              border: '2px solid #fff',
-              borderRadius: '8px',
-              fontSize: '32px',
-              fontWeight: 'bold',
+              objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
+              background: 'transparent',
+              borderRadius: '8px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -381,24 +424,21 @@ const Dashboard = () => {
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.filter = 'brightness(1)';
-            }}>
-              Специализация
-            </button>
-          </Link>
-        )}
-        {character.level >= 15 && (
-          <Link to="/class-mentor" style={{ display: 'block' }}>
-            <button style={{
+            }}
+          />
+        </Link>
+        <Link to="/class-mentor" style={{ display: 'block' }}>
+          <img
+            src={getAssetUrl('mainCity/mentor.png')}
+            alt="Наставник"
+            style={{
               width: '450px',
               height: '240px',
-              background: '#ff9800',
-              color: '#fff',
-              border: '2px solid #fff',
-              borderRadius: '8px',
-              fontSize: '32px',
-              fontWeight: 'bold',
+              objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
+              background: 'transparent',
+              borderRadius: '8px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -407,41 +447,24 @@ const Dashboard = () => {
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.filter = 'brightness(1)';
-            }}>
-              Наставник {character.superPoints > 0 && `(${character.superPoints})`}
-            </button>
-          </Link>
-        )}
+            }}
+          />
+        </Link>
       </div>
 
-      {/* Портрет героя - левый верхний угол */}
+      {/* Портрет героя - центр экрана */}
       <div style={{
         position: 'fixed',
-        top: '80px',
-        left: '40px',
-        width: '150px',
-        height: '200px',
-        borderRadius: '10px',
+        top: '40%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '450px',
+        height: '600px',
+        borderRadius: '20px',
         overflow: 'hidden',
         zIndex: 1000,
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
+        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.9)',
       }}>
-        {/* Уровень - в верхнем правом углу портрета */}
-        <div style={{
-          position: 'absolute',
-          top: '5px',
-          right: '5px',
-          background: 'rgba(255, 215, 0, 0.9)',
-          color: '#000',
-          padding: '3px 8px',
-          borderRadius: '12px',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          border: '2px solid #000',
-          zIndex: 2,
-        }}>
-          Ур. {character.level}
-        </div>
         <img
           src={getHeroImage()}
           alt={character.class}
@@ -453,36 +476,19 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Имя персонажа под портретом */}
-      <div style={{
-        position: 'fixed',
-        top: '285px', // 80px (top) + 200px (height) + 5px (gap)
-        left: '40px',
-        width: '150px',
-        background: 'rgba(255, 255, 255, 0.9)',
-        padding: '5px',
-        textAlign: 'center',
-        color: '#000',
-        fontSize: '14px',
-        fontWeight: 'bold',
-        borderRadius: '5px',
-        zIndex: 1000,
-      }}>
-        {character.name}
-      </div>
 
       {/* Кнопка Level Up - появляется только когда есть свободные очки */}
       {character.freePoints > 0 && (
         <Link to="/inventory" style={{
           position: 'fixed',
-          top: '310px', // Сразу под именем
+          top: '285px', // Сразу под портретом
           left: '40px',
           width: '150px',
           height: '60px',
           zIndex: 1000,
           cursor: 'pointer',
           transition: 'all 0.3s ease',
-          display: 'block',
+          display: 'none', // Скрыто
         }}>
           <img
             src={getAssetUrl('mainCity/lvlup.png')}
@@ -506,19 +512,103 @@ const Dashboard = () => {
         </Link>
       )}
 
-      {/* HP и Stamina бары - справа от портрета */}
+      {/* Имя, класс и уровень персонажа */}
       <div style={{
         position: 'fixed',
-        top: '100px',
-        left: '205px', // 40px (left) + 150px (width) + 15px (gap)
+        top: '40px',
+        left: '40px',
+        display: 'flex',
+        gap: '10px',
+        zIndex: 1000,
+      }}>
+        {/* Имя персонажа */}
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.8)',
+          padding: '8px 15px',
+          borderRadius: '8px',
+          border: '2px solid #ffd700',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+        }}>
+          <div style={{
+            fontSize: '11px',
+            color: '#aaa',
+            marginBottom: '2px',
+          }}>
+            Имя
+          </div>
+          <div style={{
+            fontSize: '16px',
+            fontWeight: 'bold',
+            color: '#ffd700',
+          }}>
+            {character.name}
+          </div>
+        </div>
+
+        {/* Класс персонажа */}
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.8)',
+          padding: '8px 15px',
+          borderRadius: '8px',
+          border: '2px solid #ffd700',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+        }}>
+          <div style={{
+            fontSize: '11px',
+            color: '#aaa',
+            marginBottom: '2px',
+          }}>
+            Класс
+          </div>
+          <div style={{
+            fontSize: '16px',
+            fontWeight: 'bold',
+            color: '#ffd700',
+          }}>
+            {character.class}
+          </div>
+        </div>
+
+        {/* Уровень персонажа */}
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.8)',
+          padding: '8px 15px',
+          borderRadius: '8px',
+          border: '2px solid #ffd700',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+        }}>
+          <div style={{
+            fontSize: '11px',
+            color: '#aaa',
+            marginBottom: '2px',
+          }}>
+            Уровень
+          </div>
+          <div style={{
+            fontSize: '16px',
+            fontWeight: 'bold',
+            color: '#ffd700',
+          }}>
+            {character.level}
+          </div>
+        </div>
+      </div>
+
+      {/* HP и Stamina бары */}
+      <div style={{
+        position: 'fixed',
+        top: '125px',
+        left: '40px',
         width: '300px',
         zIndex: 1000,
       }}>
         {/* HP Bar */}
         <div style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '10px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          padding: '10px 15px',
           borderRadius: '8px',
+          border: '2px solid #ffd700',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
           marginBottom: '10px',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
@@ -546,9 +636,11 @@ const Dashboard = () => {
 
         {/* Stamina Bar */}
         <div style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '10px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          padding: '10px 15px',
           borderRadius: '8px',
+          border: '2px solid #ffd700',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
             <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>Выносливость</span>
@@ -581,8 +673,6 @@ const Dashboard = () => {
       </div>
 
       <div style={{ ...styles.container, position: 'relative', zIndex: 2, height: '100vh', overflowY: 'auto' }}>
-        <h1>{character.class}</h1>
-
       {boostMessage && (
         <div style={{
           marginTop: '10px',
@@ -597,17 +687,17 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Объединённый блок: Золото + Характеристики - слева под портретом */}
+      {/* Объединённый блок: Золото + Характеристики */}
       <div style={{
         position: 'fixed',
-        top: character.freePoints > 0 ? '380px' : '310px', // Под кнопкой lvlup или под именем
+        top: '330px',
         left: '40px',
         width: '300px',
-        background: 'rgba(0, 0, 0, 0.85)',
-        padding: '20px',
-        borderRadius: '12px',
+        background: 'rgba(0, 0, 0, 0.8)',
+        padding: '15px',
+        borderRadius: '8px',
         border: '2px solid #ffd700',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
         zIndex: 1000,
       }}>
         {/* Золото */}

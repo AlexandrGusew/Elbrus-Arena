@@ -56,6 +56,7 @@ export type BattleState = {
   lastRoundResult?: RoundResult;
   currentMonster?: number;
   totalMonsters?: number;
+  dungeonId?: number;  // ID подземелья для выбора правильных мобов
   lootedItems?: LootedItem[];
   expGained?: number;
   goldGained?: number;

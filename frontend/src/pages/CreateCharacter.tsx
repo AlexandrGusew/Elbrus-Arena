@@ -18,7 +18,10 @@ const CreateCharacter = () => {
   const [selectedClass, setSelectedClass] = useState<CharacterClass | null>(null);
   const [hoveredClass, setHoveredClass] = useState<CharacterClass | null>(null);
   const [error, setError] = useState('');
-  const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
+    const savedMusicState = localStorage.getItem('musicPlaying');
+    return savedMusicState !== null ? savedMusicState === 'true' : true;
+  });
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const [createCharacter, { isLoading }] = useCreateCharacterMutation();
@@ -53,7 +56,9 @@ const CreateCharacter = () => {
   }, [isMusicPlaying]);
 
   const toggleMusic = () => {
-    setIsMusicPlaying(!isMusicPlaying);
+    const newState = !isMusicPlaying;
+    setIsMusicPlaying(newState);
+    localStorage.setItem('musicPlaying', String(newState));
   };
 
   const handleLogin = async () => {
@@ -101,8 +106,8 @@ const CreateCharacter = () => {
 
   const classButtonsContainerStyle: React.CSSProperties = {
     display: 'flex',
-    gap: '45px',
-    marginBottom: '20px',
+    gap: '30px',
+    marginBottom: '5px',
     position: 'relative',
     zIndex: 2,
   };
@@ -113,8 +118,8 @@ const CreateCharacter = () => {
     const isActive = isSelected || isHovered; // При выборе ИЛИ наведении - одинаковый эффект
 
     return {
-      width: '490px', // 245 * 2
-      height: '630px', // 315 * 2
+      width: '340px',
+      height: '440px',
       cursor: 'pointer',
       transition: 'all 0.3s ease',
       position: 'relative',
@@ -128,13 +133,13 @@ const CreateCharacter = () => {
 
   const inputContainerStyle: React.CSSProperties = {
     position: 'relative',
-    width: '700px', // Базовый размер, можно масштабировать
-    height: '250px', // Базовый размер, можно масштабировать
+    width: '600px',
+    height: '210px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '60px', // Увеличил отступ снизу, чтобы не прилипал к иконкам
-    marginTop: '20px', // Опустил вниз
+    marginBottom: '30px',
+    marginTop: '0px',
     zIndex: 2,
   };
 
@@ -160,12 +165,12 @@ const CreateCharacter = () => {
 
   const createButtonContainerStyle: React.CSSProperties = {
     position: 'relative',
-    width: '700px', // Уменьшил в 1.5 раза (1050 / 1.5)
-    height: '360px', // Уменьшил в 1.5 раза (540 / 1.5)
+    width: '600px',
+    height: '310px',
     cursor: isLoading ? 'not-allowed' : 'pointer',
     transition: 'all 0.3s ease',
     zIndex: 2,
-    marginTop: '-60px',
+    marginTop: '-70px',
   };
 
   const errorStyle: React.CSSProperties = {
@@ -188,35 +193,31 @@ const CreateCharacter = () => {
     top: '30px',
     right: '30px',
     zIndex: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    alignItems: 'flex-end',
   };
 
   const musicButtonStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '30px',
-    left: '30px', // В левом верхнем углу
-    padding: '10px 20px',
-    border: '2px solid #fff',
-    background: isMusicPlaying ? 'rgba(255, 215, 0, 0.8)' : 'rgba(220, 38, 38, 0.8)',
-    color: '#fff',
-    fontSize: '20px',
-    fontWeight: 'bold',
+    width: '400px',
+    height: '160px',
     cursor: 'pointer',
-    borderRadius: '8px',
+    border: 'none',
+    background: 'transparent',
+    padding: 0,
     transition: 'all 0.3s ease',
-    zIndex: 10,
   };
 
   const modeButtonStyle = (isActive: boolean): React.CSSProperties => ({
-    padding: '10px 20px',
-    margin: '0 5px',
-    border: '2px solid #fff',
-    background: isActive ? 'rgba(255, 215, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)',
-    color: '#fff',
-    fontSize: '16px',
-    fontWeight: 'bold',
+    width: '360px',
+    height: '140px',
+    border: 'none',
+    background: 'transparent',
     cursor: 'pointer',
-    borderRadius: '8px',
+    padding: 0,
     transition: 'all 0.3s ease',
+    filter: isActive ? 'brightness(1.2) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6))' : 'brightness(0.8)',
   });
 
   return (
@@ -245,30 +246,73 @@ const CreateCharacter = () => {
         <source src={getAssetUrl('choosePlayer/backgroundIntro2.mp3')} type="audio/mpeg" />
       </audio>
 
-      {/* Кнопка управления музыкой */}
-      <button onClick={toggleMusic} style={musicButtonStyle}>
-        {isMusicPlaying ? '🔊 Музыка' : '🔇 Музыка'}
-      </button>
-
-      {/* Переключатель режимов */}
+      {/* Кнопки управления - все в одной колонке справа */}
       <div style={modeSwitchStyle}>
+        {/* Кнопка управления музыкой */}
+        <button
+          onClick={toggleMusic}
+          style={musicButtonStyle}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1)';
+            e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6))';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.filter = isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)';
+          }}
+        >
+          <img
+            src={getAssetUrl('choosePlayer/music.png')}
+            alt="Music"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              filter: isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)',
+            }}
+          />
+        </button>
+
+        {/* Кнопка Create */}
         <button
           onClick={() => {
             setMode('create');
             setError('');
           }}
           style={modeButtonStyle(mode === 'create')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
         >
-          Создать
+          <img
+            src={getAssetUrl('choosePlayer/create.png')}
+            alt="Create"
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
         </button>
+
+        {/* Кнопка Login */}
         <button
           onClick={() => {
             setMode('login');
             setError('');
           }}
           style={modeButtonStyle(mode === 'login')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
         >
-          Войти
+          <img
+            src={getAssetUrl('choosePlayer/login.png')}
+            alt="Login"
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
         </button>
       </div>
 

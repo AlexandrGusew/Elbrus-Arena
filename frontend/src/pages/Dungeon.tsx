@@ -30,13 +30,23 @@ const Dungeon = () => {
     { skip: !characterId }
   );
 
-  const { data: dungeons = [], isLoading: dungeonsLoading } = useGetDungeonsQuery();
+  const { data: dungeons = [], isLoading: dungeonsLoading, error: dungeonsError } = useGetDungeonsQuery();
   const [startBattleMutation] = useStartBattleMutation();
 
-  const { battleState, sendRoundActions, isConnected } = useBattle(battleId);
+  const { battleState, roundHistory, sendRoundActions, isConnected } = useBattle(battleId);
 
   const selectedDungeon = dungeons.find(d => d.difficulty === selectedDifficulty);
   const requiredStamina = selectedDungeon?.staminaCost || 20;
+
+  // Логируем загрузку подземелий для отладки
+  useEffect(() => {
+    console.log('📡 Dungeons API state:', {
+      isLoading: dungeonsLoading,
+      dungeonsCount: dungeons.length,
+      dungeons: dungeons,
+      error: dungeonsError,
+    });
+  }, [dungeons, dungeonsLoading, dungeonsError]);
 
   // Управление музыкой
   useEffect(() => {
@@ -54,9 +64,15 @@ const Dungeon = () => {
   };
 
   const startBattle = async () => {
+    console.log('🎮 startBattle called');
+    console.log('📋 dungeons:', dungeons);
+    console.log('🎯 selectedDifficulty:', selectedDifficulty);
+    console.log('🏰 selectedDungeon:', selectedDungeon);
+
     if (!character) return;
 
     if (!selectedDungeon) {
+      console.error('❌ selectedDungeon is undefined!');
       alert('Выберите подземелье');
       return;
     }
@@ -67,11 +83,13 @@ const Dungeon = () => {
     }
 
     try {
+      console.log('🎯 Starting battle with dungeonId:', selectedDungeon.id);
       const result = await startBattleMutation({
         characterId: character.id,
         dungeonId: selectedDungeon.id,
       }).unwrap();
 
+      console.log('✅ Battle created:', result);
       setBattleId(result.id);
     } catch (err: any) {
       alert('Ошибка при создании боя: ' + (err?.data?.message || err.message || 'Неизвестная ошибка'));
@@ -144,35 +162,68 @@ const Dungeon = () => {
           zIndex: 10,
         }}>
           {/* Кнопка управления музыкой */}
-          <button onClick={toggleMusic} style={{
-            padding: '10px 20px',
-            border: '2px solid #fff',
-            background: isMusicPlaying ? 'rgba(255, 215, 0, 0.8)' : 'rgba(220, 38, 38, 0.8)',
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            borderRadius: '8px',
-            transition: 'all 0.3s ease',
-          }}>
-            {isMusicPlaying ? '🔊 Музыка' : '🔇 Музыка'}
+          <button
+            onClick={toggleMusic}
+            style={{
+              width: '200px',
+              height: '80px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 0,
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6))';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.filter = isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)';
+            }}
+          >
+            <img
+              src={getAssetUrl('enterDungeon/music.png')}
+              alt="Music"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                filter: isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)',
+              }}
+            />
           </button>
 
           {/* Кнопка "Вернуться назад" */}
           <Link to="/dashboard" style={{ textDecoration: 'none' }}>
-            <button style={{
-              padding: '10px 20px',
-              border: '2px solid #fff',
-              background: 'rgba(100, 100, 100, 0.8)',
-              color: '#fff',
-              fontSize: '20px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              borderRadius: '8px',
-              transition: 'all 0.3s ease',
-              width: '100%',
-            }}>
-              ← Вернуться на базу
+            <button
+              style={{
+                width: '200px',
+                height: '80px',
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: 0,
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.filter = 'brightness(1)';
+              }}
+            >
+              <img
+                src={getAssetUrl('enterDungeon/exit.png')}
+                alt="Exit"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+              />
             </button>
           </Link>
         </div>
@@ -218,7 +269,7 @@ const Dungeon = () => {
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
+                  objectFit: 'cover',
                   pointerEvents: 'none',
                 }}
               />
@@ -245,10 +296,12 @@ const Dungeon = () => {
     <BattleArena
       character={character}
       battleState={battleState}
+      roundHistory={roundHistory}
       isConnected={isConnected}
       onSubmitActions={sendRoundActions}
       onReset={resetBattle}
       backgroundImage={DIFFICULTY_BACKGROUNDS[selectedDifficulty]}
+      fallbackDungeonId={selectedDungeon?.id}
     />
   );
 };
