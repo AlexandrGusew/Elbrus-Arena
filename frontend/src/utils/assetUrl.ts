@@ -75,8 +75,8 @@ export function getAssetUrl(assetPath: string, options: AssetUrlOptions = {}): s
  */
 const assetModules = import.meta.glob('../assets/**/*', {
   eager: true,
+  query: '?url',
   import: 'default',
-  as: 'url',
 });
 
 function getLocalAssetUrl(assetPath: string): string {
