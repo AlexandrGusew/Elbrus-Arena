@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetCharacterQuery } from '../store/api/characterApi';
 import { usePvp } from '../hooks/usePvp';
+import { useChat } from '../hooks/useChat';
 import { BattleArena } from '../components/battle/BattleArena';
 import type { Zone, RoundActions } from '../hooks/useBattle';
 import { getAssetUrl } from '../utils/assetUrl';
@@ -14,6 +15,9 @@ const PvP = () => {
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Подключаемся к чату для получения событий чата боя
+  const { chatState } = useChat(characterId ? Number(characterId) : null);
 
   const { data: character } = useGetCharacterQuery(
     Number(characterId),
@@ -34,6 +38,17 @@ const PvP = () => {
       }
     }
   }, [isMusicPlaying]);
+
+  // Автоматически открывать окно чата при создании чата боя
+  useEffect(() => {
+    const battleChatRoom = chatState.rooms.find(
+      (room) => room.type === 'BATTLE' && chatState.openTabs.includes(room.id)
+    );
+
+    if (battleChatRoom && !isChatOpen) {
+      setIsChatOpen(true);
+    }
+  }, [chatState.rooms, chatState.openTabs, isChatOpen]);
 
   const toggleMusic = () => {
     setIsMusicPlaying(!isMusicPlaying);
@@ -191,6 +206,7 @@ const PvP = () => {
             borderRadius: '8px',
             transition: 'all 0.3s ease',
             width: '100%',
+            position: 'relative',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'rgba(33, 150, 243, 1)';
@@ -200,6 +216,33 @@ const PvP = () => {
           }}
         >
           💬 Чат
+          {/* Индикатор непрочитанных сообщений */}
+          {chatState.rooms.some(
+            (room) =>
+              chatState.openTabs.includes(room.id) &&
+              room.unreadCount &&
+              room.unreadCount > 0
+          ) && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-5px',
+                background: '#f44336',
+                borderRadius: '50%',
+                width: '24px',
+                height: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            >
+              !
+            </span>
+          )}
         </button>
 
         {/* Кнопка выхода */}
