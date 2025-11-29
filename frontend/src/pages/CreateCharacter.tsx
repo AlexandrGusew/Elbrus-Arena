@@ -5,9 +5,9 @@ import type { CharacterClass } from '../types/api';
 import { getAssetUrl } from '../utils/assetUrl';
 
 const CLASS_INFO: Record<CharacterClass, { name: string; image: string }> = {
-  warrior: { name: 'Воин', image: getAssetUrl('choosePlayer/warrior (1).png') },
-  mage: { name: 'Маг', image: getAssetUrl('choosePlayer/mage (1).png') },
-  rogue: { name: 'Разбойник', image: getAssetUrl('choosePlayer/rogue (1).png') },
+  warrior: { name: 'Воин', image: getAssetUrl('createCharacter/warrior (1).png') },
+  mage: { name: 'Маг', image: getAssetUrl('createCharacter/mage (1).png') },
+  rogue: { name: 'Разбойник', image: getAssetUrl('createCharacter/rogue (1).png') },
 };
 
 const CreateCharacter = () => {
@@ -238,12 +238,12 @@ const CreateCharacter = () => {
           zIndex: 1,
         }}
       >
-        <source src={getAssetUrl('choosePlayer/animatedBackground.mp4')} type="video/mp4" />
+        <source src={getAssetUrl('createCharacter/animatedBackground.mp4')} type="video/mp4" />
       </video>
 
       {/* Фоновая музыка */}
       <audio ref={audioRef} loop>
-        <source src={getAssetUrl('choosePlayer/backgroundIntro2.mp3')} type="audio/mpeg" />
+        <source src={getAssetUrl('createCharacter/backgroundIntro2.mp3')} type="audio/mpeg" />
       </audio>
 
       {/* Кнопки управления - все в одной колонке справа */}
@@ -262,7 +262,7 @@ const CreateCharacter = () => {
           }}
         >
           <img
-            src={getAssetUrl('choosePlayer/music.png')}
+            src={getAssetUrl('createCharacter/music.png')}
             alt="Music"
             style={{
               width: '100%',
@@ -288,7 +288,7 @@ const CreateCharacter = () => {
           }}
         >
           <img
-            src={getAssetUrl('choosePlayer/create.png')}
+            src={getAssetUrl('createCharacter/create.png')}
             alt="Create"
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
@@ -309,7 +309,7 @@ const CreateCharacter = () => {
           }}
         >
           <img
-            src={getAssetUrl('choosePlayer/login.png')}
+            src={getAssetUrl('createCharacter/login.png')}
             alt="Login"
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
@@ -349,7 +349,7 @@ const CreateCharacter = () => {
           {/* Поле ввода имени */}
           <div style={inputContainerStyle}>
             <img
-              src={getAssetUrl('choosePlayer/enterName (1).png')}
+              src={getAssetUrl('createCharacter/enterName (1).png')}
               alt="Enter Name"
               style={{
                 width: '100%',
@@ -390,7 +390,7 @@ const CreateCharacter = () => {
             }}
           >
             <img
-              src={getAssetUrl('choosePlayer/createCharacter (1).png')}
+              src={getAssetUrl('createCharacter/createCharacter (1).png')}
               alt="Create Character"
               style={{
                 width: '100%',

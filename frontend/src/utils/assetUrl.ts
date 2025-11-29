@@ -3,7 +3,7 @@
  *
  * Использование:
  * import { getAssetUrl } from '@/utils/assetUrl';
- * const videoUrl = getAssetUrl('choosePlayer/animatedBackground.mp4');
+ * const videoUrl = getAssetUrl('createCharacter/animatedBackground.mp4');
  */
 
 // Конфигурация MinIO из переменных окружения
@@ -26,17 +26,17 @@ interface AssetUrlOptions {
 /**
  * Генерирует URL для медиа-файла
  *
- * @param assetPath - путь к файлу относительно assets/ (например, 'choosePlayer/warrior.png')
+ * @param assetPath - путь к файлу в MinIO (например, 'dashboard/mainCityBackground.mp4')
  * @param options - опции генерации URL
  * @returns полный URL к файлу
  *
  * @example
  * ```typescript
  * // Простое использование
- * const url = getAssetUrl('choosePlayer/animatedBackground.mp4');
+ * const url = getAssetUrl('createCharacter/animatedBackground.mp4');
  *
  * // С опциями
- * const url = getAssetUrl('choosePlayer/warrior.png', { size: 'thumbnail' });
+ * const url = getAssetUrl('createCharacter/warrior (1).png', { size: 'thumbnail' });
  * ```
  */
 export function getAssetUrl(assetPath: string, options: AssetUrlOptions = {}): string {
@@ -102,7 +102,7 @@ function getLocalAssetUrl(assetPath: string): string {
  * @example
  * ```typescript
  * // В компоненте или при инициализации
- * preloadAsset('choosePlayer/animatedBackground.mp4', 'video');
+ * preloadAsset('createCharacter/animatedBackground.mp4', 'video');
  * ```
  */
 export function preloadAsset(
@@ -125,8 +125,8 @@ export function preloadAsset(
  * @example
  * ```typescript
  * preloadAssets([
- *   { path: 'choosePlayer/warrior.png', type: 'image' },
- *   { path: 'choosePlayer/backgroundIntro2.mp3', type: 'audio' }
+ *   { path: 'createCharacter/warrior (1).png', type: 'image' },
+ *   { path: 'createCharacter/backgroundIntro2.mp3', type: 'audio' }
  * ]);
  * ```
  */
@@ -142,7 +142,7 @@ export function preloadAssets(
  * @example
  * ```typescript
  * function MyComponent() {
- *   const videoUrl = useAssetUrl('choosePlayer/animatedBackground.mp4');
+ *   const videoUrl = useAssetUrl('createCharacter/animatedBackground.mp4');
  *   return <video src={videoUrl} />;
  * }
  * ```

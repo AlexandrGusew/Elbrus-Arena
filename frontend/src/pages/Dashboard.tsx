@@ -158,10 +158,10 @@ const Dashboard = () => {
   // Выбор изображения героя по классу
   const getHeroImage = () => {
     const classLower = character.class.toLowerCase();
-    if (classLower === 'warrior') return getAssetUrl('choosePlayer/warrior (1).png');
-    if (classLower === 'mage') return getAssetUrl('choosePlayer/mage (1).png');
-    if (classLower === 'rogue') return getAssetUrl('choosePlayer/rogue (1).png');
-    return getAssetUrl('choosePlayer/warrior (1).png'); // fallback
+    if (classLower === 'warrior') return getAssetUrl('createCharacter/warrior (1).png');
+    if (classLower === 'mage') return getAssetUrl('createCharacter/mage (1).png');
+    if (classLower === 'rogue') return getAssetUrl('createCharacter/rogue (1).png');
+    return getAssetUrl('createCharacter/warrior (1).png'); // fallback
   };
 
   return (
@@ -182,15 +182,15 @@ const Dashboard = () => {
           zIndex: 1,
         }}
       >
-        <source src={getAssetUrl('mainCity/mainCityBackground.mp4')} type="video/mp4" />
+        <source src={getAssetUrl('dashboard/mainCityBackground.mp4')} type="video/mp4" />
       </video>
 
       {/* Фоновая музыка - два трека для crossfade */}
       <audio ref={audioRef}>
-        <source src={getAssetUrl('mainCity/mainCity.mp3')} type="audio/mpeg" />
+        <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
       <audio ref={audioRef2}>
-        <source src={getAssetUrl('mainCity/mainCity.mp3')} type="audio/mpeg" />
+        <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
 
       {/* Кнопка музыки - правый верхний угол */}
@@ -222,7 +222,7 @@ const Dashboard = () => {
         }}
       >
         <img
-          src={getAssetUrl('mainCity/music.png')}
+          src={getAssetUrl('dashboard/music.png')}
           alt="Music"
           style={{
             width: '100%',
@@ -296,7 +296,7 @@ const Dashboard = () => {
         }}
       >
         <img
-          src={getAssetUrl('mainCity/exit.png')}
+          src={getAssetUrl('dashboard/exit.png')}
           alt="Exit"
           style={{
             width: '100%',
@@ -347,7 +347,7 @@ const Dashboard = () => {
       }}>
         <Link to="/dungeon" style={{ display: 'block' }}>
           <img
-            src={getAssetUrl('mainCity/dungeons.png')}
+            src={getAssetUrl('dashboard/dungeons.png')}
             alt="Подземелье"
             style={{
               width: '450px',
@@ -370,7 +370,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/inventory" style={{ display: 'block' }}>
           <img
-            src={getAssetUrl('mainCity/inventory.png')}
+            src={getAssetUrl('dashboard/inventory.png')}
             alt="Инвентарь"
             style={{
               width: '450px',
@@ -393,7 +393,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/blacksmith" style={{ display: 'block' }}>
           <img
-            src={getAssetUrl('mainCity/blacksmith.png')}
+            src={getAssetUrl('dashboard/blacksmith.png')}
             alt="Кузница"
             style={{
               width: '450px',
@@ -416,7 +416,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/pvp" style={{ display: 'block' }}>
           <img
-            src={getAssetUrl('mainCity/pvp.png')}
+            src={getAssetUrl('dashboard/pvp.png')}
             alt="PvP"
             style={{
               width: '450px',
@@ -439,7 +439,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/specialization" style={{ display: 'block' }}>
           <img
-            src={getAssetUrl('mainCity/specialization.png')}
+            src={getAssetUrl('dashboard/specialization.png')}
             alt="Специализация"
             style={{
               width: '450px',
@@ -462,7 +462,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/class-mentor" style={{ display: 'block' }}>
           <img
-            src={getAssetUrl('mainCity/mentor.png')}
+            src={getAssetUrl('dashboard/mentor.png')}
             alt="Наставник"
             style={{
               width: '450px',
@@ -524,7 +524,7 @@ const Dashboard = () => {
           display: 'none', // Скрыто
         }}>
           <img
-            src={getAssetUrl('mainCity/lvlup.png')}
+            src={getAssetUrl('dashboard/lvlup.png')}
             alt="Level Up"
             style={{
               width: '100%',

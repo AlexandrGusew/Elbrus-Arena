@@ -9,10 +9,10 @@ const ZONE_NAMES: Partial<Record<Zone, string>> = {
 };
 
 const ZONE_IMAGES: Partial<Record<Zone, string>> = {
-  head: getAssetUrl('fight/head (1).png'),
-  body: getAssetUrl('fight/chest (1).png'),
-  legs: getAssetUrl('fight/legs (1).png'),
-  arms: getAssetUrl('fight/arms (1).png'),
+  head: getAssetUrl('dungeon/battle/head (1).png'),
+  body: getAssetUrl('dungeon/battle/chest (1).png'),
+  legs: getAssetUrl('dungeon/battle/legs (1).png'),
+  arms: getAssetUrl('dungeon/battle/arms (1).png'),
 };
 
 const ALL_ZONES = ['head', 'body', 'legs', 'arms'] as const;

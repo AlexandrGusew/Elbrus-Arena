@@ -2,9 +2,9 @@ import { DUNGEON_DIFFICULTIES, type DungeonDifficulty } from '../../types/api';
 import { getAssetUrl } from '../../utils/assetUrl';
 
 const DIFFICULTY_INFO = {
-  easy: { name: 'Легкий', desc: 'Для новичков', reward: '10-20 золота', badge: getAssetUrl('enterDungeon/dungeons/easy/easy-level.png') },
-  medium: { name: 'Средний', desc: 'Для опытных воинов', reward: '25-40 золота', badge: getAssetUrl('enterDungeon/dungeons/medium/medium-level.png') },
-  hard: { name: 'Сложный', desc: 'Для мастеров боя', reward: '50-100 золота', badge: getAssetUrl('enterDungeon/dungeons/hard/hard-level.png') },
+  easy: { name: 'Легкий', desc: 'Для новичков', reward: '10-20 золота', badge: getAssetUrl('dungeon/selection/dungeons/easy/easy-level.png') },
+  medium: { name: 'Средний', desc: 'Для опытных воинов', reward: '25-40 золота', badge: getAssetUrl('dungeon/selection/dungeons/medium/medium-level.png') },
+  hard: { name: 'Сложный', desc: 'Для мастеров боя', reward: '50-100 золота', badge: getAssetUrl('dungeon/selection/dungeons/hard/hard-level.png') },
 };
 
 type DifficultySelectorProps = {
