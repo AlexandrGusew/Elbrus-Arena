@@ -5,12 +5,14 @@ import { usePvp } from '../hooks/usePvp';
 import { BattleArena } from '../components/battle/BattleArena';
 import type { Zone, RoundActions } from '../hooks/useBattle';
 import { getAssetUrl } from '../utils/assetUrl';
+import { ChatWindow } from '../components/ChatWindow';
 
 const PvP = () => {
   const navigate = useNavigate();
   const characterId = localStorage.getItem('characterId');
 
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const { data: character } = useGetCharacterQuery(
@@ -175,6 +177,31 @@ const PvP = () => {
           {isMusicPlaying ? '🔊 Музыка' : '🔇 Музыка'}
         </button>
 
+        {/* Кнопка чата */}
+        <button
+          onClick={() => setIsChatOpen(true)}
+          style={{
+            padding: '10px 20px',
+            border: '2px solid #fff',
+            background: 'rgba(33, 150, 243, 0.8)',
+            color: '#fff',
+            fontSize: '20px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            borderRadius: '8px',
+            transition: 'all 0.3s ease',
+            width: '100%',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(33, 150, 243, 1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(33, 150, 243, 0.8)';
+          }}
+        >
+          💬 Чат
+        </button>
+
         {/* Кнопка выхода */}
         <button onClick={handleExit} style={exitButtonStyle}>
           ← Вернуться на базу
@@ -314,6 +341,16 @@ const PvP = () => {
           50% { transform: scale(1.2); opacity: 0.7; }
         }
       `}</style>
+
+      {/* Окно чата */}
+      {character && (
+        <ChatWindow
+          characterId={character.id}
+          characterName={character.name}
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
     </div>
   );
 };

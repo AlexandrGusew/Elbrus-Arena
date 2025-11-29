@@ -9,6 +9,7 @@ import { CharacterStats } from '../components/battle/CharacterStats';
 import { DifficultySelector } from '../components/battle/DifficultySelector';
 import { BattleArena } from '../components/battle/BattleArena';
 import { getAssetUrl } from '../utils/assetUrl';
+import { ChatWindow } from '../components/ChatWindow';
 
 const DIFFICULTY_BACKGROUNDS: Record<DungeonDifficulty, string> = {
   easy: getAssetUrl('dungeon/selection/dungeons/easy/easy_level_background.png'),
@@ -23,6 +24,7 @@ const Dungeon = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<DungeonDifficulty>('easy');
   const [battleId, setBattleId] = useState<string | null>(null);
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const { data: character, isLoading: characterLoading } = useGetCharacterQuery(
@@ -194,6 +196,34 @@ const Dungeon = () => {
             />
           </button>
 
+          {/* Кнопка чата */}
+          <button
+            onClick={() => setIsChatOpen(true)}
+            style={{
+              padding: '10px 20px',
+              border: '2px solid #ffd700',
+              background: 'rgba(33, 150, 243, 0.8)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(33, 150, 243, 0.4)',
+              width: '200px',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.background = 'rgba(33, 150, 243, 1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = 'rgba(33, 150, 243, 0.8)';
+            }}
+          >
+            💬 Чат
+          </button>
+
           {/* Кнопка "Вернуться назад" */}
           <Link to="/dashboard" style={{ textDecoration: 'none' }}>
             <button
@@ -288,21 +318,43 @@ const Dungeon = () => {
             </div>
           )}
         </div>
+
+        {/* Окно чата */}
+        {character && (
+          <ChatWindow
+            characterId={character.id}
+            characterName={character.name}
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+          />
+        )}
       </div>
     );
   }
 
   return (
-    <BattleArena
-      character={character}
-      battleState={battleState}
-      roundHistory={roundHistory}
-      isConnected={isConnected}
-      onSubmitActions={sendRoundActions}
-      onReset={resetBattle}
-      backgroundImage={DIFFICULTY_BACKGROUNDS[selectedDifficulty]}
-      fallbackDungeonId={selectedDungeon?.id}
-    />
+    <>
+      <BattleArena
+        character={character}
+        battleState={battleState}
+        roundHistory={roundHistory}
+        isConnected={isConnected}
+        onSubmitActions={sendRoundActions}
+        onReset={resetBattle}
+        backgroundImage={DIFFICULTY_BACKGROUNDS[selectedDifficulty]}
+        fallbackDungeonId={selectedDungeon?.id}
+      />
+
+      {/* Окно чата */}
+      {character && (
+        <ChatWindow
+          characterId={character.id}
+          characterName={character.name}
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
+    </>
   );
 };
 
