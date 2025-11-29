@@ -193,4 +193,5 @@ NUL
 **/*.gif
 **/*.webp
 **/*.svg
+!**/.gitkeep
 temp_assets/
