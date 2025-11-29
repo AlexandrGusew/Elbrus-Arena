@@ -12,12 +12,14 @@ export interface ChatMessage {
 
 export interface ChatRoom {
   id: string;
-  type: 'GLOBAL' | 'PRIVATE' | 'BATTLE';
+  type: 'GLOBAL' | 'PRIVATE' | 'BATTLE' | 'PARTY';
+  name?: string; // Для командных чатов
   participants: Array<{
     characterId: number;
     characterName: string;
   }>;
   lastMessage?: ChatMessage;
+  unreadCount?: number; // Количество непрочитанных сообщений
 }
 
 export interface ChatInvitation {
@@ -30,14 +32,23 @@ export interface ChatInvitation {
   createdAt: Date;
 }
 
+export interface OnlinePlayer {
+  id: number;
+  name: string;
+}
+
 export interface ChatState {
   isConnected: boolean;
   currentRoomId: string | null;
-  currentRoomType: 'GLOBAL' | 'PRIVATE' | 'BATTLE' | null;
+  currentRoomType: 'GLOBAL' | 'PRIVATE' | 'BATTLE' | 'PARTY' | null;
   messages: ChatMessage[];
   rooms: ChatRoom[];
   invitations: ChatInvitation[];
   globalRoomId: string | null;
+  openTabs: string[]; // Массив ID открытых вкладок
+  activeTabId: string | null; // ID активной вкладки
+  blockedUsers: number[]; // Массив ID заблокированных пользователей
+  onlinePlayers: OnlinePlayer[]; // Результат поиска онлайн игроков
 }
 
 export function useChat(characterId: number | null) {
@@ -50,6 +61,10 @@ export function useChat(characterId: number | null) {
     rooms: [],
     invitations: [],
     globalRoomId: null,
+    openTabs: [],
+    activeTabId: null,
+    blockedUsers: [],
+    onlinePlayers: [],
   });
 
   // Подключение к WebSocket
@@ -139,6 +154,8 @@ export function useChat(characterId: number | null) {
         currentRoomType: 'GLOBAL',
         globalRoomId: response.roomId,
         messages: response.messages,
+        openTabs: [response.roomId], // Глобальный чат всегда первая вкладка
+        activeTabId: response.roomId,
       }));
     });
 
@@ -167,6 +184,104 @@ export function useChat(characterId: number | null) {
     newSocket.on('error', (error: { message: string } | string) => {
       const errorMessage = typeof error === 'string' ? error : error?.message || JSON.stringify(error);
       console.error('Chat error:', errorMessage);
+    });
+
+    // ========== НОВЫЕ СОБЫТИЯ ==========
+
+    // Событие: создан командный чат
+    newSocket.on('party_chat_created', (data: { roomId: string; partyId: string; name: string }) => {
+      console.log('Party chat created:', data);
+      // Обновить список чатов
+      if (socket) {
+        socket.emit('get_user_chats', { characterId });
+      }
+    });
+
+    // Событие: участник добавлен в командный чат
+    newSocket.on('party_member_added', (data: { roomId: string; characterId: number }) => {
+      console.log('Party member added:', data);
+      setChatState((prev) => ({
+        ...prev,
+        // Можно добавить системное сообщение или обновить список участников
+      }));
+    });
+
+    // Событие: участник удален из командного чата
+    newSocket.on('party_member_removed', (data: { roomId: string; characterId: number }) => {
+      console.log('Party member removed:', data);
+      setChatState((prev) => ({
+        ...prev,
+        // Можно добавить системное сообщение или обновить список участников
+      }));
+    });
+
+    // Событие: пользователь заблокирован
+    newSocket.on('user_blocked', (data: { blockedId: number }) => {
+      setChatState((prev) => ({
+        ...prev,
+        blockedUsers: [...prev.blockedUsers, data.blockedId],
+      }));
+    });
+
+    // Событие: пользователь разблокирован
+    newSocket.on('user_unblocked', (data: { blockedId: number }) => {
+      setChatState((prev) => ({
+        ...prev,
+        blockedUsers: prev.blockedUsers.filter((id) => id !== data.blockedId),
+      }));
+    });
+
+    // Событие: список заблокированных пользователей
+    newSocket.on('blocked_users_list', (blockedIds: number[]) => {
+      setChatState((prev) => ({
+        ...prev,
+        blockedUsers: blockedIds,
+      }));
+    });
+
+    // Событие: сообщения отмечены как прочитанные
+    newSocket.on('marked_as_read', (data: { roomId: string }) => {
+      setChatState((prev) => ({
+        ...prev,
+        rooms: prev.rooms.map((room) =>
+          room.id === data.roomId ? { ...room, unreadCount: 0 } : room
+        ),
+      }));
+    });
+
+    // Событие: количество непрочитанных
+    newSocket.on('unread_count', (data: { roomId: string; count: number }) => {
+      setChatState((prev) => ({
+        ...prev,
+        rooms: prev.rooms.map((room) =>
+          room.id === data.roomId ? { ...room, unreadCount: data.count } : room
+        ),
+      }));
+    });
+
+    // Событие: результаты поиска онлайн игроков
+    newSocket.on('online_players_result', (players: OnlinePlayer[]) => {
+      setChatState((prev) => ({
+        ...prev,
+        onlinePlayers: players,
+      }));
+    });
+
+    // Событие: статус пользователя изменен
+    newSocket.on('user_status_changed', (data: { characterId: number; isOnline: boolean }) => {
+      console.log('User status changed:', data);
+      // Можно обновить UI, показывая статус онлайн/офлайн
+    });
+
+    // Событие: создан чат боя
+    newSocket.on('battle_chat_created', (data: { roomId: string; battleId: string }) => {
+      console.log('Battle chat created:', data);
+      setChatState((prev) => ({
+        ...prev,
+        openTabs: [...prev.openTabs, data.roomId],
+      }));
+      // Автоматически присоединиться к чату боя
+      newSocket.emit('join_room', { roomId: data.roomId, characterId });
     });
 
     setSocket(newSocket);
@@ -239,6 +354,106 @@ export function useChat(characterId: number | null) {
     }
   }, [chatState.globalRoomId, socket, characterId]);
 
+  // ========== НОВЫЕ МЕТОДЫ ==========
+
+  // Создать командный чат
+  const createPartyChat = useCallback((partyId: string, name: string) => {
+    if (!socket || !characterId) return;
+    socket.emit('create_party_chat', { partyId, name, creatorId: characterId });
+  }, [socket, characterId]);
+
+  // Добавить участника в командный чат
+  const addPartyMember = useCallback((roomId: string, memberId: number) => {
+    if (!socket) return;
+    socket.emit('add_party_member', { roomId, characterId: memberId });
+  }, [socket]);
+
+  // Удалить участника из командного чата
+  const removePartyMember = useCallback((roomId: string, memberId: number) => {
+    if (!socket) return;
+    socket.emit('remove_party_member', { roomId, characterId: memberId });
+  }, [socket]);
+
+  // Заблокировать пользователя
+  const blockUser = useCallback((blockedId: number, reason?: string) => {
+    if (!socket || !characterId) return;
+    socket.emit('block_user', { blockerId: characterId, blockedId, reason });
+  }, [socket, characterId]);
+
+  // Разблокировать пользователя
+  const unblockUser = useCallback((blockedId: number) => {
+    if (!socket || !characterId) return;
+    socket.emit('unblock_user', { blockerId: characterId, blockedId });
+  }, [socket, characterId]);
+
+  // Получить список заблокированных пользователей
+  const getBlockedUsers = useCallback(() => {
+    if (!socket || !characterId) return;
+    socket.emit('get_blocked_users', { characterId });
+  }, [socket, characterId]);
+
+  // Отметить сообщения как прочитанные
+  const markAsRead = useCallback((roomId: string) => {
+    if (!socket || !characterId) return;
+    socket.emit('mark_as_read', { roomId, characterId });
+  }, [socket, characterId]);
+
+  // Получить количество непрочитанных
+  const getUnreadCount = useCallback((roomId: string) => {
+    if (!socket || !characterId) return;
+    socket.emit('get_unread_count', { roomId, characterId });
+  }, [socket, characterId]);
+
+  // Поиск онлайн игроков
+  const searchOnlinePlayers = useCallback((query: string) => {
+    if (!socket) return;
+    socket.emit('search_online_players', { query });
+  }, [socket]);
+
+  // Обновить статус онлайн
+  const updateOnlineStatus = useCallback((isOnline: boolean) => {
+    if (!socket || !characterId) return;
+    socket.emit('update_online_status', { characterId, isOnline });
+  }, [socket, characterId]);
+
+  // Открыть вкладку
+  const openTab = useCallback((roomId: string) => {
+    setChatState((prev) => ({
+      ...prev,
+      openTabs: prev.openTabs.includes(roomId) ? prev.openTabs : [...prev.openTabs, roomId],
+      activeTabId: roomId,
+    }));
+  }, []);
+
+  // Закрыть вкладку
+  const closeTab = useCallback((roomId: string) => {
+    setChatState((prev) => {
+      const newOpenTabs = prev.openTabs.filter((id) => id !== roomId);
+      const newActiveTabId = prev.activeTabId === roomId
+        ? (newOpenTabs.length > 0 ? newOpenTabs[0] : prev.globalRoomId)
+        : prev.activeTabId;
+
+      return {
+        ...prev,
+        openTabs: newOpenTabs,
+        activeTabId: newActiveTabId,
+      };
+    });
+  }, []);
+
+  // Переключить на вкладку
+  const switchTab = useCallback((roomId: string) => {
+    setChatState((prev) => ({
+      ...prev,
+      activeTabId: roomId,
+      currentRoomId: roomId,
+    }));
+    // Отметить как прочитанное при переключении
+    if (socket && characterId) {
+      socket.emit('mark_as_read', { roomId, characterId });
+    }
+  }, [socket, characterId]);
+
   return {
     chatState,
     joinGlobalChat,
@@ -249,6 +464,19 @@ export function useChat(characterId: number | null) {
     getUserChats,
     getInvitations,
     returnToGlobalChat,
+    createPartyChat,
+    addPartyMember,
+    removePartyMember,
+    blockUser,
+    unblockUser,
+    getBlockedUsers,
+    markAsRead,
+    getUnreadCount,
+    searchOnlinePlayers,
+    updateOnlineStatus,
+    openTab,
+    closeTab,
+    switchTab,
     isConnected: socket?.connected || false,
   };
 }
