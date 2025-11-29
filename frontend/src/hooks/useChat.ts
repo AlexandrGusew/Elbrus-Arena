@@ -98,44 +98,75 @@ export function useChat(characterId: number | null) {
     });
 
     // Событие: список чатов
-    newSocket.on('user_chats', (data: { rooms: ChatRoom[] }) => {
+    newSocket.on('user_chats', (rooms: ChatRoom[]) => {
       setChatState((prev) => ({
         ...prev,
-        rooms: data.rooms,
+        rooms: rooms,
       }));
     });
 
-    // Событие: приглашения
-    newSocket.on('invitations', (data: { invitations: ChatInvitation[] }) => {
-      setChatState((prev) => ({
-        ...prev,
-        invitations: data.invitations,
-      }));
-    });
-
-    // Событие: новое приглашение
-    newSocket.on('new_invitation', (invitation: ChatInvitation) => {
+    // Событие: новое приглашение (получено от другого игрока)
+    newSocket.on('chat_invitation_received', (invitation: ChatInvitation) => {
       setChatState((prev) => ({
         ...prev,
         invitations: [...prev.invitations, invitation],
       }));
     });
 
+    // Событие: приглашение отправлено (подтверждение)
+    newSocket.on('invitation_sent', (invitation: ChatInvitation) => {
+      // Можно добавить уведомление об успешной отправке
+      console.log('Invitation sent:', invitation);
+    });
+
     // Событие: приглашение принято - создан новый чат
-    newSocket.on('invitation_accepted', (data: { room: ChatRoom }) => {
+    newSocket.on('invitation_accepted', (room: ChatRoom) => {
       setChatState((prev) => ({
         ...prev,
-        rooms: [...prev.rooms, data.room],
+        rooms: [...prev.rooms, room],
         invitations: prev.invitations.filter((inv) =>
-          !(inv.senderId === data.room.participants[0].characterId &&
-            inv.receiverId === data.room.participants[1].characterId)
+          !(inv.senderId === room.participants[0]?.characterId &&
+            inv.receiverId === room.participants[1]?.characterId)
         ),
       }));
     });
 
+    // Событие: присоединился к глобальному чату
+    newSocket.on('joined_global_chat', (response: { roomId: string; messages: ChatMessage[] }) => {
+      setChatState((prev) => ({
+        ...prev,
+        currentRoomId: response.roomId,
+        currentRoomType: 'GLOBAL',
+        globalRoomId: response.roomId,
+        messages: response.messages,
+      }));
+    });
+
+    // Событие: присоединился к комнате
+    newSocket.on('joined_room', (response: { roomId: string; messages: ChatMessage[] }) => {
+      setChatState((prev) => {
+        const room = prev.rooms.find((r) => r.id === response.roomId);
+        return {
+          ...prev,
+          currentRoomId: response.roomId,
+          currentRoomType: room?.type || 'PRIVATE',
+          messages: response.messages,
+        };
+      });
+    });
+
+    // Событие: список приглашений (исправлено название события)
+    newSocket.on('invitations_list', (invitations: ChatInvitation[]) => {
+      setChatState((prev) => ({
+        ...prev,
+        invitations: invitations,
+      }));
+    });
+
     // Событие: ошибка
-    newSocket.on('error', (error: { message: string }) => {
-      console.error('Chat error:', error);
+    newSocket.on('error', (error: { message: string } | string) => {
+      const errorMessage = typeof error === 'string' ? error : error?.message || JSON.stringify(error);
+      console.error('Chat error:', errorMessage);
     });
 
     setSocket(newSocket);
@@ -148,85 +179,65 @@ export function useChat(characterId: number | null) {
   // Присоединиться к глобальному чату
   const joinGlobalChat = useCallback(() => {
     if (!socket || !characterId) return;
-
-    socket.emit('join_global_chat', { characterId }, (response: { roomId: string; messages: ChatMessage[] }) => {
-      setChatState((prev) => ({
-        ...prev,
-        currentRoomId: response.roomId,
-        currentRoomType: 'GLOBAL',
-        globalRoomId: response.roomId,
-        messages: response.messages,
-      }));
-    });
+    socket.emit('join_global_chat', { characterId });
   }, [socket, characterId]);
 
   // Присоединиться к комнате (приватный чат или чат боя)
   const joinRoom = useCallback((roomId: string) => {
-    if (!socket) return;
-
-    socket.emit('join_room', { roomId }, (response: { messages: ChatMessage[] }) => {
-      const room = chatState.rooms.find((r) => r.id === roomId);
-      setChatState((prev) => ({
-        ...prev,
-        currentRoomId: roomId,
-        currentRoomType: room?.type || 'PRIVATE',
-        messages: response.messages,
-      }));
-    });
-  }, [socket, chatState.rooms]);
+    if (!socket || !characterId) return;
+    socket.emit('join_room', { roomId, characterId });
+  }, [socket, characterId]);
 
   // Отправить сообщение
   const sendMessage = useCallback((content: string, roomId?: string) => {
-    if (!socket || !content.trim()) return;
+    if (!socket || !characterId || !content.trim()) return;
 
     const targetRoomId = roomId || chatState.currentRoomId;
     if (!targetRoomId) return;
 
-    socket.emit('send_message', { content, roomId: targetRoomId });
-  }, [socket, chatState.currentRoomId]);
+    socket.emit('send_message', { content, roomId: targetRoomId, characterId });
+  }, [socket, characterId, chatState.currentRoomId]);
 
   // Отправить приглашение в приватный чат
   const sendInvitation = useCallback((receiverId: number) => {
-    if (!socket) return;
+    if (!socket || !characterId) return;
 
-    socket.emit('invite_to_private_chat', { receiverId });
-  }, [socket]);
+    socket.emit('invite_to_private_chat', { receiverId, senderId: characterId });
+  }, [socket, characterId]);
 
   // Ответить на приглашение
   const respondToInvitation = useCallback((invitationId: number, accept: boolean) => {
-    if (!socket) return;
+    if (!socket || !characterId) return;
 
-    socket.emit('respond_to_invitation', { invitationId, accept });
-  }, [socket]);
+    socket.emit('respond_to_invitation', { invitationId, accept, characterId });
+  }, [socket, characterId]);
 
   // Получить список чатов пользователя
   const getUserChats = useCallback(() => {
-    if (!socket) return;
+    if (!socket || !characterId) return;
 
-    socket.emit('get_user_chats');
-  }, [socket]);
+    socket.emit('get_user_chats', { characterId });
+  }, [socket, characterId]);
 
   // Получить приглашения
   const getInvitations = useCallback(() => {
-    if (!socket) return;
+    if (!socket || !characterId) return;
 
-    socket.emit('get_invitations');
-  }, [socket]);
+    socket.emit('get_invitations', { characterId });
+  }, [socket, characterId]);
 
   // Вернуться к глобальному чату
   const returnToGlobalChat = useCallback(() => {
-    if (chatState.globalRoomId) {
+    if (chatState.globalRoomId && socket && characterId) {
       setChatState((prev) => ({
         ...prev,
         currentRoomId: chatState.globalRoomId,
         currentRoomType: 'GLOBAL',
       }));
       // Запросить историю глобального чата
-      if (socket) {
-        socket.emit('join_room', { roomId: chatState.globalRoomId });
-      }
+      socket.emit('join_room', { roomId: chatState.globalRoomId, characterId });
     }
-  }, [chatState.globalRoomId, socket]);
+  }, [chatState.globalRoomId, socket, characterId]);
 
   return {
     chatState,

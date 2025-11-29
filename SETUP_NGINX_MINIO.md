@@ -544,3 +544,4 @@ sudo tail -f /var/log/nginx/error.log
 mc ls myminio/elbrus-arena-assets/
 ```
 
+

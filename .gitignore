@@ -177,6 +177,8 @@ BUGS AND ISSUES*
 
 # OS files
 Thumbs.db
+nul
+NUL
 
 # Media assets (served from MinIO)
 frontend/src/assets/**/*.mp4
