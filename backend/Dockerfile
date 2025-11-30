@@ -75,4 +75,12 @@ COPY backend/prisma ./prisma
 
 EXPOSE 3000
 
-CMD ["node", "dist/app/src/main.js"]
+# Создаем startup script для запуска миграций и приложения
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'echo "=== Running database migrations ==="' >> /app/start.sh && \
+    echo 'npx prisma migrate deploy || echo "⚠️  Warning: Migration failed or already applied, continuing..."' >> /app/start.sh && \
+    echo 'echo "=== Starting application ==="' >> /app/start.sh && \
+    echo 'exec node dist/backend/src/main.js' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]
