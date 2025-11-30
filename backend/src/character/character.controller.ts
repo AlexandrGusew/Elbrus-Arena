@@ -1,15 +1,18 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Logger } from '@nestjs/common';
 import { CharacterService } from './character.service';
 import { CharacterLevelUpService } from './character-levelup.service';
 import { CharacterStaminaService } from './character-stamina.service';
 import { InventoryEnhancementService } from '../inventory/inventory-enhancement.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { Public } from '../auth/public.decorator';
-import type { CreateCharacterDto, Character } from '../../../shared/types';
+import { CreateCharacterDto } from './dto/create-character.dto';
+import type { Character } from '../../../shared/types';
 
 @Public()
 @Controller('character')
 export class CharacterController {
+  private readonly logger = new Logger(CharacterController.name);
+
   constructor(
     private characterService: CharacterService,
     private levelUpService: CharacterLevelUpService,
@@ -21,7 +24,15 @@ export class CharacterController {
   @Public()
   @Post()
   async create(@Body() body: CreateCharacterDto): Promise<Character> {
-    return this.characterService.create(body.telegramId, body.name, body.class);
+    try {
+      this.logger.log(`Creating character: ${JSON.stringify(body)}`);
+      const result = await this.characterService.create(body.telegramId, body.name, body.class);
+      this.logger.log(`Character created successfully: ${result.id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Error creating character: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Public()
