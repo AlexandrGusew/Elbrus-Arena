@@ -458,12 +458,11 @@ const Dashboard = () => {
         top: '40%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '450px',
-        height: '600px',
+        width: '800px',
+        height: '800px',
         borderRadius: '20px',
         overflow: 'hidden',
         zIndex: 1000,
-        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.9)',
       }}>
         <video
           autoPlay
@@ -476,7 +475,7 @@ const Dashboard = () => {
             objectFit: 'cover',
           }}
         >
-          <source src={getHeroVideo()} type="video/webm" />
+          <source src={getHeroVideo()} type="video/mp4" />
         </video>
       </div>
 
@@ -521,8 +520,8 @@ const Dashboard = () => {
         position: 'fixed',
         top: '40px',
         left: '40px',
-        width: '500px',
-        height: '100px',
+        width: '600px',
+        height: '120px',
         zIndex: 1000,
       }}>
         {/* Фоновое изображение */}
@@ -544,8 +543,8 @@ const Dashboard = () => {
           position: 'relative',
           zIndex: 2,
           display: 'flex',
-          gap: '10px',
-          padding: '15px',
+          gap: '15px',
+          padding: '20px',
           height: '100%',
           alignItems: 'center',
           justifyContent: 'space-around',
@@ -555,16 +554,21 @@ const Dashboard = () => {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '14px',
-              color: '#aaa',
-              marginBottom: '2px',
+              fontSize: '16px',
+              color: '#d4af37',
+              marginBottom: '4px',
+              fontFamily: "'IM Fell English', serif",
+              letterSpacing: '0.5px',
             }}>
               Имя
             </div>
             <div style={{
-              fontSize: '20px',
+              fontSize: '26px',
               fontWeight: 'bold',
               color: '#ffd700',
+              fontFamily: "'IM Fell English', serif",
+              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '1px',
             }}>
               {character.name}
             </div>
@@ -575,16 +579,21 @@ const Dashboard = () => {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '14px',
-              color: '#aaa',
-              marginBottom: '2px',
+              fontSize: '16px',
+              color: '#d4af37',
+              marginBottom: '4px',
+              fontFamily: "'IM Fell English', serif",
+              letterSpacing: '0.5px',
             }}>
               Класс
             </div>
             <div style={{
-              fontSize: '20px',
+              fontSize: '26px',
               fontWeight: 'bold',
               color: '#ffd700',
+              fontFamily: "'IM Fell English', serif",
+              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '1px',
             }}>
               {character.class}
             </div>
@@ -595,16 +604,21 @@ const Dashboard = () => {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '14px',
-              color: '#aaa',
-              marginBottom: '2px',
+              fontSize: '16px',
+              color: '#d4af37',
+              marginBottom: '4px',
+              fontFamily: "'IM Fell English', serif",
+              letterSpacing: '0.5px',
             }}>
               Уровень
             </div>
             <div style={{
-              fontSize: '20px',
+              fontSize: '26px',
               fontWeight: 'bold',
               color: '#ffd700',
+              fontFamily: "'IM Fell English', serif",
+              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '1px',
             }}>
               {character.level}
             </div>
@@ -615,10 +629,10 @@ const Dashboard = () => {
       {/* HP и Stamina бары */}
       <div style={{
         position: 'fixed',
-        top: '160px',
+        top: '180px',
         left: '40px',
-        width: '500px',
-        height: '180px',
+        width: '600px',
+        height: '200px',
         zIndex: 1000,
       }}>
         {/* Фоновое изображение */}
@@ -639,62 +653,97 @@ const Dashboard = () => {
         <div style={{
           position: 'relative',
           zIndex: 2,
-          padding: '15px',
+          padding: '20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '15px',
+          gap: '18px',
           height: '100%',
           justifyContent: 'center',
         }}>
           {/* HP Bar */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-              <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>HP</span>
-              <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{
+                color: '#ff6b6b',
+                fontSize: '22px',
+                fontWeight: 'bold',
+                fontFamily: "'IM Fell English', serif",
+                textShadow: '0 0 8px rgba(255, 68, 68, 0.6)',
+                letterSpacing: '1px',
+              }}>HP</span>
+              <span style={{
+                color: '#fff',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                fontFamily: "'IM Fell English', serif",
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
                 {character.currentHp} / {character.maxHp}
               </span>
             </div>
             <div style={{
               width: '100%',
-              height: '20px',
-              background: '#333',
-              borderRadius: '10px',
+              height: '24px',
+              background: '#1a1a1a',
+              borderRadius: '12px',
               overflow: 'hidden',
-              border: '1px solid #555',
+              border: '2px solid #cc0000',
+              boxShadow: '0 0 10px rgba(204, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
             }}>
               <div style={{
                 width: `${hpPercent}%`,
                 height: '100%',
                 background: 'linear-gradient(90deg, #ff4444, #cc0000)',
                 transition: 'width 0.3s ease',
+                boxShadow: '0 0 10px rgba(255, 68, 68, 0.5)',
               }} />
             </div>
           </div>
 
           {/* Stamina Bar */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-              <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>Выносливость</span>
-              <span style={{ color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{
+                color: '#66bb6a',
+                fontSize: '22px',
+                fontWeight: 'bold',
+                fontFamily: "'IM Fell English', serif",
+                textShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
+                letterSpacing: '1px',
+              }}>Выносливость</span>
+              <span style={{
+                color: '#fff',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                fontFamily: "'IM Fell English', serif",
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
                 {currentStamina} / {maxStamina}
               </span>
             </div>
             <div style={{
               width: '100%',
-              height: '20px',
-              background: '#333',
-              borderRadius: '10px',
+              height: '24px',
+              background: '#1a1a1a',
+              borderRadius: '12px',
               overflow: 'hidden',
-              border: '1px solid #555',
+              border: '2px solid #2E7D32',
+              boxShadow: '0 0 10px rgba(46, 125, 50, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
             }}>
               <div style={{
                 width: `${staminaPercent}%`,
                 height: '100%',
                 background: 'linear-gradient(90deg, #4CAF50, #2E7D32)',
                 transition: 'width 0.3s ease',
+                boxShadow: '0 0 10px rgba(76, 175, 80, 0.5)',
               }} />
             </div>
-            <div style={{ fontSize: '14px', color: '#aaa', marginTop: '5px' }}>
+            <div style={{
+              fontSize: '16px',
+              color: '#d4af37',
+              marginTop: '8px',
+              fontFamily: "'IM Fell English', serif",
+            }}>
               Восстанавливается: 1/сек
               {staminaInfo?.secondsToFull && staminaInfo.secondsToFull > 0 && (
                 <span> • Полная через {Math.ceil(staminaInfo.secondsToFull)}с</span>
@@ -722,10 +771,10 @@ const Dashboard = () => {
       {/* Объединённый блок: Золото + Характеристики */}
       <div style={{
         position: 'fixed',
-        top: '360px',
+        top: '400px',
         left: '40px',
-        width: '500px',
-        height: '280px',
+        width: '600px',
+        height: '320px',
         zIndex: 1000,
       }}>
         {/* Фоновое изображение */}
@@ -752,56 +801,39 @@ const Dashboard = () => {
           flexDirection: 'column',
           justifyContent: 'center',
         }}>
-          {/* Золото */}
-          <div style={{
-            textAlign: 'center',
-            marginBottom: '20px',
-            paddingBottom: '15px',
-            borderBottom: '1px solid #ffd700',
-          }}>
-            <div style={{
-              fontSize: '18px',
-              color: '#aaa',
-              marginBottom: '5px',
-            }}>
-              Золото
-            </div>
-            <div style={{
-              fontSize: '40px',
-              fontWeight: 'bold',
-              color: '#FFD700',
-              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-            }}>
-              {character.gold.toLocaleString()}
-            </div>
-          </div>
-
           {/* Характеристики */}
-          <div>
+          <div style={{ marginBottom: '25px' }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '12px',
+              marginBottom: '15px',
             }}>
               <h3 style={{
                 margin: 0,
                 color: '#ffd700',
-                fontSize: '20px',
+                fontSize: '24px',
+                fontFamily: "'IM Fell English', serif",
+                fontWeight: 700,
+                textShadow: '0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3)',
+                letterSpacing: '1px',
               }}>
                 Характеристики
               </h3>
               {character.freePoints > 0 && (
                 <Link to="/levelup" style={{ textDecoration: 'none' }}>
                   <button style={{
-                    padding: '6px 14px',
+                    padding: '8px 16px',
                     fontSize: '14px',
-                    background: '#4CAF50',
+                    background: 'linear-gradient(135deg, #4CAF50, #45a049)',
                     color: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
+                    border: '1px solid #66bb6a',
+                    borderRadius: '6px',
                     cursor: 'pointer',
                     fontWeight: 'bold',
+                    fontFamily: "'IM Fell English', serif",
+                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.4)',
+                    transition: 'all 0.3s ease',
                   }}>
                     Прокачка ({character.freePoints})
                   </button>
@@ -810,24 +842,102 @@ const Dashboard = () => {
             </div>
             <div style={{
               display: 'grid',
-              gap: '8px',
+              gap: '12px',
               color: '#fff',
-              fontSize: '18px',
+              fontSize: '22px',
+              fontFamily: "'IM Fell English', serif",
             }}>
-              <div>Сила: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.strength}</span></div>
-              <div>Ловкость: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.agility}</span></div>
-              <div>Интеллект: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.intelligence}</span></div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
+                <span style={{ marginRight: '8px' }}>⚔️</span>
+                <span>Сила:</span>
+                <span style={{
+                  color: '#ffd700',
+                  fontWeight: 'bold',
+                  marginLeft: '8px',
+                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
+                }}>{character.strength}</span>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
+                <span style={{ marginRight: '8px' }}>🏹</span>
+                <span>Ловкость:</span>
+                <span style={{
+                  color: '#ffd700',
+                  fontWeight: 'bold',
+                  marginLeft: '8px',
+                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
+                }}>{character.agility}</span>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
+                <span style={{ marginRight: '8px' }}>🔮</span>
+                <span>Интеллект:</span>
+                <span style={{
+                  color: '#ffd700',
+                  fontWeight: 'bold',
+                  marginLeft: '8px',
+                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
+                }}>{character.intelligence}</span>
+              </div>
               {character.freePoints > 0 && (
                 <div style={{
-                  marginTop: '4px',
-                  padding: '6px',
-                  background: 'rgba(76, 175, 80, 0.2)',
-                  borderRadius: '4px',
+                  marginTop: '8px',
+                  padding: '8px',
+                  background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))',
+                  borderRadius: '6px',
                   textAlign: 'center',
+                  fontSize: '18px',
+                  border: '1px solid rgba(76, 175, 80, 0.3)',
+                  boxShadow: '0 0 10px rgba(76, 175, 80, 0.2)',
                 }}>
-                  Свободных очков: <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>{character.freePoints}</span>
+                  Свободных очков: <span style={{
+                    color: '#4CAF50',
+                    fontWeight: 'bold',
+                    textShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
+                  }}>{character.freePoints}</span>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Золото */}
+          <div style={{
+            borderTop: '1px solid rgba(255, 215, 0, 0.2)',
+            paddingTop: '15px',
+          }}>
+            <div style={{
+              fontSize: '18px',
+              color: '#d4af37',
+              marginBottom: '8px',
+              fontFamily: "'IM Fell English', serif",
+              letterSpacing: '1px',
+              textShadow: '0 0 5px rgba(212, 175, 55, 0.3)',
+            }}>
+              Золото
+            </div>
+            <div style={{
+              fontSize: '40px',
+              fontWeight: 'bold',
+              fontFamily: "'IM Fell English', serif",
+              background: 'linear-gradient(135deg, #FFD700, #FFA500, #FFD700)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.5)',
+              filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
+              letterSpacing: '2px',
+            }}>
+              {character.gold.toLocaleString()}
             </div>
           </div>
         </div>
