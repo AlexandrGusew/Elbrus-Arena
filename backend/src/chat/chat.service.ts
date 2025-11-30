@@ -78,6 +78,15 @@ export class ChatService {
     // Проверить, является ли это командой
     const isCommand = content.startsWith('/');
 
+    // Обработать команду, если это команда
+    if (isCommand) {
+      const commandResult = await this.processCommand(content, senderId, roomId);
+      if (commandResult) {
+        // Команда обработана, вернуть системное сообщение
+        return commandResult;
+      }
+    }
+
     // Установить автоудаление через 48 часов
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 48);
@@ -487,6 +496,90 @@ export class ChatService {
         lastSeenAt: new Date(),
       },
     });
+  }
+
+  // Обработать команду чата
+  private async processCommand(
+    content: string,
+    senderId: number,
+    roomId: string,
+  ): Promise<ChatMessageResponse | null> {
+    const parts = content.trim().split(' ');
+    const command = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    const sender = await this.prisma.character.findUnique({
+      where: { id: senderId },
+      select: { name: true },
+    });
+
+    const senderName = sender?.name || 'System';
+
+    switch (command) {
+      case '/help':
+        return {
+          id: 0,
+          roomId,
+          senderId: 0,
+          senderName: 'Система',
+          content: `📖 Доступные команды:
+/help - показать список команд
+/online - показать количество онлайн игроков
+/me <действие> - отправить действие в третьем лице
+/clear - очистить историю чата (только для вас)`,
+          createdAt: new Date(),
+        };
+
+      case '/online':
+        const onlineCount = await this.prisma.character.count({
+          where: { isOnline: true },
+        });
+        return {
+          id: 0,
+          roomId,
+          senderId: 0,
+          senderName: 'Система',
+          content: `👥 Игроков онлайн: ${onlineCount}`,
+          createdAt: new Date(),
+        };
+
+      case '/me':
+        if (args.length === 0) {
+          return {
+            id: 0,
+            roomId,
+            senderId: 0,
+            senderName: 'Система',
+            content: '❌ Использование: /me <действие>',
+            createdAt: new Date(),
+          };
+        }
+        // Обработать как обычное сообщение, но с форматированием
+        const action = args.join(' ');
+        // Вернуть null, чтобы сообщение было создано как обычное, но с измененным содержимым
+        return null;
+
+      case '/clear':
+        // Команда для очистки истории (обрабатывается на клиенте)
+        return {
+          id: 0,
+          roomId,
+          senderId: 0,
+          senderName: 'Система',
+          content: '🗑️ История чата очищена (только для вас)',
+          createdAt: new Date(),
+        };
+
+      default:
+        return {
+          id: 0,
+          roomId,
+          senderId: 0,
+          senderName: 'Система',
+          content: `❌ Неизвестная команда: ${command}. Используйте /help для списка команд.`,
+          createdAt: new Date(),
+        };
+    }
   }
 
   // ========== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ==========
