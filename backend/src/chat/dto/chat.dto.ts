@@ -56,3 +56,46 @@ export interface ChatInvitationResponse {
   status: string;
   createdAt: Date;
 }
+
+// ========== НОВЫЕ DTO ==========
+
+export class CreatePartyChatDto {
+  partyId: string;
+  name: string;
+  creatorId: number;
+}
+
+export class AddPartyMemberDto {
+  roomId: string;
+  characterId: number;
+}
+
+export class RemovePartyMemberDto {
+  roomId: string;
+  characterId: number;
+}
+
+export class BlockUserDto {
+  blockedId: number;
+  reason?: string;
+}
+
+export class UnblockUserDto {
+  blockedId: number;
+}
+
+export class MarkAsReadDto {
+  roomId: string;
+}
+
+export class GetUnreadCountDto {
+  roomId: string;
+}
+
+export class SearchOnlinePlayersDto {
+  query: string;
+}
+
+export class UpdateOnlineStatusDto {
+  isOnline: boolean;
+}

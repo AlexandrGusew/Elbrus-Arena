@@ -9,6 +9,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { PvpService } from './pvp.service';
 import { PvpActionsDto } from './dto/pvp.dto';
+import { ChatGateway } from '../chat/chat.gateway';
 
 const corsOriginsString = process.env.CORS_ORIGINS || '';
 const corsOrigins = corsOriginsString.split(',').filter(Boolean);
@@ -31,7 +32,10 @@ export class PvpGateway implements OnGatewayDisconnect {
 
   private socketToCharacter: Map<string, number> = new Map(); // socketId -> characterId
 
-  constructor(private pvpService: PvpService) {}
+  constructor(
+    private pvpService: PvpService,
+    private chatGateway: ChatGateway,
+  ) {}
 
   handleDisconnect(client: Socket) {
     const characterId = this.socketToCharacter.get(client.id);
@@ -76,6 +80,13 @@ export class PvpGateway implements OnGatewayDisconnect {
         yourHp: match.player2.maxHp,
         opponentHp: match.player1.maxHp,
       });
+
+      // Создать чат боя для обоих игроков
+      await this.chatGateway.createBattleChatRoom(
+        match.id,
+        match.player1.characterId,
+        match.player2.characterId,
+      );
 
       return { status: 'match_found', matchId: match.id };
     }

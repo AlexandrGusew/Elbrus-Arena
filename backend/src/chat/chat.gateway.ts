@@ -15,6 +15,15 @@ import {
   GetMessagesDto,
   InviteToPrivateChatDto,
   RespondToInvitationDto,
+  CreatePartyChatDto,
+  AddPartyMemberDto,
+  RemovePartyMemberDto,
+  BlockUserDto,
+  UnblockUserDto,
+  MarkAsReadDto,
+  GetUnreadCountDto,
+  SearchOnlinePlayersDto,
+  UpdateOnlineStatusDto,
 } from './dto/chat.dto';
 
 const corsOriginsString = process.env.CORS_ORIGINS || '';
@@ -322,6 +331,226 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.log(`Battle chat created for battle ${battleId}`);
     } catch (error) {
       this.logger.error(`Error creating battle chat: ${error.message}`);
+    }
+  }
+
+  // ========== НОВЫЕ ОБРАБОТЧИКИ ==========
+
+  // Создать командный чат
+  @SubscribeMessage('create_party_chat')
+  async handleCreatePartyChat(
+    @MessageBody() data: CreatePartyChatDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { creatorId, partyId, name } = data;
+
+    try {
+      const roomId = await this.chatService.createPartyChat(
+        creatorId,
+        partyId,
+        name,
+      );
+
+      // Присоединить создателя к комнате
+      await client.join(roomId);
+
+      client.emit('party_chat_created', { roomId, partyId, name });
+
+      this.logger.log(`Party chat created: ${name} (${roomId})`);
+    } catch (error) {
+      this.logger.error(`Error creating party chat: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Добавить участника в командный чат
+  @SubscribeMessage('add_party_member')
+  async handleAddPartyMember(
+    @MessageBody() data: AddPartyMemberDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { roomId, characterId } = data;
+
+    try {
+      await this.chatService.addPartyMember(roomId, characterId);
+
+      // Присоединить участника к комнате
+      const memberSocketId = this.characterToSocket.get(characterId);
+      if (memberSocketId) {
+        const memberSocket = this.server.sockets.sockets.get(memberSocketId);
+        if (memberSocket) {
+          await memberSocket.join(roomId);
+        }
+      }
+
+      // Уведомить всех в комнате
+      this.server.to(roomId).emit('party_member_added', { roomId, characterId });
+
+      this.logger.log(`Character ${characterId} added to party chat ${roomId}`);
+    } catch (error) {
+      this.logger.error(`Error adding party member: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Удалить участника из командного чата
+  @SubscribeMessage('remove_party_member')
+  async handleRemovePartyMember(
+    @MessageBody() data: RemovePartyMemberDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { roomId, characterId } = data;
+
+    try {
+      await this.chatService.removePartyMember(roomId, characterId);
+
+      // Отключить участника от комнаты
+      const memberSocketId = this.characterToSocket.get(characterId);
+      if (memberSocketId) {
+        const memberSocket = this.server.sockets.sockets.get(memberSocketId);
+        if (memberSocket) {
+          await memberSocket.leave(roomId);
+        }
+      }
+
+      // Уведомить всех в комнате
+      this.server.to(roomId).emit('party_member_removed', { roomId, characterId });
+
+      this.logger.log(`Character ${characterId} removed from party chat ${roomId}`);
+    } catch (error) {
+      this.logger.error(`Error removing party member: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Заблокировать пользователя
+  @SubscribeMessage('block_user')
+  async handleBlockUser(
+    @MessageBody() data: BlockUserDto & { blockerId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { blockerId, blockedId, reason } = data;
+
+    try {
+      await this.chatService.blockUser(blockerId, blockedId, reason);
+
+      client.emit('user_blocked', { blockedId });
+
+      this.logger.log(`Character ${blockerId} blocked ${blockedId}`);
+    } catch (error) {
+      this.logger.error(`Error blocking user: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Разблокировать пользователя
+  @SubscribeMessage('unblock_user')
+  async handleUnblockUser(
+    @MessageBody() data: UnblockUserDto & { blockerId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { blockerId, blockedId } = data;
+
+    try {
+      await this.chatService.unblockUser(blockerId, blockedId);
+
+      client.emit('user_unblocked', { blockedId });
+
+      this.logger.log(`Character ${blockerId} unblocked ${blockedId}`);
+    } catch (error) {
+      this.logger.error(`Error unblocking user: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Получить список заблокированных пользователей
+  @SubscribeMessage('get_blocked_users')
+  async handleGetBlockedUsers(
+    @MessageBody() data: { characterId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const blockedIds = await this.chatService.getBlockedUsers(data.characterId);
+
+      client.emit('blocked_users_list', blockedIds);
+    } catch (error) {
+      this.logger.error(`Error getting blocked users: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Отметить сообщения как прочитанные
+  @SubscribeMessage('mark_as_read')
+  async handleMarkAsRead(
+    @MessageBody() data: MarkAsReadDto & { characterId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { roomId, characterId } = data;
+
+    try {
+      await this.chatService.markAsRead(roomId, characterId);
+
+      client.emit('marked_as_read', { roomId });
+
+      this.logger.log(`Character ${characterId} marked messages as read in ${roomId}`);
+    } catch (error) {
+      this.logger.error(`Error marking as read: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Получить количество непрочитанных сообщений
+  @SubscribeMessage('get_unread_count')
+  async handleGetUnreadCount(
+    @MessageBody() data: GetUnreadCountDto & { characterId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { roomId, characterId } = data;
+
+    try {
+      const unreadCount = await this.chatService.getUnreadCount(roomId, characterId);
+
+      client.emit('unread_count', { roomId, count: unreadCount });
+    } catch (error) {
+      this.logger.error(`Error getting unread count: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Поиск онлайн игроков
+  @SubscribeMessage('search_online_players')
+  async handleSearchOnlinePlayers(
+    @MessageBody() data: SearchOnlinePlayersDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const players = await this.chatService.searchOnlinePlayers(data.query);
+
+      client.emit('online_players_result', players);
+    } catch (error) {
+      this.logger.error(`Error searching online players: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Обновить статус онлайн
+  @SubscribeMessage('update_online_status')
+  async handleUpdateOnlineStatus(
+    @MessageBody() data: UpdateOnlineStatusDto & { characterId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { characterId, isOnline } = data;
+
+    try {
+      await this.chatService.updateOnlineStatus(characterId, isOnline);
+
+      // Уведомить всех о смене статуса
+      this.server.emit('user_status_changed', { characterId, isOnline });
+
+      this.logger.log(`Character ${characterId} is now ${isOnline ? 'online' : 'offline'}`);
+    } catch (error) {
+      this.logger.error(`Error updating online status: ${error.message}`);
+      client.emit('error', { message: error.message });
     }
   }
 }
