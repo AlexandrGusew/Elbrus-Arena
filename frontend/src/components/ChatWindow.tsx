@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useChat } from '../hooks/useChat';
-import { ChatTabBar } from '../
-
-ChatTabBar';
+import { ChatTabBar } from '../components/ChatTabBar';
 import type { ChatMessage, ChatRoom } from '../hooks/useChat';
 
 interface ChatWindowProps {

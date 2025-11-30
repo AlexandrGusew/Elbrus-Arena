@@ -35,7 +35,7 @@ export class ChatService {
     if (!this.globalChatRoomId) {
       await this.initGlobalChat();
     }
-    return this.globalChatRoomId;
+    return this.globalChatRoomId!;
   }
 
   // Отправить сообщение в чат
@@ -312,6 +312,82 @@ export class ChatService {
       status: inv.status,
       createdAt: inv.createdAt,
     }));
+  }
+
+  // Создать чат партии
+  async createPartyChat(creatorId: number, partyId: string, name?: string): Promise<string> {
+    const partyRoom = await this.prisma.chatRoom.create({
+      data: {
+        type: ChatRoomType.PARTY,
+        participants: {
+          create: [{ characterId: creatorId }],
+        },
+      },
+    });
+
+    return partyRoom.id;
+  }
+
+  // Добавить участника в партийный чат
+  async addPartyMember(roomId: string, characterId: number): Promise<void> {
+    await this.prisma.chatParticipant.create({
+      data: {
+        roomId,
+        characterId,
+      },
+    });
+  }
+
+  // Удалить участника из партийного чата
+  async removePartyMember(roomId: string, characterId: number): Promise<void> {
+    await this.prisma.chatParticipant.deleteMany({
+      where: {
+        roomId,
+        characterId,
+      },
+    });
+  }
+
+  // Заблокировать пользователя (заглушка)
+  async blockUser(blockerId: number, blockedId: number, reason?: string): Promise<void> {
+    // TODO: Реализовать блокировку пользователей
+    // Требуется таблица blocked_users
+  }
+
+  // Разблокировать пользователя (заглушка)
+  async unblockUser(blockerId: number, blockedId: number): Promise<void> {
+    // TODO: Реализовать разблокировку
+  }
+
+  // Получить список заблокированных пользователей (заглушка)
+  async getBlockedUsers(characterId: number): Promise<number[]> {
+    // TODO: Реализовать получение списка заблокированных
+    return [];
+  }
+
+  // Пометить сообщения как прочитанные (заглушка)
+  async markAsRead(roomId: string, characterId: number): Promise<void> {
+    // TODO: Реализовать отметку о прочтении
+    // Требуется поле readAt в таблице chat_messages или отдельная таблица
+  }
+
+  // Получить количество непрочитанных сообщений (заглушка)
+  async getUnreadCount(roomId: string, characterId: number): Promise<number> {
+    // TODO: Реализовать подсчет непрочитанных
+    return 0;
+  }
+
+  // Поиск онлайн игроков (заглушка)
+  async searchOnlinePlayers(query: string): Promise<any[]> {
+    // TODO: Реализовать поиск онлайн игроков
+    // Требуется таблица для отслеживания онлайн статуса
+    return [];
+  }
+
+  // Обновить онлайн статус (заглушка)
+  async updateOnlineStatus(characterId: number, isOnline: boolean): Promise<void> {
+    // TODO: Реализовать обновление онлайн статуса
+    // Требуется таблица для отслеживания онлайн статуса
   }
 
   // Вспомогательный метод для форматирования ChatRoom

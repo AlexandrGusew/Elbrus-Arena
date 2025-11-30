@@ -251,6 +251,7 @@ enum ChatRoomType {
   GLOBAL    // Общий чат для всех
   PRIVATE   // Приватный чат между двумя игроками
   BATTLE    // Чат боя (PvP)
+  PARTY     // Чат партии
 }
 
 model ChatRoom {
