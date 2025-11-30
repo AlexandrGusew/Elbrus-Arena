@@ -81,8 +81,14 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'echo "Working directory: $(pwd)"' >> /app/start.sh && \
     echo 'echo "=== Checking build output structure ==="' >> /app/start.sh && \
     echo 'find dist -name "main.js" -type f 2>/dev/null | head -5 || echo "No main.js found yet"' >> /app/start.sh && \
-    echo 'echo "=== Running database migrations ==="' >> /app/start.sh && \
-    echo 'npx prisma migrate deploy 2>&1 || echo "⚠️  Warning: Migration failed or already applied, continuing..."' >> /app/start.sh && \
+    echo 'echo "=== Synchronizing database schema ==="' >> /app/start.sh && \
+    echo 'if [ -d "prisma/migrations" ] && [ "$(ls -A prisma/migrations 2>/dev/null)" ]; then' >> /app/start.sh && \
+    echo '  echo "Migrations found, applying migrations..."' >> /app/start.sh && \
+    echo '  npx prisma migrate deploy 2>&1 || echo "⚠️  Warning: Migration failed, trying db push..."' >> /app/start.sh && \
+    echo 'else' >> /app/start.sh && \
+    echo '  echo "No migrations found, pushing schema..."' >> /app/start.sh && \
+    echo '  npx prisma db push --accept-data-loss --skip-generate 2>&1 || echo "⚠️  Warning: db push failed, continuing..."' >> /app/start.sh && \
+    echo 'fi' >> /app/start.sh && \
     echo 'echo "=== Determining application entry point ==="' >> /app/start.sh && \
     echo 'MAIN_FILE=""' >> /app/start.sh && \
     echo 'if [ -f "dist/app/src/main.js" ]; then' >> /app/start.sh && \
