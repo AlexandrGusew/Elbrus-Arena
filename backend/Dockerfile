@@ -85,7 +85,9 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'npx prisma migrate deploy 2>&1 || echo "⚠️  Warning: Migration failed or already applied, continuing..."' >> /app/start.sh && \
     echo 'echo "=== Determining application entry point ==="' >> /app/start.sh && \
     echo 'MAIN_FILE=""' >> /app/start.sh && \
-    echo 'if [ -f "dist/main.js" ]; then' >> /app/start.sh && \
+    echo 'if [ -f "dist/app/src/main.js" ]; then' >> /app/start.sh && \
+    echo '  MAIN_FILE="dist/app/src/main.js"' >> /app/start.sh && \
+    echo 'elif [ -f "dist/main.js" ]; then' >> /app/start.sh && \
     echo '  MAIN_FILE="dist/main.js"' >> /app/start.sh && \
     echo 'elif [ -f "dist/src/main.js" ]; then' >> /app/start.sh && \
     echo '  MAIN_FILE="dist/src/main.js"' >> /app/start.sh && \
