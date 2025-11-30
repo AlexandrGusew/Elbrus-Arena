@@ -191,28 +191,38 @@ export function useChat(characterId: number | null) {
     // Событие: создан командный чат
     newSocket.on('party_chat_created', (data: { roomId: string; partyId: string; name: string }) => {
       console.log('Party chat created:', data);
-      // Обновить список чатов
-      if (socket) {
-        socket.emit('get_user_chats', { characterId });
-      }
+      // Добавить новую вкладку и переключиться на неё
+      setChatState((prev) => ({
+        ...prev,
+        openTabs: [...prev.openTabs, data.roomId],
+        activeTabId: data.roomId,
+      }));
+      // Присоединиться к комнате и получить список чатов
+      newSocket.emit('join_room', { roomId: data.roomId, characterId });
+      newSocket.emit('get_user_chats', { characterId });
     });
 
     // Событие: участник добавлен в командный чат
     newSocket.on('party_member_added', (data: { roomId: string; characterId: number }) => {
       console.log('Party member added:', data);
-      setChatState((prev) => ({
-        ...prev,
-        // Можно добавить системное сообщение или обновить список участников
-      }));
+      // Обновить список чатов для получения обновленного списка участников
+      newSocket.emit('get_user_chats', { characterId });
     });
 
     // Событие: участник удален из командного чата
     newSocket.on('party_member_removed', (data: { roomId: string; characterId: number }) => {
       console.log('Party member removed:', data);
-      setChatState((prev) => ({
-        ...prev,
-        // Можно добавить системное сообщение или обновить список участников
-      }));
+      // Обновить список чатов для получения обновленного списка участников
+      newSocket.emit('get_user_chats', { characterId });
+
+      // Если удалили текущего пользователя, закрыть эту вкладку
+      if (data.characterId === characterId) {
+        setChatState((prev) => ({
+          ...prev,
+          openTabs: prev.openTabs.filter((id) => id !== data.roomId),
+          activeTabId: prev.activeTabId === data.roomId ? prev.globalRoomId : prev.activeTabId,
+        }));
+      }
     });
 
     // Событие: пользователь заблокирован

@@ -35,7 +35,7 @@ export class ChatService {
     if (!this.globalChatRoomId) {
       await this.initGlobalChat();
     }
-    return this.globalChatRoomId;
+    return this.globalChatRoomId!;
   }
 
   // Отправить сообщение в чат
@@ -63,11 +63,42 @@ export class ChatService {
       }
     }
 
+    // Проверка на блокировку
+    const isBlocked = await this.isUserBlocked(senderId, room.participants.map(p => p.characterId));
+    if (isBlocked) {
+      throw new BadRequestException('You are blocked by one or more participants');
+    }
+
+    // Проверка спам-защиты
+    await this.checkSpamProtection(senderId, roomId);
+
+    // Извлечь упоминания (@username)
+    const mentionedIds = this.extractMentions(content);
+
+    // Проверить, является ли это командой
+    const isCommand = content.startsWith('/');
+
+    // Обработать команду, если это команда
+    if (isCommand) {
+      const commandResult = await this.processCommand(content, senderId, roomId);
+      if (commandResult) {
+        // Команда обработана, вернуть системное сообщение
+        return commandResult;
+      }
+    }
+
+    // Установить автоудаление через 48 часов
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 48);
+
     const message = await this.prisma.chatMessage.create({
       data: {
         senderId,
         roomId,
         content,
+        mentionedIds: mentionedIds.length > 0 ? mentionedIds : undefined,
+        isCommand,
+        expiresAt,
       },
       include: {
         sender: {
@@ -75,6 +106,9 @@ export class ChatService {
         },
       },
     });
+
+    // Обновить счетчики непрочитанных для участников (кроме отправителя)
+    await this.incrementUnreadCount(roomId, senderId);
 
     return {
       id: message.id,
@@ -312,6 +346,335 @@ export class ChatService {
       status: inv.status,
       createdAt: inv.createdAt,
     }));
+  }
+
+  // ========== НОВЫЕ МЕТОДЫ ==========
+
+  // Создать командный чат
+  async createPartyChat(creatorId: number, partyId: string, name: string): Promise<string> {
+    const partyRoom = await this.prisma.chatRoom.create({
+      data: {
+        type: ChatRoomType.PARTY,
+        partyId,
+        name,
+        participants: {
+          create: [{ characterId: creatorId }],
+        },
+      },
+    });
+
+    return partyRoom.id;
+  }
+
+  // Добавить участника в командный чат
+  async addPartyMember(roomId: string, characterId: number): Promise<void> {
+    const room = await this.prisma.chatRoom.findUnique({
+      where: { id: roomId },
+    });
+
+    if (!room || room.type !== ChatRoomType.PARTY) {
+      throw new NotFoundException('Party chat not found');
+    }
+
+    await this.prisma.chatParticipant.create({
+      data: {
+        roomId,
+        characterId,
+      },
+    });
+  }
+
+  // Удалить участника из командного чата
+  async removePartyMember(roomId: string, characterId: number): Promise<void> {
+    await this.prisma.chatParticipant.deleteMany({
+      where: {
+        roomId,
+        characterId,
+      },
+    });
+  }
+
+  // Заблокировать пользователя
+  async blockUser(blockerId: number, blockedId: number, reason?: string): Promise<void> {
+    // Проверить, не заблокирован ли уже
+    const existing = await this.prisma.blockedUser.findUnique({
+      where: {
+        blockerId_blockedId: {
+          blockerId,
+          blockedId,
+        },
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException('User already blocked');
+    }
+
+    await this.prisma.blockedUser.create({
+      data: {
+        blockerId,
+        blockedId,
+        reason,
+      },
+    });
+  }
+
+  // Разблокировать пользователя
+  async unblockUser(blockerId: number, blockedId: number): Promise<void> {
+    await this.prisma.blockedUser.deleteMany({
+      where: {
+        blockerId,
+        blockedId,
+      },
+    });
+  }
+
+  // Получить список заблокированных пользователей
+  async getBlockedUsers(characterId: number): Promise<number[]> {
+    const blocked = await this.prisma.blockedUser.findMany({
+      where: { blockerId: characterId },
+      select: { blockedId: true },
+    });
+
+    return blocked.map((b) => b.blockedId);
+  }
+
+  // Отметить сообщения как прочитанные
+  async markAsRead(roomId: string, characterId: number): Promise<void> {
+    await this.prisma.chatParticipant.updateMany({
+      where: {
+        roomId,
+        characterId,
+      },
+      data: {
+        unreadCount: 0,
+        lastReadAt: new Date(),
+      },
+    });
+  }
+
+  // Получить непрочитанные сообщения
+  async getUnreadCount(roomId: string, characterId: number): Promise<number> {
+    const participant = await this.prisma.chatParticipant.findUnique({
+      where: {
+        roomId_characterId: {
+          roomId,
+          characterId,
+        },
+      },
+    });
+
+    return participant?.unreadCount || 0;
+  }
+
+  // Поиск онлайн игроков по имени
+  async searchOnlinePlayers(query: string): Promise<Array<{ id: number; name: string }>> {
+    const players = await this.prisma.character.findMany({
+      where: {
+        name: {
+          contains: query,
+          mode: 'insensitive',
+        },
+        isOnline: true,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      take: 10,
+    });
+
+    return players;
+  }
+
+  // Обновить статус онлайн
+  async updateOnlineStatus(characterId: number, isOnline: boolean): Promise<void> {
+    await this.prisma.character.update({
+      where: { id: characterId },
+      data: {
+        isOnline,
+        lastSeenAt: new Date(),
+      },
+    });
+  }
+
+  // Обработать команду чата
+  private async processCommand(
+    content: string,
+    senderId: number,
+    roomId: string,
+  ): Promise<ChatMessageResponse | null> {
+    const parts = content.trim().split(' ');
+    const command = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    const sender = await this.prisma.character.findUnique({
+      where: { id: senderId },
+      select: { name: true },
+    });
+
+    const senderName = sender?.name || 'System';
+
+    switch (command) {
+      case '/help':
+        return {
+          id: 0,
+          roomId,
+          senderId: 0,
+          senderName: 'Система',
+          content: `📖 Доступные команды:
+/help - показать список команд
+/online - показать количество онлайн игроков
+/me <действие> - отправить действие в третьем лице
+/clear - очистить историю чата (только для вас)`,
+          createdAt: new Date(),
+        };
+
+      case '/online':
+        const onlineCount = await this.prisma.character.count({
+          where: { isOnline: true },
+        });
+        return {
+          id: 0,
+          roomId,
+          senderId: 0,
+          senderName: 'Система',
+          content: `👥 Игроков онлайн: ${onlineCount}`,
+          createdAt: new Date(),
+        };
+
+      case '/me':
+        if (args.length === 0) {
+          return {
+            id: 0,
+            roomId,
+            senderId: 0,
+            senderName: 'Система',
+            content: '❌ Использование: /me <действие>',
+            createdAt: new Date(),
+          };
+        }
+        // Обработать как обычное сообщение, но с форматированием
+        const action = args.join(' ');
+        // Вернуть null, чтобы сообщение было создано как обычное, но с измененным содержимым
+        return null;
+
+      case '/clear':
+        // Команда для очистки истории (обрабатывается на клиенте)
+        return {
+          id: 0,
+          roomId,
+          senderId: 0,
+          senderName: 'Система',
+          content: '🗑️ История чата очищена (только для вас)',
+          createdAt: new Date(),
+        };
+
+      default:
+        return {
+          id: 0,
+          roomId,
+          senderId: 0,
+          senderName: 'Система',
+          content: `❌ Неизвестная команда: ${command}. Используйте /help для списка команд.`,
+          createdAt: new Date(),
+        };
+    }
+  }
+
+  // ========== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ==========
+
+  // Извлечь упоминания из текста (@username)
+  private extractMentions(content: string): number[] {
+    // Простая реализация - можно улучшить
+    // Формат: @username или @"username with spaces"
+    const mentionPattern = /@(\w+|"[^"]+")/g;
+    const matches = content.match(mentionPattern);
+
+    // TODO: Преобразовать имена в ID через запрос к БД
+    // Пока возвращаем пустой массив
+    return [];
+  }
+
+  // Проверить, заблокирован ли пользователь
+  private async isUserBlocked(senderId: number, participantIds: number[]): Promise<boolean> {
+    const blocked = await this.prisma.blockedUser.findFirst({
+      where: {
+        blockedId: senderId,
+        blockerId: {
+          in: participantIds,
+        },
+      },
+    });
+
+    return !!blocked;
+  }
+
+  // Проверка спам-защиты (не более 5 сообщений в минуту)
+  private async checkSpamProtection(characterId: number, roomId: string): Promise<void> {
+    const oneMinuteAgo = new Date();
+    oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
+
+    const log = await this.prisma.chatMessageLog.findUnique({
+      where: {
+        characterId_roomId: {
+          characterId,
+          roomId,
+        },
+      },
+    });
+
+    if (log && log.lastMessageAt > oneMinuteAgo) {
+      if (log.messageCount >= 5) {
+        throw new BadRequestException('Too many messages. Please slow down.');
+      }
+
+      // Обновить счетчик
+      await this.prisma.chatMessageLog.update({
+        where: { id: log.id },
+        data: {
+          messageCount: log.messageCount + 1,
+          lastMessageAt: new Date(),
+        },
+      });
+    } else {
+      // Создать или сбросить лог
+      await this.prisma.chatMessageLog.upsert({
+        where: {
+          characterId_roomId: {
+            characterId,
+            roomId,
+          },
+        },
+        update: {
+          messageCount: 1,
+          lastMessageAt: new Date(),
+        },
+        create: {
+          characterId,
+          roomId,
+          messageCount: 1,
+          lastMessageAt: new Date(),
+        },
+      });
+    }
+  }
+
+  // Увеличить счетчик непрочитанных
+  private async incrementUnreadCount(roomId: string, excludeCharacterId: number): Promise<void> {
+    await this.prisma.chatParticipant.updateMany({
+      where: {
+        roomId,
+        characterId: {
+          not: excludeCharacterId,
+        },
+      },
+      data: {
+        unreadCount: {
+          increment: 1,
+        },
+      },
+    });
   }
 
   // Вспомогательный метод для форматирования ChatRoom

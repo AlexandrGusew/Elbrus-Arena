@@ -64,6 +64,8 @@ model Character {
   lastStaminaUpdate  DateTime           @default(now())
   rating             Int                @default(0)
   superPoints        Int                @default(0)
+  isOnline           Boolean            @default(false)
+  lastSeenAt         DateTime           @default(now())
   createdAt          DateTime           @default(now())
   user               User               @relation(fields: [userId], references: [id])
   inventory          Inventory?
@@ -75,6 +77,8 @@ model Character {
   chatParticipants   ChatParticipant[]
   sentInvitations    ChatInvitation[]   @relation("SentInvitations")
   receivedInvitations ChatInvitation[]  @relation("ReceivedInvitations")
+  blockedUsers       BlockedUser[]      @relation("BlockedBy")
+  blockedByUsers     BlockedUser[]      @relation("Blocked")
 
   @@map("characters")
 }
@@ -251,12 +255,17 @@ enum ChatRoomType {
   GLOBAL    // Общий чат для всех
   PRIVATE   // Приватный чат между двумя игроками
   BATTLE    // Чат боя (PvP)
+  PARTY     // Командный/групповой чат
 }
 
 model ChatRoom {
   id           String            @id @default(uuid())
   type         ChatRoomType
-  battleId     String?           @unique  // Для чата боя - связь с PvpBattle
+  name         String?                   // Название для командных чатов
+  battleId     String?           @unique // Для чата боя - связь с PvpBattle
+  partyId      String?                   // Для командного чата
+  isActive     Boolean           @default(true)
+  expiresAt    DateTime?                 // Для временных чатов (PvP)
   createdAt    DateTime          @default(now())
   messages     ChatMessage[]
   participants ChatParticipant[]
@@ -265,25 +274,32 @@ model ChatRoom {
 }
 
 model ChatMessage {
-  id         Int      @id @default(autoincrement())
-  roomId     String
-  senderId   Int
-  content    String
-  createdAt  DateTime @default(now())
-  room       ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  sender     Character @relation(fields: [senderId], references: [id])
+  id           Int      @id @default(autoincrement())
+  roomId       String
+  senderId     Int
+  content      String
+  mentionedIds Json?              // Массив ID упомянутых игроков
+  isCommand    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime?          // Для автоудаления (24-48ч)
+  room         ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender       Character @relation(fields: [senderId], references: [id])
 
   @@index([roomId, createdAt])
+  @@index([expiresAt])
   @@map("chat_messages")
 }
 
 model ChatParticipant {
-  id           Int      @id @default(autoincrement())
-  roomId       String
-  characterId  Int
-  joinedAt     DateTime @default(now())
-  room         ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  character    Character @relation(fields: [characterId], references: [id])
+  id                Int      @id @default(autoincrement())
+  roomId            String
+  characterId       Int
+  unreadCount       Int      @default(0)
+  lastReadAt        DateTime @default(now())
+  isMuted           Boolean  @default(false)
+  joinedAt          DateTime @default(now())
+  room              ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  character         Character @relation(fields: [characterId], references: [id])
 
   @@unique([roomId, characterId])
   @@map("chat_participants")
@@ -300,4 +316,32 @@ model ChatInvitation {
 
   @@unique([senderId, receiverId, status])
   @@map("chat_invitations")
+}
+
+// Игнор-лист для блокировки пользователей в чате
+model BlockedUser {
+  id           Int       @id @default(autoincrement())
+  blockerId    Int
+  blockedId    Int
+  reason       String?
+  createdAt    DateTime  @default(now())
+  blocker      Character @relation("BlockedBy", fields: [blockerId], references: [id])
+  blocked      Character @relation("Blocked", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
+  @@map("blocked_users")
+}
+
+// Лог отправки сообщений для спам-защиты
+model ChatMessageLog {
+  id          Int      @id @default(autoincrement())
+  characterId Int
+  roomId      String
+  messageCount Int     @default(1)
+  lastMessageAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@unique([characterId, roomId])
+  @@index([characterId, lastMessageAt])
+  @@map("chat_message_logs")
 }
