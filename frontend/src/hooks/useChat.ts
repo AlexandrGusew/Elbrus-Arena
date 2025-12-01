@@ -49,6 +49,7 @@ export interface ChatState {
   activeTabId: string | null; // ID активной вкладки
   blockedUsers: number[]; // Массив ID заблокированных пользователей
   onlinePlayers: OnlinePlayer[]; // Результат поиска онлайн игроков
+  playerSearchLoading: boolean; // Индикатор загрузки результатов поиска игроков
 }
 
 export function useChat(characterId: number | null) {
@@ -65,6 +66,7 @@ export function useChat(characterId: number | null) {
     activeTabId: null,
     blockedUsers: [],
     onlinePlayers: [],
+    playerSearchLoading: false,
   });
 
   // Подключение к WebSocket
@@ -274,6 +276,7 @@ export function useChat(characterId: number | null) {
       setChatState((prev) => ({
         ...prev,
         onlinePlayers: players,
+        playerSearchLoading: false,
       }));
     });
 
@@ -417,8 +420,25 @@ export function useChat(characterId: number | null) {
   // Поиск онлайн игроков
   const searchOnlinePlayers = useCallback((query: string) => {
     if (!socket) return;
+
+    // Сбросим текущие результаты и включим индикатор загрузки
+    setChatState((prev) => ({
+      ...prev,
+      onlinePlayers: [],
+      playerSearchLoading: true,
+    }));
+
     socket.emit('search_online_players', { query });
   }, [socket]);
+
+  // Очистить результаты поиска игроков
+  const clearPlayerSearch = useCallback(() => {
+    setChatState((prev) => ({
+      ...prev,
+      onlinePlayers: [],
+      playerSearchLoading: false,
+    }));
+  }, []);
 
   // Обновить статус онлайн
   const updateOnlineStatus = useCallback((isOnline: boolean) => {
@@ -483,6 +503,7 @@ export function useChat(characterId: number | null) {
     markAsRead,
     getUnreadCount,
     searchOnlinePlayers,
+    clearPlayerSearch,
     updateOnlineStatus,
     openTab,
     closeTab,
