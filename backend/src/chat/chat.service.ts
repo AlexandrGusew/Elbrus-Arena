@@ -468,11 +468,24 @@ export class ChatService {
   }
 
   // Поиск онлайн игроков по имени
-  async searchOnlinePlayers(query: string): Promise<Array<{ id: number; name: string }>> {
+  async searchOnlinePlayers(
+    query: string,
+  ): Promise<Array<{ id: number; name: string }>> {
+    const cleanQuery = query.trim();
+
+    // Слишком короткий или пустой запрос — сразу пустой результат,
+    // чтобы не нагружать БД
+    if (cleanQuery.length < 2) {
+      return [];
+    }
+
+    // Ограничим длину запроса для защиты от абьюза
+    const limitedQuery = cleanQuery.slice(0, 50);
+
     const players = await this.prisma.character.findMany({
       where: {
         name: {
-          contains: query,
+          contains: limitedQuery,
           mode: 'insensitive',
         },
         isOnline: true,

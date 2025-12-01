@@ -29,6 +29,8 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
     blockUser,
     unblockUser,
     getBlockedUsers,
+    clearPlayerSearch,
+    updateOnlineStatus,
     openTab,
   } = useChat(characterId);
 
@@ -42,6 +44,20 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
   const [partyName, setPartyName] = useState('');
   const [partySearchQuery, setPartySearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Обновляем онлайн-статус персонажа при открытии/закрытии чата
+  useEffect(() => {
+    if (!characterId) return;
+
+    if (isOpen) {
+      updateOnlineStatus(true);
+      return () => {
+        updateOnlineStatus(false);
+      };
+    } else {
+      updateOnlineStatus(false);
+    }
+  }, [isOpen, characterId, updateOnlineStatus]);
 
   // Автоматически присоединяемся к глобальному чату при открытии
   useEffect(() => {
@@ -59,23 +75,29 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
 
   // Поиск игроков при изменении запроса (приватный чат)
   useEffect(() => {
-    if (playerSearchQuery.trim().length >= 2) {
+    const trimmed = playerSearchQuery.trim();
+    if (trimmed.length >= 2) {
       const debounce = setTimeout(() => {
-        searchOnlinePlayers(playerSearchQuery);
+        searchOnlinePlayers(trimmed);
       }, 300);
       return () => clearTimeout(debounce);
+    } else {
+      clearPlayerSearch();
     }
-  }, [playerSearchQuery, searchOnlinePlayers]);
+  }, [playerSearchQuery, searchOnlinePlayers, clearPlayerSearch]);
 
   // Поиск игроков для добавления в группу
   useEffect(() => {
-    if (partySearchQuery.trim().length >= 2) {
+    const trimmed = partySearchQuery.trim();
+    if (trimmed.length >= 2) {
       const debounce = setTimeout(() => {
-        searchOnlinePlayers(partySearchQuery);
+        searchOnlinePlayers(trimmed);
       }, 300);
       return () => clearTimeout(debounce);
+    } else {
+      clearPlayerSearch();
     }
-  }, [partySearchQuery, searchOnlinePlayers]);
+  }, [partySearchQuery, searchOnlinePlayers, clearPlayerSearch]);
 
   if (!isOpen) return null;
 
@@ -398,9 +420,17 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
         />
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 10px 10px' }}>
-        {chatState.onlinePlayers.length === 0 ? (
+        {chatState.playerSearchLoading ? (
           <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px', fontSize: '13px' }}>
-            {playerSearchQuery.length >= 2 ? 'Игроки не найдены' : 'Введите имя для поиска'}
+            Поиск игроков...
+          </div>
+        ) : playerSearchQuery.trim().length < 2 ? (
+          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px', fontSize: '13px' }}>
+            Введите имя для поиска
+          </div>
+        ) : chatState.onlinePlayers.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px', fontSize: '13px' }}>
+            Игроки не найдены
           </div>
         ) : (
           chatState.onlinePlayers.map((player) => (
