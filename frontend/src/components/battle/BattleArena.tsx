@@ -217,11 +217,11 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
       }}>
         {/* Верхняя часть - прогресс подземелья и статы */}
         <div style={{
-          padding: '20px',
+          padding: '15px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '15px',
+          gap: '11px',
         }}>
           {battleState.currentMonster && battleState.totalMonsters && (
             <DungeonProgress
@@ -234,11 +234,11 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
 
           <div style={{
             background: 'rgba(0, 0, 0, 0.7)',
-            padding: '10px 30px',
-            borderRadius: '10px',
+            padding: '8px 23px',
+            borderRadius: '8px',
             border: '2px solid rgba(212, 175, 55, 0.4)',
           }}>
-            <div style={{ color: '#d4af37', fontSize: '20px', fontWeight: 'bold' }}>
+            <div style={{ color: '#d4af37', fontSize: '15px', fontWeight: 'bold' }}>
               Раунд {battleState.roundNumber} • {getStatusText()}
             </div>
           </div>
@@ -249,9 +249,9 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
           <div style={{
             flex: 1,
             display: 'grid',
-            gridTemplateColumns: '350px 1fr 350px',
-            gap: '20px',
-            padding: '0 20px 20px 20px',
+            gridTemplateColumns: '263px 1fr 263px',
+            gap: '15px',
+            padding: '0 15px 15px 15px',
             minHeight: 0,
           }}>
             {/* Левый блок - Лог боя */}
@@ -260,42 +260,42 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
             </div>
 
             {/* Средний блок - Персонаж, зоны атаки/защиты, моб */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}>
-              {/* Верхняя часть - персонаж и моб */}
               <div style={{
                 display: 'flex',
-                justifyContent: 'space-between',
+                flexDirection: 'column',
+                gap: '8px',
                 alignItems: 'center',
-                width: '100%',
-                flex: 1,
-                minHeight: 0,
+                justifyContent: 'space-between',
               }}>
-                {/* Персонаж */}
+                {/* Верхняя часть - персонаж и моб */}
                 <div style={{
-                  flex: 1,
                   display: 'flex',
-                  justifyContent: 'center',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
+                  width: '100%',
+                  flex: 1,
+                  minHeight: 0,
                 }}>
+                  {/* Персонаж */}
                   <div style={{
-                    width: '280px',
-                    height: '280px',
-                    background: 'rgba(76, 175, 80, 0.1)',
-                    border: '3px solid rgba(76, 175, 80, 0.5)',
-                    borderRadius: '15px',
+                    flex: 1,
                     display: 'flex',
-                    alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 0 30px rgba(76, 175, 80, 0.3)',
-                    overflow: 'hidden',
-                    position: 'relative',
+                    alignItems: 'center',
                   }}>
+                    <div style={{
+                      width: '210px',
+                      height: '210px',
+                      background: 'rgba(76, 175, 80, 0.1)',
+                      border: '2px solid rgba(76, 175, 80, 0.5)',
+                      borderRadius: '11px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 0 23px rgba(76, 175, 80, 0.3)',
+                      overflow: 'hidden',
+                      position: 'relative',
+                    }}>
                     <img
                       src={getCharacterImage()}
                       alt={character.class}
@@ -307,14 +307,14 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                     />
                     <div style={{
                       position: 'absolute',
-                      bottom: '10px',
+                      bottom: '8px',
                       left: '50%',
                       transform: 'translateX(-50%)',
                       background: 'rgba(0, 0, 0, 0.8)',
                       color: '#4CAF50',
-                      padding: '5px 15px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
+                      padding: '4px 11px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
                       fontWeight: 'bold',
                       border: '2px solid rgba(76, 175, 80, 0.5)',
                     }}>
@@ -331,19 +331,19 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                   alignItems: 'center',
                 }}>
                   <div style={{
-                    width: '280px',
-                    height: '280px',
+                    width: '210px',
+                    height: '210px',
                     background: 'rgba(220, 20, 60, 0.1)',
                     border: battleState.currentMonster === 5
-                      ? '3px solid rgba(255, 215, 0, 0.6)'
-                      : '3px solid rgba(220, 20, 60, 0.5)',
-                    borderRadius: '15px',
+                      ? '2px solid rgba(255, 215, 0, 0.6)'
+                      : '2px solid rgba(220, 20, 60, 0.5)',
+                    borderRadius: '11px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: battleState.currentMonster === 5
-                      ? '0 0 40px rgba(255, 215, 0, 0.5)'
-                      : '0 0 30px rgba(220, 20, 60, 0.3)',
+                      ? '0 0 30px rgba(255, 215, 0, 0.5)'
+                      : '0 0 23px rgba(220, 20, 60, 0.3)',
                     position: 'relative',
                     overflow: 'hidden',
                   }}>
@@ -361,17 +361,17 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                     />
                     <div style={{
                       position: 'absolute',
-                      bottom: '10px',
+                      bottom: '8px',
                       left: '50%',
                       transform: 'translateX(-50%)',
                       background: 'rgba(0, 0, 0, 0.8)',
                       color: battleState.currentMonster === 5 ? '#ffd700' : '#dc143c',
-                      padding: '5px 15px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
+                      padding: '4px 11px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
                       fontWeight: 'bold',
                       border: `2px solid ${battleState.currentMonster === 5 ? 'rgba(255, 215, 0, 0.5)' : 'rgba(220, 20, 60, 0.5)'}`,
-                      boxShadow: battleState.currentMonster === 5 ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none',
+                      boxShadow: battleState.currentMonster === 5 ? '0 0 8px rgba(255, 215, 0, 0.5)' : 'none',
                     }}>
                       {getMobName(battleState.currentMonster || 1, dungeonId)}
                     </div>
@@ -383,7 +383,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '10px',
+                gap: '8px',
                 alignItems: 'center',
                 width: '100%',
               }}>
@@ -411,23 +411,23 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                   onClick={submitActions}
                   disabled={selectedAttacks.length !== 2 || selectedDefenses.length !== 3}
                   style={{
-                    width: '300px',
-                    padding: '12px 30px',
-                    fontSize: '20px',
+                    width: '225px',
+                    padding: '9px 23px',
+                    fontSize: '15px',
                     fontWeight: 'bold',
                     color: '#fff',
                     background: selectedAttacks.length === 2 && selectedDefenses.length === 3
                       ? 'linear-gradient(135deg, #8b2c2f 0%, #dc143c 100%)'
                       : '#555',
                     border: 'none',
-                    borderRadius: '12px',
+                    borderRadius: '9px',
                     cursor: selectedAttacks.length === 2 && selectedDefenses.length === 3 ? 'pointer' : 'not-allowed',
                     boxShadow: selectedAttacks.length === 2 && selectedDefenses.length === 3
-                      ? '0 4px 15px rgba(220, 20, 60, 0.4)'
+                      ? '0 3px 11px rgba(220, 20, 60, 0.4)'
                       : 'none',
                     transition: 'all 0.3s ease',
                     textTransform: 'uppercase',
-                    letterSpacing: '2px',
+                    letterSpacing: '1.5px',
                   }}
                   onMouseEnter={(e) => {
                     if (selectedAttacks.length === 2 && selectedDefenses.length === 3) {
@@ -459,18 +459,18 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '20px',
+            gap: '15px',
           }}>
-            <div style={{ textAlign: 'center', fontSize: '64px' }}>
+            <div style={{ textAlign: 'center', fontSize: '48px' }}>
               {battleState.status === 'won' ? '🎉' : '💀'}
             </div>
 
             {battleState.status === 'won' && (
               <div style={{
                 ...styles.lootContainer,
-                maxWidth: '600px',
+                maxWidth: '450px',
               }}>
-                <h3 style={{ textAlign: 'center', marginBottom: '15px' }}>🎁 Награды</h3>
+                <h3 style={{ textAlign: 'center', marginBottom: '11px' }}>🎁 Награды</h3>
 
                 {battleState.expGained && battleState.expGained > 0 && (
                   <div style={styles.rewardItem}>
@@ -504,15 +504,15 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
             <button
               onClick={onReset}
               style={{
-                padding: '15px 40px',
-                fontSize: '20px',
+                padding: '11px 30px',
+                fontSize: '15px',
                 fontWeight: 'bold',
                 color: '#fff',
                 background: 'linear-gradient(135deg, #4a4a4a 0%, #6a6a6a 100%)',
                 border: 'none',
-                borderRadius: '12px',
+                borderRadius: '9px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.4)',
+                boxShadow: '0 3px 11px rgba(0, 0, 0, 0.4)',
                 transition: 'all 0.3s ease',
               }}
               onMouseEnter={(e) => {

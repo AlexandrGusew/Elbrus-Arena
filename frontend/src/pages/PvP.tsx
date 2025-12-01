@@ -69,40 +69,6 @@ const PvP = () => {
     overflow: 'hidden',
   };
 
-  const bottomButtonsContainerStyle: React.CSSProperties = {
-    position: 'absolute',
-    bottom: '30px',
-    left: '30px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '15px',
-    zIndex: 10,
-  };
-
-  const musicButtonStyle: React.CSSProperties = {
-    padding: '10px 20px',
-    border: '2px solid #fff',
-    background: isMusicPlaying ? 'rgba(255, 215, 0, 0.8)' : 'rgba(220, 38, 38, 0.8)',
-    color: '#fff',
-    fontSize: '20px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    borderRadius: '8px',
-    transition: 'all 0.3s ease',
-  };
-
-  const exitButtonStyle: React.CSSProperties = {
-    padding: '10px 20px',
-    border: '2px solid #fff',
-    background: 'rgba(100, 100, 100, 0.8)',
-    color: '#fff',
-    fontSize: '20px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    borderRadius: '8px',
-    transition: 'all 0.3s ease',
-    width: '100%',
-  };
 
   const titleStyle: React.CSSProperties = {
     position: 'absolute',
@@ -185,71 +151,156 @@ const PvP = () => {
         <source src={getAssetUrl('pvp/pvp.mp3')} type="audio/mpeg" />
       </audio>
 
-      {/* Кнопки в левом нижнем углу */}
-      <div style={bottomButtonsContainerStyle}>
-        {/* Кнопка управления музыкой */}
-        <button onClick={toggleMusic} style={musicButtonStyle}>
-          {isMusicPlaying ? '🔊 Музыка' : '🔇 Музыка'}
-        </button>
-
-        {/* Кнопка чата */}
-        <button
-          onClick={() => setIsChatOpen(true)}
+      {/* Кнопка музыки - правый верхний угол */}
+      <button
+        onClick={toggleMusic}
+        style={{
+          position: 'fixed',
+          top: '40px',
+          right: '40px',
+          padding: '0',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          width: '200px',
+          height: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.filter = 'brightness(1.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.filter = isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)';
+        }}
+      >
+        <img
+          src={getAssetUrl('pvp/music.png')}
+          alt="Music"
           style={{
-            padding: '10px 20px',
-            border: '2px solid #fff',
-            background: 'rgba(33, 150, 243, 0.8)',
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            borderRadius: '8px',
-            transition: 'all 0.3s ease',
             width: '100%',
-            position: 'relative',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: '8px',
+            filter: isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)',
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(33, 150, 243, 1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(33, 150, 243, 0.8)';
-          }}
-        >
-          💬 Чат
-          {/* Индикатор непрочитанных сообщений */}
-          {chatState.rooms.some(
-            (room) =>
-              chatState.openTabs.includes(room.id) &&
-              room.unreadCount &&
-              room.unreadCount > 0
-          ) && (
-            <span
-              style={{
-                position: 'absolute',
-                top: '-5px',
-                right: '-5px',
-                background: '#f44336',
-                borderRadius: '50%',
-                width: '24px',
-                height: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                animation: 'pulse 1.5s ease-in-out infinite',
-              }}
-            >
-              !
-            </span>
-          )}
-        </button>
+        />
+      </button>
 
-        {/* Кнопка выхода */}
-        <button onClick={handleExit} style={exitButtonStyle}>
-          ← Вернуться на базу
-        </button>
-      </div>
+      {/* Кнопка чата - между музыкой и выходом справа */}
+      <button
+        onClick={() => setIsChatOpen(true)}
+        style={{
+          position: 'fixed',
+          top: '50%',
+          right: '40px',
+          transform: 'translateY(-50%)',
+          padding: '0',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          width: '200px',
+          height: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          position: 'relative',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
+          e.currentTarget.style.filter = 'brightness(1.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+          e.currentTarget.style.filter = 'brightness(1)';
+        }}
+      >
+        <img
+          src={getAssetUrl('pvp/buttonChat.png')}
+          alt="Chat"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: '8px',
+          }}
+        />
+        {/* Индикатор непрочитанных сообщений */}
+        {chatState.rooms.some(
+          (room) =>
+            chatState.openTabs.includes(room.id) &&
+            room.unreadCount &&
+            room.unreadCount > 0
+        ) && (
+          <span
+            style={{
+              position: 'absolute',
+              top: '-5px',
+              right: '-5px',
+              background: '#f44336',
+              borderRadius: '50%',
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              animation: 'pulse 1.5s ease-in-out infinite',
+              zIndex: 10,
+            }}
+          >
+            !
+          </span>
+        )}
+      </button>
+
+      {/* Кнопка выхода - правый нижний угол */}
+      <button
+        onClick={handleExit}
+        style={{
+          position: 'fixed',
+          bottom: '40px',
+          right: '40px',
+          padding: '0',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          width: '200px',
+          height: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.filter = 'brightness(1.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.filter = 'brightness(1)';
+        }}
+      >
+        <img
+          src={getAssetUrl('pvp/exit.png')}
+          alt="Exit"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: '8px',
+          }}
+        />
+      </button>
 
       {/* Заголовок */}
       <h1 style={titleStyle}>PvP Arena</h1>

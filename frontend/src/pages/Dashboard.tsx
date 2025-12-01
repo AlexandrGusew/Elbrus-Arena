@@ -157,6 +157,7 @@ const Dashboard = () => {
 
   // Выбор видео героя по классу
   const getHeroVideo = () => {
+    if (!character) return '';
     const classLower = character.class.toLowerCase();
     if (classLower === 'warrior') return getAssetUrl('dashboard/warrior.mp4');
     if (classLower === 'mage') return getAssetUrl('dashboard/mag.mp4');
@@ -233,35 +234,45 @@ const Dashboard = () => {
         />
       </button>
 
-      {/* Кнопка чата - левый верхний угол под статами */}
+      {/* Кнопка чата - между музыкой и выходом справа */}
       <button
         onClick={() => setIsChatOpen(true)}
         style={{
           position: 'fixed',
-          top: '600px',
-          left: '40px',
-          padding: '12px 24px',
-          border: '2px solid #ffd700',
-          background: 'rgba(33, 150, 243, 0.8)',
+          top: '50%',
+          right: '40px',
+          transform: 'translateY(-50%)',
+          padding: '0',
+          border: 'none',
+          background: 'transparent',
           cursor: 'pointer',
           transition: 'all 0.3s ease',
-          borderRadius: '8px',
+          width: '200px',
+          height: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           zIndex: 1000,
-          color: '#fff',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          boxShadow: '0 4px 15px rgba(33, 150, 243, 0.4)',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.background = 'rgba(33, 150, 243, 1)';
+          e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
+          e.currentTarget.style.filter = 'brightness(1.2)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.background = 'rgba(33, 150, 243, 0.8)';
+          e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+          e.currentTarget.style.filter = 'brightness(1)';
         }}
       >
-        💬 Чат
+        <img
+          src={getAssetUrl('dashboard/buttonChat.png')}
+          alt="Chat"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: '8px',
+          }}
+        />
       </button>
 
       {/* Кнопка выхода - правый нижний угол */}
@@ -491,11 +502,12 @@ const Dashboard = () => {
         top: '40%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '800px',
-        height: '800px',
+        width: '680px',
+        height: '680px',
         borderRadius: '20px',
         overflow: 'hidden',
         zIndex: 1000,
+        pointerEvents: 'none',
       }}>
         <video
           autoPlay
@@ -506,6 +518,11 @@ const Dashboard = () => {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+          }}
+          onError={(e) => {
+            console.error('Hero video failed to load');
+            console.log('Video URL:', getHeroVideo());
+            console.log('Character class:', character?.class);
           }}
         >
           <source src={getHeroVideo()} type="video/mp4" />
@@ -553,8 +570,8 @@ const Dashboard = () => {
         position: 'fixed',
         top: '40px',
         left: '40px',
-        width: '600px',
-        height: '120px',
+        width: '480px',
+        height: '96px',
         zIndex: 1000,
       }}>
         {/* Фоновое изображение */}
@@ -576,8 +593,8 @@ const Dashboard = () => {
           position: 'relative',
           zIndex: 2,
           display: 'flex',
-          gap: '15px',
-          padding: '20px',
+          gap: '12px',
+          padding: '16px',
           height: '100%',
           alignItems: 'center',
           justifyContent: 'space-around',
@@ -587,16 +604,16 @@ const Dashboard = () => {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '16px',
+              fontSize: '13px',
               color: '#d4af37',
-              marginBottom: '4px',
+              marginBottom: '3px',
               fontFamily: "'IM Fell English', serif",
               letterSpacing: '0.5px',
             }}>
               Имя
             </div>
             <div style={{
-              fontSize: '26px',
+              fontSize: '21px',
               fontWeight: 'bold',
               color: '#ffd700',
               fontFamily: "'IM Fell English', serif",
@@ -612,16 +629,16 @@ const Dashboard = () => {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '16px',
+              fontSize: '13px',
               color: '#d4af37',
-              marginBottom: '4px',
+              marginBottom: '3px',
               fontFamily: "'IM Fell English', serif",
               letterSpacing: '0.5px',
             }}>
               Класс
             </div>
             <div style={{
-              fontSize: '26px',
+              fontSize: '21px',
               fontWeight: 'bold',
               color: '#ffd700',
               fontFamily: "'IM Fell English', serif",
@@ -637,16 +654,16 @@ const Dashboard = () => {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '16px',
+              fontSize: '13px',
               color: '#d4af37',
-              marginBottom: '4px',
+              marginBottom: '3px',
               fontFamily: "'IM Fell English', serif",
               letterSpacing: '0.5px',
             }}>
               Уровень
             </div>
             <div style={{
-              fontSize: '26px',
+              fontSize: '21px',
               fontWeight: 'bold',
               color: '#ffd700',
               fontFamily: "'IM Fell English', serif",
@@ -664,8 +681,8 @@ const Dashboard = () => {
         position: 'fixed',
         top: '180px',
         left: '40px',
-        width: '600px',
-        height: '200px',
+        width: '480px',
+        height: '160px',
         zIndex: 1000,
       }}>
         {/* Фоновое изображение */}
@@ -686,19 +703,19 @@ const Dashboard = () => {
         <div style={{
           position: 'relative',
           zIndex: 2,
-          padding: '20px',
+          padding: '16px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '18px',
+          gap: '14px',
           height: '100%',
           justifyContent: 'center',
         }}>
           {/* HP Bar */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
               <span style={{
                 color: '#ff6b6b',
-                fontSize: '22px',
+                fontSize: '18px',
                 fontWeight: 'bold',
                 fontFamily: "'IM Fell English', serif",
                 textShadow: '0 0 8px rgba(255, 68, 68, 0.6)',
@@ -706,7 +723,7 @@ const Dashboard = () => {
               }}>HP</span>
               <span style={{
                 color: '#fff',
-                fontSize: '20px',
+                fontSize: '16px',
                 fontWeight: 'bold',
                 fontFamily: "'IM Fell English', serif",
                 textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
@@ -716,9 +733,9 @@ const Dashboard = () => {
             </div>
             <div style={{
               width: '100%',
-              height: '24px',
+              height: '20px',
               background: '#1a1a1a',
-              borderRadius: '12px',
+              borderRadius: '10px',
               overflow: 'hidden',
               border: '2px solid #cc0000',
               boxShadow: '0 0 10px rgba(204, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
@@ -735,10 +752,10 @@ const Dashboard = () => {
 
           {/* Stamina Bar */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
               <span style={{
                 color: '#66bb6a',
-                fontSize: '22px',
+                fontSize: '18px',
                 fontWeight: 'bold',
                 fontFamily: "'IM Fell English', serif",
                 textShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
@@ -746,7 +763,7 @@ const Dashboard = () => {
               }}>Выносливость</span>
               <span style={{
                 color: '#fff',
-                fontSize: '20px',
+                fontSize: '16px',
                 fontWeight: 'bold',
                 fontFamily: "'IM Fell English', serif",
                 textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
@@ -756,9 +773,9 @@ const Dashboard = () => {
             </div>
             <div style={{
               width: '100%',
-              height: '24px',
+              height: '20px',
               background: '#1a1a1a',
-              borderRadius: '12px',
+              borderRadius: '10px',
               overflow: 'hidden',
               border: '2px solid #2E7D32',
               boxShadow: '0 0 10px rgba(46, 125, 50, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
@@ -772,9 +789,9 @@ const Dashboard = () => {
               }} />
             </div>
             <div style={{
-              fontSize: '16px',
+              fontSize: '13px',
               color: '#d4af37',
-              marginTop: '8px',
+              marginTop: '6px',
               fontFamily: "'IM Fell English', serif",
             }}>
               Восстанавливается: 1/сек
@@ -806,8 +823,8 @@ const Dashboard = () => {
         position: 'fixed',
         top: '400px',
         left: '40px',
-        width: '600px',
-        height: '320px',
+        width: '480px',
+        height: '256px',
         zIndex: 1000,
       }}>
         {/* Фоновое изображение */}
@@ -828,24 +845,24 @@ const Dashboard = () => {
         <div style={{
           position: 'relative',
           zIndex: 2,
-          padding: '15px',
+          padding: '12px',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
         }}>
           {/* Характеристики */}
-          <div style={{ marginBottom: '25px' }}>
+          <div style={{ marginBottom: '20px' }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '15px',
+              marginBottom: '12px',
             }}>
               <h3 style={{
                 margin: 0,
                 color: '#ffd700',
-                fontSize: '24px',
+                fontSize: '19px',
                 fontFamily: "'IM Fell English', serif",
                 fontWeight: 700,
                 textShadow: '0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3)',
@@ -856,12 +873,12 @@ const Dashboard = () => {
               {character.freePoints > 0 && (
                 <Link to="/levelup" style={{ textDecoration: 'none' }}>
                   <button style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
+                    padding: '6px 13px',
+                    fontSize: '11px',
                     background: 'linear-gradient(135deg, #4CAF50, #45a049)',
                     color: '#fff',
                     border: '1px solid #66bb6a',
-                    borderRadius: '6px',
+                    borderRadius: '5px',
                     cursor: 'pointer',
                     fontWeight: 'bold',
                     fontFamily: "'IM Fell English', serif",
@@ -875,9 +892,9 @@ const Dashboard = () => {
             </div>
             <div style={{
               display: 'grid',
-              gap: '12px',
+              gap: '10px',
               color: '#fff',
-              fontSize: '22px',
+              fontSize: '18px',
               fontFamily: "'IM Fell English', serif",
             }}>
               <div style={{
@@ -924,12 +941,12 @@ const Dashboard = () => {
               </div>
               {character.freePoints > 0 && (
                 <div style={{
-                  marginTop: '8px',
-                  padding: '8px',
+                  marginTop: '6px',
+                  padding: '6px',
                   background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))',
-                  borderRadius: '6px',
+                  borderRadius: '5px',
                   textAlign: 'center',
-                  fontSize: '18px',
+                  fontSize: '14px',
                   border: '1px solid rgba(76, 175, 80, 0.3)',
                   boxShadow: '0 0 10px rgba(76, 175, 80, 0.2)',
                 }}>
@@ -946,12 +963,12 @@ const Dashboard = () => {
           {/* Золото */}
           <div style={{
             borderTop: '1px solid rgba(255, 215, 0, 0.2)',
-            paddingTop: '15px',
+            paddingTop: '12px',
           }}>
             <div style={{
-              fontSize: '18px',
+              fontSize: '14px',
               color: '#d4af37',
-              marginBottom: '8px',
+              marginBottom: '6px',
               fontFamily: "'IM Fell English', serif",
               letterSpacing: '1px',
               textShadow: '0 0 5px rgba(212, 175, 55, 0.3)',
@@ -959,7 +976,7 @@ const Dashboard = () => {
               Золото
             </div>
             <div style={{
-              fontSize: '40px',
+              fontSize: '32px',
               fontWeight: 'bold',
               fontFamily: "'IM Fell English', serif",
               background: 'linear-gradient(135deg, #FFD700, #FFA500, #FFD700)',

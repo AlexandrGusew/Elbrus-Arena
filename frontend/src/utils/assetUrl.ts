@@ -60,8 +60,9 @@ export function getAssetUrl(assetPath: string, options: AssetUrlOptions = {}): s
       .join('/');
 
     // Формируем URL к MinIO
-    // Формат: http://minio.example.com/bucket-name/path/to/file.mp4
-    const url = `${MINIO_URL}/${MINIO_BUCKET}/${encodedPath}`;
+    // Формат: http://minio.example.com/bucket-name/asset/path/to/file.mp4
+    // В MiniO структура: elbrus-arena-assets/asset/dashboard/...
+    const url = `${MINIO_URL}/${MINIO_BUCKET}/asset/${encodedPath}`;
 
     return url;
   }
@@ -73,7 +74,7 @@ export function getAssetUrl(assetPath: string, options: AssetUrlOptions = {}): s
 /**
  * Генерирует URL для локального файла (для dev режима)
  */
-const assetModules = import.meta.glob('../assets/**/*', {
+const assetModules = import.meta.glob('../../asset/**/*', {
   eager: true,
   query: '?url',
   import: 'default',
@@ -81,7 +82,7 @@ const assetModules = import.meta.glob('../assets/**/*', {
 
 function getLocalAssetUrl(assetPath: string): string {
   const cleanPath = assetPath.startsWith('/') ? assetPath.slice(1) : assetPath;
-  const key = `../assets/${cleanPath}`;
+  const key = `../../asset/${cleanPath}`;
   const url = assetModules[key];
 
   if (!url) {

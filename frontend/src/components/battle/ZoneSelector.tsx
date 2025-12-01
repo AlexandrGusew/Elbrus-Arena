@@ -69,28 +69,28 @@ export const ZoneSelector = ({
   return (
     <div style={{
       background: 'rgba(0, 0, 0, 0.6)',
-      borderRadius: '10px',
-      padding: '15px 20px',
+      borderRadius: '8px',
+      padding: '11px 15px',
       border: `2px solid ${selectedColor}33`,
     }}>
-      <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: selectedColor, marginBottom: '8px', textAlign: 'center' }}>
+      <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: selectedColor, marginBottom: '6px', textAlign: 'center' }}>
         {title} - {selectedZones.length}/{maxSelections}
       </h4>
-      <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: '11px', justifyContent: 'center' }}>
         {zones.map(zone => (
           <div
             key={zone}
             onClick={() => onToggle(zone)}
             style={{
-              width: '120px',
-              height: '120px',
+              width: '90px',
+              height: '90px',
               position: 'relative',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               border: 'solid',
               borderWidth: getZoneBorderWidth(zone),
               borderColor: getZoneBorderColor(zone),
-              borderRadius: '8px',
+              borderRadius: '6px',
               overflow: 'hidden',
               background: selectedZones.includes(zone) ? `${selectedColor}33` : 'transparent',
               opacity: selectedZones.includes(zone) ? 1 : 0.7,
@@ -121,14 +121,14 @@ export const ZoneSelector = ({
             {/* Подпись под картинкой */}
             <div style={{
               position: 'absolute',
-              bottom: '5px',
+              bottom: '4px',
               left: '50%',
               transform: 'translateX(-50%)',
               background: 'rgba(0, 0, 0, 0.8)',
               color: 'white',
-              padding: '3px 8px',
-              borderRadius: '5px',
-              fontSize: '11px',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontSize: '8px',
               fontWeight: 'bold',
               whiteSpace: 'nowrap',
             }}>

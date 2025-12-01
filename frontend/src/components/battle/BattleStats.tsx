@@ -12,10 +12,10 @@ export const BattleStats = ({ playerHp, monsterHp, playerMaxHp = 100, monsterMax
   return (
     <div style={{
       display: 'flex',
-      gap: '40px',
+      gap: '30px',
       alignItems: 'center',
       width: '100%',
-      maxWidth: '1200px',
+      maxWidth: '900px',
     }}>
       {/* HP бар игрока */}
       <div style={{
@@ -23,18 +23,18 @@ export const BattleStats = ({ playerHp, monsterHp, playerMaxHp = 100, monsterMax
         position: 'relative',
       }}>
         <div style={{
-          marginBottom: '8px',
+          marginBottom: '6px',
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
+          gap: '8px',
         }}>
           <div style={{
-            fontSize: '20px',
+            fontSize: '15px',
             fontWeight: 'bold',
             color: '#4CAF50',
-            textShadow: '0 0 10px rgba(76, 175, 80, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.8)',
+            textShadow: '0 0 8px rgba(76, 175, 80, 0.8), 2px 2px 3px rgba(0, 0, 0, 0.8)',
             fontFamily: 'serif',
-            letterSpacing: '1px',
+            letterSpacing: '0.75px',
           }}>
             ⚔️ ГЕРОЙ
           </div>
@@ -43,22 +43,22 @@ export const BattleStats = ({ playerHp, monsterHp, playerMaxHp = 100, monsterMax
         {/* Внешняя рамка HP бара */}
         <div style={{
           position: 'relative',
-          height: '50px',
+          height: '38px',
           background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 100%)',
-          padding: '4px',
-          border: '3px solid #d4af37',
-          borderRadius: '12px',
-          boxShadow: '0 0 20px rgba(212, 175, 55, 0.3), inset 0 2px 10px rgba(0, 0, 0, 0.8)',
+          padding: '3px',
+          border: '2px solid #d4af37',
+          borderRadius: '9px',
+          boxShadow: '0 0 15px rgba(212, 175, 55, 0.3), inset 0 2px 8px rgba(0, 0, 0, 0.8)',
         }}>
           {/* Фон HP бара */}
           <div style={{
             position: 'absolute',
-            top: '4px',
-            left: '4px',
-            right: '4px',
-            bottom: '4px',
+            top: '3px',
+            left: '3px',
+            right: '3px',
+            bottom: '3px',
             background: 'rgba(20, 20, 20, 0.9)',
-            borderRadius: '8px',
+            borderRadius: '6px',
             overflow: 'hidden',
           }}>
             {/* Заполнение HP бара */}
@@ -107,13 +107,13 @@ export const BattleStats = ({ playerHp, monsterHp, playerMaxHp = 100, monsterMax
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            fontSize: '18px',
+            fontSize: '14px',
             fontWeight: 'bold',
             color: '#fff',
-            textShadow: '2px 2px 4px rgba(0, 0, 0, 1), 0 0 10px rgba(0, 0, 0, 0.8)',
+            textShadow: '2px 2px 3px rgba(0, 0, 0, 1), 0 0 8px rgba(0, 0, 0, 0.8)',
             zIndex: 2,
             fontFamily: 'serif',
-            letterSpacing: '1px',
+            letterSpacing: '0.75px',
           }}>
             {playerHp} / {playerMaxHp}
           </div>
@@ -126,19 +126,19 @@ export const BattleStats = ({ playerHp, monsterHp, playerMaxHp = 100, monsterMax
         position: 'relative',
       }}>
         <div style={{
-          marginBottom: '8px',
+          marginBottom: '6px',
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
+          gap: '8px',
           justifyContent: 'flex-end',
         }}>
           <div style={{
-            fontSize: '20px',
+            fontSize: '15px',
             fontWeight: 'bold',
             color: '#dc143c',
-            textShadow: '0 0 10px rgba(220, 20, 60, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.8)',
+            textShadow: '0 0 8px rgba(220, 20, 60, 0.8), 2px 2px 3px rgba(0, 0, 0, 0.8)',
             fontFamily: 'serif',
-            letterSpacing: '1px',
+            letterSpacing: '0.75px',
           }}>
             👹 МОНСТР
           </div>
@@ -147,22 +147,22 @@ export const BattleStats = ({ playerHp, monsterHp, playerMaxHp = 100, monsterMax
         {/* Внешняя рамка HP бара */}
         <div style={{
           position: 'relative',
-          height: '50px',
+          height: '38px',
           background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 100%)',
-          borderRadius: '12px',
-          padding: '4px',
-          border: '3px solid #dc143c',
-          boxShadow: '0 0 20px rgba(220, 20, 60, 0.3), inset 0 2px 10px rgba(0, 0, 0, 0.8)',
+          borderRadius: '9px',
+          padding: '3px',
+          border: '2px solid #dc143c',
+          boxShadow: '0 0 15px rgba(220, 20, 60, 0.3), inset 0 2px 8px rgba(0, 0, 0, 0.8)',
         }}>
           {/* Фон HP бара */}
           <div style={{
             position: 'absolute',
-            top: '4px',
-            left: '4px',
-            right: '4px',
-            bottom: '4px',
+            top: '3px',
+            left: '3px',
+            right: '3px',
+            bottom: '3px',
             background: 'rgba(20, 20, 20, 0.9)',
-            borderRadius: '8px',
+            borderRadius: '6px',
             overflow: 'hidden',
           }}>
             {/* Заполнение HP бара */}
@@ -205,13 +205,13 @@ export const BattleStats = ({ playerHp, monsterHp, playerMaxHp = 100, monsterMax
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            fontSize: '18px',
+            fontSize: '14px',
             fontWeight: 'bold',
             color: '#fff',
-            textShadow: '2px 2px 4px rgba(0, 0, 0, 1), 0 0 10px rgba(0, 0, 0, 0.8)',
+            textShadow: '2px 2px 3px rgba(0, 0, 0, 1), 0 0 8px rgba(0, 0, 0, 0.8)',
             zIndex: 2,
             fontFamily: 'serif',
-            letterSpacing: '1px',
+            letterSpacing: '0.75px',
           }}>
             {monsterHp} / {monsterMaxHp}
           </div>
