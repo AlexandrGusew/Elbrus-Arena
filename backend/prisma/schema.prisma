@@ -313,7 +313,6 @@ model ChatInvitation {
   createdAt    DateTime @default(now())
   sender       Character @relation("SentInvitations", fields: [senderId], references: [id])
   receiver     Character @relation("ReceivedInvitations", fields: [receiverId], references: [id])
-
   @@unique([senderId, receiverId, status])
   @@map("chat_invitations")
 }

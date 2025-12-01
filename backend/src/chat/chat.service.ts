@@ -254,17 +254,16 @@ export class ChatService {
 
   // Отправить приглашение в приватный чат
   async sendInvitation(senderId: number, receiverId: number): Promise<ChatInvitationResponse> {
-    // Проверить, нет ли уже активного приглашения
+    // Проверить, нет ли уже какого-либо приглашения между этой парой
     const existingInvitation = await this.prisma.chatInvitation.findFirst({
       where: {
         senderId,
         receiverId,
-        status: 'pending',
       },
     });
 
     if (existingInvitation) {
-      throw new BadRequestException('Invitation already sent');
+      throw new BadRequestException('Invitation between these players already exists');
     }
 
     const invitation = await this.prisma.chatInvitation.create({
