@@ -43,7 +43,7 @@ const ZONE_NAMES: Partial<Record<Zone, string>> = {
 };
 
 type DetailedBattleLogProps = {
-  roundResults: RoundResult[];
+  roundResults?: RoundResult[];
 };
 
 const getRandomAttackDescription = (zone: Zone): string => {
@@ -52,6 +52,8 @@ const getRandomAttackDescription = (zone: Zone): string => {
 };
 
 export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
+  const results = roundResults ?? [];
+
   return (
     <div style={{
       background: 'rgba(0, 0, 0, 0.85)',
@@ -75,7 +77,7 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
       </h3>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {roundResults.length === 0 ? (
+        {results.length === 0 ? (
           <div style={{
             textAlign: 'center',
             color: '#888',
@@ -86,7 +88,7 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
             Бой ещё не начался...
           </div>
         ) : (
-          roundResults.map((result, index) => {
+          results.map((result, index) => {
             const playerHits = result.playerActions.attacks.filter(
               zone => !result.monsterActions.defenses.includes(zone)
             );
