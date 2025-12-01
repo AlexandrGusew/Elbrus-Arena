@@ -155,13 +155,13 @@ const Dashboard = () => {
   const maxStamina = staminaInfo?.maxStamina ?? 100;
   const staminaPercent = (currentStamina / maxStamina) * 100; // Максимум стамины 100
 
-  // Выбор изображения героя по классу
-  const getHeroImage = () => {
+  // Выбор видео героя по классу
+  const getHeroVideo = () => {
     const classLower = character.class.toLowerCase();
-    if (classLower === 'warrior') return getAssetUrl('createCharacter/warrior (1).png');
-    if (classLower === 'mage') return getAssetUrl('createCharacter/mage (1).png');
-    if (classLower === 'rogue') return getAssetUrl('createCharacter/rogue (1).png');
-    return getAssetUrl('createCharacter/warrior (1).png'); // fallback
+    if (classLower === 'warrior') return getAssetUrl('dashboard/warrior.mp4');
+    if (classLower === 'mage') return getAssetUrl('dashboard/mag.mp4');
+    if (classLower === 'rogue') return getAssetUrl('dashboard/sin.mp4');
+    return getAssetUrl('dashboard/warrior.mp4'); // fallback
   };
 
   return (
@@ -491,22 +491,25 @@ const Dashboard = () => {
         top: '40%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '450px',
-        height: '600px',
+        width: '800px',
+        height: '800px',
         borderRadius: '20px',
         overflow: 'hidden',
         zIndex: 1000,
-        boxShadow: '0 8px 40px rgba(0, 0, 0, 0.9)',
       }}>
-        <img
-          src={getHeroImage()}
-          alt={character.class}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
           }}
-        />
+        >
+          <source src={getHeroVideo()} type="video/mp4" />
+        </video>
       </div>
 
 
@@ -550,79 +553,108 @@ const Dashboard = () => {
         position: 'fixed',
         top: '40px',
         left: '40px',
-        display: 'flex',
-        gap: '10px',
+        width: '600px',
+        height: '120px',
         zIndex: 1000,
       }}>
-        {/* Имя персонажа */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '8px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
-        }}>
-          <div style={{
-            fontSize: '11px',
-            color: '#aaa',
-            marginBottom: '2px',
-          }}>
-            Имя
-          </div>
-          <div style={{
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#ffd700',
-          }}>
-            {character.name}
-          </div>
-        </div>
+        {/* Фоновое изображение */}
+        <img
+          src={getAssetUrl('dashboard/name.png')}
+          alt="Character Info Background"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+            display: 'none',
+          }}
+        />
 
-        {/* Класс персонажа */}
+        {/* Контент поверх фона */}
         <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '8px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+          position: 'relative',
+          zIndex: 2,
+          display: 'flex',
+          gap: '15px',
+          padding: '20px',
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'space-around',
         }}>
+          {/* Имя персонажа */}
           <div style={{
-            fontSize: '11px',
-            color: '#aaa',
-            marginBottom: '2px',
+            textAlign: 'center',
           }}>
-            Класс
+            <div style={{
+              fontSize: '16px',
+              color: '#d4af37',
+              marginBottom: '4px',
+              fontFamily: "'IM Fell English', serif",
+              letterSpacing: '0.5px',
+            }}>
+              Имя
+            </div>
+            <div style={{
+              fontSize: '26px',
+              fontWeight: 'bold',
+              color: '#ffd700',
+              fontFamily: "'IM Fell English', serif",
+              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '1px',
+            }}>
+              {character.name}
+            </div>
           </div>
-          <div style={{
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#ffd700',
-          }}>
-            {character.class}
-          </div>
-        </div>
 
-        {/* Уровень персонажа */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '8px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
-        }}>
+          {/* Класс персонажа */}
           <div style={{
-            fontSize: '11px',
-            color: '#aaa',
-            marginBottom: '2px',
+            textAlign: 'center',
           }}>
-            Уровень
+            <div style={{
+              fontSize: '16px',
+              color: '#d4af37',
+              marginBottom: '4px',
+              fontFamily: "'IM Fell English', serif",
+              letterSpacing: '0.5px',
+            }}>
+              Класс
+            </div>
+            <div style={{
+              fontSize: '26px',
+              fontWeight: 'bold',
+              color: '#ffd700',
+              fontFamily: "'IM Fell English', serif",
+              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '1px',
+            }}>
+              {character.class}
+            </div>
           </div>
+
+          {/* Уровень персонажа */}
           <div style={{
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#ffd700',
+            textAlign: 'center',
           }}>
-            {character.level}
+            <div style={{
+              fontSize: '16px',
+              color: '#d4af37',
+              marginBottom: '4px',
+              fontFamily: "'IM Fell English', serif",
+              letterSpacing: '0.5px',
+            }}>
+              Уровень
+            </div>
+            <div style={{
+              fontSize: '26px',
+              fontWeight: 'bold',
+              color: '#ffd700',
+              fontFamily: "'IM Fell English', serif",
+              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '1px',
+            }}>
+              {character.level}
+            </div>
           </div>
         </div>
       </div>
@@ -630,77 +662,126 @@ const Dashboard = () => {
       {/* HP и Stamina бары */}
       <div style={{
         position: 'fixed',
-        top: '125px',
+        top: '180px',
         left: '40px',
-        width: '300px',
+        width: '600px',
+        height: '200px',
         zIndex: 1000,
       }}>
-        {/* HP Bar */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '10px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
-          marginBottom: '10px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>HP</span>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>
-              {character.currentHp} / {character.maxHp}
-            </span>
-          </div>
-          <div style={{
+        {/* Фоновое изображение */}
+        <img
+          src={getAssetUrl('dashboard/hp.png')}
+          alt="Health and Stamina Background"
+          style={{
+            position: 'absolute',
             width: '100%',
-            height: '20px',
-            background: '#333',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            border: '1px solid #555',
-          }}>
-            <div style={{
-              width: `${hpPercent}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #ff4444, #cc0000)',
-              transition: 'width 0.3s ease',
-            }} />
-          </div>
-        </div>
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+            display: 'none',
+          }}
+        />
 
-        {/* Stamina Bar */}
+        {/* Контент поверх фона */}
         <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '10px 15px',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+          position: 'relative',
+          zIndex: 2,
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '18px',
+          height: '100%',
+          justifyContent: 'center',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>Выносливость</span>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>
-              {currentStamina} / {maxStamina}
-            </span>
-          </div>
-          <div style={{
-            width: '100%',
-            height: '20px',
-            background: '#333',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            border: '1px solid #555',
-          }}>
+          {/* HP Bar */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{
+                color: '#ff6b6b',
+                fontSize: '22px',
+                fontWeight: 'bold',
+                fontFamily: "'IM Fell English', serif",
+                textShadow: '0 0 8px rgba(255, 68, 68, 0.6)',
+                letterSpacing: '1px',
+              }}>HP</span>
+              <span style={{
+                color: '#fff',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                fontFamily: "'IM Fell English', serif",
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
+                {character.currentHp} / {character.maxHp}
+              </span>
+            </div>
             <div style={{
-              width: `${staminaPercent}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #4CAF50, #2E7D32)',
-              transition: 'width 0.3s ease',
-            }} />
+              width: '100%',
+              height: '24px',
+              background: '#1a1a1a',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '2px solid #cc0000',
+              boxShadow: '0 0 10px rgba(204, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
+            }}>
+              <div style={{
+                width: `${hpPercent}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #ff4444, #cc0000)',
+                transition: 'width 0.3s ease',
+                boxShadow: '0 0 10px rgba(255, 68, 68, 0.5)',
+              }} />
+            </div>
           </div>
-          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '5px' }}>
-            Восстанавливается: 1/сек
-            {staminaInfo?.secondsToFull && staminaInfo.secondsToFull > 0 && (
-              <span> • Полная через {Math.ceil(staminaInfo.secondsToFull)}с</span>
-            )}
+
+          {/* Stamina Bar */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{
+                color: '#66bb6a',
+                fontSize: '22px',
+                fontWeight: 'bold',
+                fontFamily: "'IM Fell English', serif",
+                textShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
+                letterSpacing: '1px',
+              }}>Выносливость</span>
+              <span style={{
+                color: '#fff',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                fontFamily: "'IM Fell English', serif",
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
+                {currentStamina} / {maxStamina}
+              </span>
+            </div>
+            <div style={{
+              width: '100%',
+              height: '24px',
+              background: '#1a1a1a',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '2px solid #2E7D32',
+              boxShadow: '0 0 10px rgba(46, 125, 50, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
+            }}>
+              <div style={{
+                width: `${staminaPercent}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #4CAF50, #2E7D32)',
+                transition: 'width 0.3s ease',
+                boxShadow: '0 0 10px rgba(76, 175, 80, 0.5)',
+              }} />
+            </div>
+            <div style={{
+              fontSize: '16px',
+              color: '#d4af37',
+              marginTop: '8px',
+              fontFamily: "'IM Fell English', serif",
+            }}>
+              Восстанавливается: 1/сек
+              {staminaInfo?.secondsToFull && staminaInfo.secondsToFull > 0 && (
+                <span> • Полная через {Math.ceil(staminaInfo.secondsToFull)}с</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -723,92 +804,174 @@ const Dashboard = () => {
       {/* Объединённый блок: Золото + Характеристики */}
       <div style={{
         position: 'fixed',
-        top: '330px',
+        top: '400px',
         left: '40px',
-        width: '300px',
-        background: 'rgba(0, 0, 0, 0.8)',
-        padding: '15px',
-        borderRadius: '8px',
-        border: '2px solid #ffd700',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+        width: '600px',
+        height: '320px',
         zIndex: 1000,
       }}>
-        {/* Золото */}
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '20px',
-          paddingBottom: '15px',
-          borderBottom: '1px solid #ffd700',
-        }}>
-          <div style={{
-            fontSize: '14px',
-            color: '#aaa',
-            marginBottom: '5px',
-          }}>
-            Золото
-          </div>
-          <div style={{
-            fontSize: '32px',
-            fontWeight: 'bold',
-            color: '#FFD700',
-            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-          }}>
-            {character.gold.toLocaleString()}
-          </div>
-        </div>
+        {/* Фоновое изображение */}
+        <img
+          src={getAssetUrl('dashboard/charaktery.png')}
+          alt="Stats and Gold Background"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+            display: 'none',
+          }}
+        />
 
-        {/* Характеристики */}
-        <div>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '12px',
-          }}>
-            <h3 style={{
-              margin: 0,
-              color: '#ffd700',
-              fontSize: '16px',
+        {/* Контент поверх фона */}
+        <div style={{
+          position: 'relative',
+          zIndex: 2,
+          padding: '15px',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}>
+          {/* Характеристики */}
+          <div style={{ marginBottom: '25px' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '15px',
             }}>
-              Характеристики
-            </h3>
-            {character.freePoints > 0 && (
-              <Link to="/levelup" style={{ textDecoration: 'none' }}>
-                <button style={{
-                  padding: '4px 12px',
-                  fontSize: '11px',
-                  background: '#4CAF50',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                }}>
-                  Прокачка ({character.freePoints})
-                </button>
-              </Link>
-            )}
-          </div>
-          <div style={{
-            display: 'grid',
-            gap: '8px',
-            color: '#fff',
-            fontSize: '14px',
-          }}>
-            <div>Сила: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.strength}</span></div>
-            <div>Ловкость: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.agility}</span></div>
-            <div>Интеллект: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.intelligence}</span></div>
-            {character.freePoints > 0 && (
-              <div style={{
-                marginTop: '4px',
-                padding: '6px',
-                background: 'rgba(76, 175, 80, 0.2)',
-                borderRadius: '4px',
-                textAlign: 'center',
+              <h3 style={{
+                margin: 0,
+                color: '#ffd700',
+                fontSize: '24px',
+                fontFamily: "'IM Fell English', serif",
+                fontWeight: 700,
+                textShadow: '0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3)',
+                letterSpacing: '1px',
               }}>
-                Свободных очков: <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>{character.freePoints}</span>
+                Характеристики
+              </h3>
+              {character.freePoints > 0 && (
+                <Link to="/levelup" style={{ textDecoration: 'none' }}>
+                  <button style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    background: 'linear-gradient(135deg, #4CAF50, #45a049)',
+                    color: '#fff',
+                    border: '1px solid #66bb6a',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontFamily: "'IM Fell English', serif",
+                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.4)',
+                    transition: 'all 0.3s ease',
+                  }}>
+                    Прокачка ({character.freePoints})
+                  </button>
+                </Link>
+              )}
+            </div>
+            <div style={{
+              display: 'grid',
+              gap: '12px',
+              color: '#fff',
+              fontSize: '22px',
+              fontFamily: "'IM Fell English', serif",
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
+                <span style={{ marginRight: '8px' }}>⚔️</span>
+                <span>Сила:</span>
+                <span style={{
+                  color: '#ffd700',
+                  fontWeight: 'bold',
+                  marginLeft: '8px',
+                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
+                }}>{character.strength}</span>
               </div>
-            )}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
+                <span style={{ marginRight: '8px' }}>🏹</span>
+                <span>Ловкость:</span>
+                <span style={{
+                  color: '#ffd700',
+                  fontWeight: 'bold',
+                  marginLeft: '8px',
+                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
+                }}>{character.agility}</span>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+              }}>
+                <span style={{ marginRight: '8px' }}>🔮</span>
+                <span>Интеллект:</span>
+                <span style={{
+                  color: '#ffd700',
+                  fontWeight: 'bold',
+                  marginLeft: '8px',
+                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
+                }}>{character.intelligence}</span>
+              </div>
+              {character.freePoints > 0 && (
+                <div style={{
+                  marginTop: '8px',
+                  padding: '8px',
+                  background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))',
+                  borderRadius: '6px',
+                  textAlign: 'center',
+                  fontSize: '18px',
+                  border: '1px solid rgba(76, 175, 80, 0.3)',
+                  boxShadow: '0 0 10px rgba(76, 175, 80, 0.2)',
+                }}>
+                  Свободных очков: <span style={{
+                    color: '#4CAF50',
+                    fontWeight: 'bold',
+                    textShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
+                  }}>{character.freePoints}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Золото */}
+          <div style={{
+            borderTop: '1px solid rgba(255, 215, 0, 0.2)',
+            paddingTop: '15px',
+          }}>
+            <div style={{
+              fontSize: '18px',
+              color: '#d4af37',
+              marginBottom: '8px',
+              fontFamily: "'IM Fell English', serif",
+              letterSpacing: '1px',
+              textShadow: '0 0 5px rgba(212, 175, 55, 0.3)',
+            }}>
+              Золото
+            </div>
+            <div style={{
+              fontSize: '40px',
+              fontWeight: 'bold',
+              fontFamily: "'IM Fell English', serif",
+              background: 'linear-gradient(135deg, #FFD700, #FFA500, #FFD700)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.5)',
+              filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
+              letterSpacing: '2px',
+            }}>
+              {character.gold.toLocaleString()}
+            </div>
           </div>
         </div>
       </div>

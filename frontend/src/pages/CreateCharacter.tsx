@@ -243,7 +243,7 @@ const CreateCharacter = () => {
 
       {/* Фоновая музыка */}
       <audio ref={audioRef} loop>
-        <source src={getAssetUrl('createCharacter/backgroundIntro2.mp3')} type="audio/mpeg" />
+        <source src={getAssetUrl('createCharacter/backgroundIntro.mp3')} type="audio/mpeg" />
       </audio>
 
       {/* Кнопки управления - все в одной колонке справа */}
@@ -340,7 +340,7 @@ const CreateCharacter = () => {
                 <img
                   src={CLASS_INFO[cls].image}
                   alt={CLASS_INFO[cls].name}
-                  style={{ width: '100%', height: '70%', objectFit: 'cover' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
                 />
               </button>
             ))}
@@ -404,75 +404,108 @@ const CreateCharacter = () => {
       ) : (
         /* Форма входа */
         <div style={{
-          background: 'rgba(0, 0, 0, 0.85)',
-          padding: '50px 60px',
-          borderRadius: '20px',
-          border: '3px solid #ffd700',
+          position: 'relative',
+          width: '700px',
+          height: '450px',
           zIndex: 2,
-          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.8)',
-          maxWidth: '450px',
         }}>
-          <h2 style={{
-            color: '#ffd700',
-            marginBottom: '30px',
-            textAlign: 'center',
-            fontSize: '28px',
-            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)'
-          }}>
-            Вход в игру
-          </h2>
-          <input
-            type="text"
-            value={loginName}
-            onChange={(e) => setLoginName(e.target.value)}
-            placeholder="Введите имя персонажа"
+          {/* Фоновое изображение модального окна */}
+          <img
+            src={getAssetUrl('createCharacter/fonModal.png')}
+            alt="Login Modal Background"
             style={{
+              position: 'absolute',
               width: '100%',
-              padding: '15px 20px',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              textAlign: 'center',
-              border: '2px solid #ffd700',
-              background: 'rgba(0, 0, 0, 0.5)',
-              color: '#fff',
-              borderRadius: '8px',
-              outline: 'none',
-              marginBottom: '25px',
-              boxSizing: 'border-box',
+              height: '100%',
+              objectFit: 'cover',
+              zIndex: 1,
             }}
-            onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
           />
-          <button
-            onClick={handleLogin}
-            disabled={isSearching}
+
+          {/* Поле ввода имени с фоновым изображением */}
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -80%)',
+            zIndex: 3,
+            width: '90%',
+            height: '90px',
+          }}>
+            <img
+              src={getAssetUrl('createCharacter/inputName.png')}
+              alt="Input Name"
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                zIndex: 2,
+              }}
+            />
+            <input
+              type="text"
+              value={loginName}
+              onChange={(e) => setLoginName(e.target.value)}
+              placeholder=""
+              style={{
+                position: 'relative',
+                zIndex: 3,
+                width: '100%',
+                height: '100%',
+                padding: '15px 20px',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                border: 'none',
+                background: 'transparent',
+                color: '#fff',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+            />
+          </div>
+
+          {/* Кнопка входа */}
+          <div
+            onClick={isSearching ? undefined : handleLogin}
             style={{
-              width: '100%',
-              padding: '15px',
-              fontSize: '20px',
-              fontWeight: 'bold',
-              background: isSearching ? '#666' : '#ffd700',
-              color: '#000',
-              border: 'none',
-              borderRadius: '8px',
+              position: 'absolute',
+              bottom: '30px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 3,
+              width: '650px',
+              height: '220px',
               cursor: isSearching ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
-              boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
+              opacity: isSearching ? 0.5 : 1,
             }}
             onMouseEnter={(e) => {
               if (!isSearching) {
-                e.currentTarget.style.background = '#ffed4e';
-                e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.6)';
+                e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)';
+                e.currentTarget.style.filter = 'brightness(1.2) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6))';
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = isSearching ? '#666' : '#ffd700';
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.4)';
+              if (!isSearching) {
+                e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
+                e.currentTarget.style.filter = 'brightness(1)';
+              }
             }}
           >
-            {isSearching ? 'Поиск...' : 'Войти'}
-          </button>
+            <img
+              src={getAssetUrl('createCharacter/buttonEnter.png')}
+              alt={isSearching ? 'Поиск...' : 'Войти'}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
         </div>
       )}
     </div>

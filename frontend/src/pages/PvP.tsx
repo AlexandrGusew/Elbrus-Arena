@@ -177,12 +177,12 @@ const PvP = () => {
           zIndex: 1,
         }}
       >
-        <source src={getAssetUrl('pvp/pvpArena2.mp4')} type="video/mp4" />
+        <source src={getAssetUrl('pvp/pvp2.mp4')} type="video/mp4" />
       </video>
 
       {/* Фоновая музыка */}
       <audio ref={audioRef} loop>
-        <source src={getAssetUrl('pvp/pvpArena.mp3')} type="audio/mpeg" />
+        <source src={getAssetUrl('pvp/pvp.mp3')} type="audio/mpeg" />
       </audio>
 
       {/* Кнопки в левом нижнем углу */}

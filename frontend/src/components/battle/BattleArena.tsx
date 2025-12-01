@@ -9,6 +9,28 @@ import { EnemyActions } from './EnemyActions';
 import { styles } from '../../pages/Dungeon.styles';
 import { getAssetUrl } from '../../utils/assetUrl';
 
+// Изображения для боя
+const fightBackground = getAssetUrl('dungeon/battle/PvE-arena.png');
+
+// Изображения персонажей
+const warriorImg = getAssetUrl('dungeon/battle/warrior_character.png');
+const mageImg = getAssetUrl('dungeon/battle/mage_character.png');
+const rogueImg = getAssetUrl('dungeon/battle/rogue_character.png');
+
+// Изображения мобов для Данжа 1 (Катакомбы)
+const mob1 = getAssetUrl('dungeon/mobs/mob-1-skeleton.png');
+const mob2 = getAssetUrl('dungeon/mobs/mob-2-archer.png');
+const mob3 = getAssetUrl('dungeon/mobs/mob-3-spear.png');
+const mob4 = getAssetUrl('dungeon/mobs/mob-4-mage.png');
+const mob5 = getAssetUrl('dungeon/mobs/mob-5-boss.png');
+
+// Изображения мобов для Данжа 2 (Болото)
+const dungeon2Mob1 = getAssetUrl('dungeon/mobs/dungeon2-mob-1-slime.png');
+const dungeon2Mob2 = getAssetUrl('dungeon/mobs/dungeon2-mob-2-crocodile.png');
+const dungeon2Mob3 = getAssetUrl('dungeon/mobs/dungeon2-mob-3-spider.png');
+const dungeon2Mob4 = getAssetUrl('dungeon/mobs/dungeon2-mob-4-monster.png');
+const dungeon2Mob5 = getAssetUrl('dungeon/mobs/dungeon2-mob-5-leshy-boss.png');
+
 type BattleArenaProps = {
   character: Character;
   battleState: BattleState;
