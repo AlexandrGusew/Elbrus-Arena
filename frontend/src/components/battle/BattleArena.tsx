@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import type { Zone, RoundActions, BattleState } from '../../hooks/useBattle';
 import type { Character } from '../../types/api';
 import { BattleStats } from './BattleStats';
@@ -31,6 +31,13 @@ const dungeon2Mob3 = getAssetUrl('dungeon/mobs/dungeon2-mob-3-spider.png');
 const dungeon2Mob4 = getAssetUrl('dungeon/mobs/dungeon2-mob-4-monster.png');
 const dungeon2Mob5 = getAssetUrl('dungeon/mobs/dungeon2-mob-5-leshy-boss.png');
 
+// Изображения мобов для Данжа 3
+const dungeon3Mob1 = getAssetUrl('dungeon/mobs/dange3mob1.png');
+const dungeon3Mob2 = getAssetUrl('dungeon/mobs/dange3mob2.png');
+const dungeon3Mob3 = getAssetUrl('dungeon/mobs/dange3mob3.png');
+const dungeon3Mob4 = getAssetUrl('dungeon/mobs/dange3mob4.png');
+const dungeon3Mob5 = getAssetUrl('dungeon/mobs/dange3mob5.png');
+
 type BattleArenaProps = {
   character: Character;
   battleState: BattleState;
@@ -45,10 +52,137 @@ type BattleArenaProps = {
 const ZONES_4: Zone[] = ['head', 'body', 'legs', 'arms'];
 const ZONES_5: Zone[] = ['head', 'body', 'legs', 'arms', 'back'];
 
+// Компонент для удаления зеленого фона (chroma key)
+const ChromaKeyVideo = ({ src, onEnded, style }: { src: string; onEnded: () => void; style: React.CSSProperties }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameRef = useRef<number>();
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return;
+
+    let isPlaying = false;
+
+    const drawFrame = () => {
+      if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+        // Устанавливаем размер canvas только один раз
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+        }
+
+        ctx.drawImage(video, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Удаляем яркий зеленый фон (chroma key)
+        // Более точная проверка для яркого зеленого (RGB примерно 0, 255, 0)
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          
+          // Проверяем яркий зеленый цвет (хромакей)
+          // Зеленый должен быть доминирующим и ярким
+          const isGreen = g > 150 && g > r + 50 && g > b + 50;
+          
+          if (isGreen) {
+            data[i + 3] = 0; // Делаем пиксель прозрачным
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+      }
+
+      if (isPlaying && !video.ended && !video.paused) {
+        animationFrameRef.current = requestAnimationFrame(drawFrame);
+      } else if (video.ended) {
+        onEnded();
+      }
+    };
+
+    const handlePlay = () => {
+      isPlaying = true;
+      drawFrame();
+    };
+
+    const handlePause = () => {
+      isPlaying = false;
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+
+    const handleEnded = () => {
+      isPlaying = false;
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      onEnded();
+    };
+
+    const handleLoadedMetadata = () => {
+      if (video.readyState >= 2) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+    };
+
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    video.addEventListener('ended', handleEnded);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    // Запускаем отрисовку если видео уже играет
+    if (video.readyState >= 2 && !video.paused && !video.ended) {
+      handlePlay();
+    }
+
+    return () => {
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [src, onEnded]);
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <video
+        ref={videoRef}
+        src={src}
+        autoPlay
+        muted
+        playsInline
+        style={{ display: 'none' }}
+      />
+      <canvas
+        ref={canvasRef}
+        style={{
+          ...style,
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+        }}
+      />
+    </div>
+  );
+};
+
 export const BattleArena = ({ character, battleState, roundHistory, onSubmitActions, onReset, fallbackDungeonId }: BattleArenaProps) => {
   const [selectedAttacks, setSelectedAttacks] = useState<Zone[]>([]);
   const [selectedDefenses, setSelectedDefenses] = useState<Zone[]>([]);
   const [waitingForResult, setWaitingForResult] = useState(false);
+  const [isAttacking, setIsAttacking] = useState(false);
 
   // Используем dungeonId из battleState, или fallback если не пришло с сервера
   const dungeonId = battleState.dungeonId || fallbackDungeonId;
@@ -64,6 +198,16 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
       case 'mage': return getAssetUrl('dungeon/battle/mage_character.png');
       case 'rogue': return getAssetUrl('dungeon/battle/rogue_character.png');
       default: return getAssetUrl('dungeon/battle/warrior_character.png');
+    }
+  };
+
+  // Выбор видео атаки персонажа по классу
+  const getAttackVideo = () => {
+    switch (character.class) {
+      case 'warrior': return getAssetUrl('dungeon/battle/atakeWar.mp4');
+      case 'mage': return getAssetUrl('dungeon/battle/attakeMage.mp4');
+      case 'rogue': return getAssetUrl('dungeon/battle/atakeRogue.mp4');
+      default: return getAssetUrl('dungeon/battle/atakeWar.mp4');
     }
   };
 
@@ -94,6 +238,17 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
       ];
       return images[mobNumber - 1] || images[0];
     }
+    // Данж 3
+    else if (dungeonId === 3) {
+      const images = [
+        getAssetUrl('dungeon/mobs/dange3mob1.png'),
+        getAssetUrl('dungeon/mobs/dange3mob2.png'),
+        getAssetUrl('dungeon/mobs/dange3mob3.png'),
+        getAssetUrl('dungeon/mobs/dange3mob4.png'),
+        getAssetUrl('dungeon/mobs/dange3mob5.png'),
+      ];
+      return images[mobNumber - 1] || images[0];
+    }
     // По умолчанию - данж 1
     return getAssetUrl('dungeon/mobs/mob-1-skeleton.png');
   };
@@ -108,6 +263,11 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     // Данж 2 - Болото
     else if (dungeonId === 2) {
       const names = ['Слизь', 'Болотный Крокодил', 'Паук', 'Болотный Монстр', '🌿 ЛЕШИЙ-БОСС'];
+      return names[mobNumber - 1] || 'Монстр';
+    }
+    // Данж 3
+    else if (dungeonId === 3) {
+      const names = ['Темный Воин', 'Теневой Маг', 'Демон-Страж', 'Повелитель Тьмы', '🔥 ВЛАСТЕЛИН ПОДЗЕМЕЛЬЯ'];
       return names[mobNumber - 1] || 'Монстр';
     }
     return 'Монстр';
@@ -175,6 +335,12 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
       attacks: [selectedAttacks[0], selectedAttacks[1]],
       defenses: [selectedDefenses[0], selectedDefenses[1], selectedDefenses[2]],
     };
+
+    // Запускаем анимацию атаки на 6 секунд
+    setIsAttacking(true);
+    setTimeout(() => {
+      setIsAttacking(false);
+    }, 6000);
 
     onSubmitActions(actions);
     setSelectedAttacks([]);
@@ -296,15 +462,32 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                       overflow: 'hidden',
                       position: 'relative',
                     }}>
-                    <img
-                      src={getCharacterImage()}
-                      alt={character.class}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                      }}
-                    />
+                    {isAttacking ? (
+                      <video
+                        key={`attack-${battleState.roundNumber}`}
+                        src={getAttackVideo()}
+                        autoPlay
+                        muted
+                        playsInline
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          mixBlendMode: 'multiply', // Убирает зеленый фон
+                        }}
+                        onEnded={() => setIsAttacking(false)}
+                      />
+                    ) : (
+                      <img
+                        src={getCharacterImage()}
+                        alt={character.class}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    )}
                     <div style={{
                       position: 'absolute',
                       bottom: '8px',
@@ -356,7 +539,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                         height: '100%',
                         objectFit: 'contain',
                         filter: 'drop-shadow(0 0 20px rgba(220, 20, 60, 0.6))',
-                        transform: 'scaleX(-1)', // Отзеркаливаем моба, чтобы смотрел влево
+                        transform: 'scaleX(-1)', // Отзеркаливаем всех мобов, чтобы смотрели влево (включая 3-е подземелье)
                       }}
                     />
                     <div style={{

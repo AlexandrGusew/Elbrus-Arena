@@ -30,36 +30,50 @@ export class CharacterService {
       return existingCharacter;
     }
 
+    // Проверяем, не существует ли персонаж с таким именем
+    const existingCharacterByName = await this.findByName(name);
+    if (existingCharacterByName) {
+      throw new BadRequestException(`Персонаж с именем "${name}" уже существует`);
+    }
+
     const stats = CLASS_STATS[characterClass];
     if (!stats) {
       throw new BadRequestException(`Unknown class: ${characterClass}`);
     }
 
-    const character = await this.prisma.$transaction(async (tx) => {
-      const newCharacter = await tx.character.create({
-        data: {
-          userId: user.id,
-          name,
-          class: characterClass,
-          ...stats,
-        },
+    try {
+      const character = await this.prisma.$transaction(async (tx) => {
+        const newCharacter = await tx.character.create({
+          data: {
+            userId: user.id,
+            name,
+            class: characterClass,
+            ...stats,
+          },
+        });
+
+        await tx.inventory.create({
+          data: {
+            characterId: newCharacter.id,
+            size: 20,
+          },
+        });
+
+        return newCharacter;
       });
 
-      await tx.inventory.create({
-        data: {
-          characterId: newCharacter.id,
-          size: 20,
-        },
-      });
-
-      return newCharacter;
-    });
-
-    const fullCharacter = await this.findById(character.id);
-    if (!fullCharacter) {
-      throw new NotFoundException('Failed to load character after creation');
+      const fullCharacter = await this.findById(character.id);
+      if (!fullCharacter) {
+        throw new NotFoundException('Failed to load character after creation');
+      }
+      return fullCharacter;
+    } catch (error: any) {
+      // Обработка ошибки уникального ограничения
+      if (error.code === 'P2002' && error.meta?.target?.includes('name')) {
+        throw new BadRequestException(`Персонаж с именем "${name}" уже существует`);
+      }
+      throw error;
     }
-    return fullCharacter;
   }
 
   async findById(id: number): Promise<Character | null> {

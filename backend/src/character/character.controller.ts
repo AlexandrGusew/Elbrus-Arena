@@ -38,18 +38,33 @@ export class CharacterController {
   @Public()
   @Get('name/:name')
   async findByName(@Param('name') name: string): Promise<Character | null> {
-    return this.characterService.findByName(name);
+    try {
+      return await this.characterService.findByName(name);
+    } catch (error) {
+      this.logger.error(`Error finding character by name ${name}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Public()
   @Get('user/:userId')
   async findByUserId(@Param('userId') userId: string): Promise<Character | null> {
-    return this.characterService.findByUserId(Number(userId));
+    try {
+      return await this.characterService.findByUserId(Number(userId));
+    } catch (error) {
+      this.logger.error(`Error finding character by userId ${userId}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<Character | null> {
-    return this.characterService.findById(Number(id));
+    try {
+      return await this.characterService.findById(Number(id));
+    } catch (error) {
+      this.logger.error(`Error finding character by id ${id}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Put(':characterId/equip/:inventoryItemId')

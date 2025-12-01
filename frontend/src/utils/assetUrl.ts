@@ -1,15 +1,10 @@
 /**
- * Утилита для генерации URL медиа-файлов из MinIO
+ * Утилита для генерации URL медиа-файлов из локальной папки asset
  *
  * Использование:
  * import { getAssetUrl } from '@/utils/assetUrl';
  * const videoUrl = getAssetUrl('createCharacter/animatedBackground.mp4');
  */
-
-// Конфигурация MinIO из переменных окружения
-const MINIO_URL = import.meta.env.VITE_MINIO_URL || '';
-const MINIO_BUCKET = import.meta.env.VITE_MINIO_BUCKET || 'elbrus-arena-assets';
-const USE_MINIO = import.meta.env.VITE_USE_MINIO === 'true';
 
 /**
  * Опции для генерации URL
@@ -19,14 +14,12 @@ interface AssetUrlOptions {
   size?: 'thumbnail' | 'medium' | 'full';
   /** Формат файла (для будущей оптимизации) */
   format?: 'original' | 'webp';
-  /** Принудительно использовать MinIO даже если флаг отключен */
-  forceMinio?: boolean;
 }
 
 /**
- * Генерирует URL для медиа-файла
+ * Генерирует URL для медиа-файла из локальной папки asset
  *
- * @param assetPath - путь к файлу в MinIO (например, 'dashboard/mainCityBackground.mp4')
+ * @param assetPath - путь к файлу в папке asset (например, 'dashboard/mainCityBackground.mp4')
  * @param options - опции генерации URL
  * @returns полный URL к файлу
  *
@@ -40,34 +33,7 @@ interface AssetUrlOptions {
  * ```
  */
 export function getAssetUrl(assetPath: string, options: AssetUrlOptions = {}): string {
-  const { forceMinio = false } = options;
-
-  // Если MinIO включен или принудительно запрошен
-  if (USE_MINIO || forceMinio) {
-    if (!MINIO_URL) {
-      console.warn('[assetUrl] VITE_MINIO_URL not configured, falling back to local assets');
-      return getLocalAssetUrl(assetPath);
-    }
-
-    // Убираем leading slash если есть
-    const cleanPath = assetPath.startsWith('/') ? assetPath.slice(1) : assetPath;
-
-    // Кодируем каждую часть пути (для обработки пробелов и спецсимволов)
-    // Разбиваем по /, кодируем каждую часть, собираем обратно
-    const encodedPath = cleanPath
-      .split('/')
-      .map(part => encodeURIComponent(part))
-      .join('/');
-
-    // Формируем URL к MinIO
-    // Формат: http://minio.example.com/bucket-name/asset/path/to/file.mp4
-    // В MiniO структура: elbrus-arena-assets/asset/dashboard/...
-    const url = `${MINIO_URL}/${MINIO_BUCKET}/asset/${encodedPath}`;
-
-    return url;
-  }
-
-  // Fallback на локальные assets (для development или если MinIO отключен)
+  // Всегда используем локальные assets из папки asset
   return getLocalAssetUrl(assetPath);
 }
 
@@ -153,39 +119,29 @@ export function useAssetUrl(assetPath: string, options?: AssetUrlOptions): strin
 }
 
 /**
- * Проверяет доступность MinIO
+ * Проверяет доступность локального файла
  * Полезно для healthcheck или диагностики
  */
-export async function checkMinioHealth(): Promise<boolean> {
-  if (!USE_MINIO || !MINIO_URL) {
-    return false;
-  }
-
+export async function checkAssetHealth(assetPath: string): Promise<boolean> {
   try {
-    // Пробуем загрузить любой известный файл для проверки доступности
-    const testUrl = `${MINIO_URL}/${MINIO_BUCKET}/`;
-    const response = await fetch(testUrl, { method: 'HEAD' });
+    const url = getLocalAssetUrl(assetPath);
+    if (!url) return false;
+    const response = await fetch(url, { method: 'HEAD' });
     return response.ok;
   } catch (error) {
-    console.error('[assetUrl] MinIO health check failed:', error);
+    console.error('[assetUrl] Asset health check failed:', error);
     return false;
   }
 }
 
 // Экспорт конфигурации для использования в других модулях
 export const assetConfig = {
-  minioUrl: MINIO_URL,
-  minioBucket: MINIO_BUCKET,
-  useMinio: USE_MINIO,
+  useLocalAssets: true,
 } as const;
 
 /**
  * Debug информация для разработки
  */
 if (import.meta.env.DEV) {
-  console.log('[assetUrl] Configuration:', {
-    MINIO_URL,
-    MINIO_BUCKET,
-    USE_MINIO,
-  });
+  console.log('[assetUrl] Using local assets from /asset folder');
 }
