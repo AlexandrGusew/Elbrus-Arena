@@ -30,6 +30,7 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
     unblockUser,
     getBlockedUsers,
     clearPlayerSearch,
+    updateOnlineStatus,
     openTab,
   } = useChat(characterId);
 
