@@ -428,6 +428,142 @@ export class ChatService {
     });
   }
 
+  // Получить список друзей
+  async getFriends(characterId: number): Promise<
+    { id: number; name: string }[]
+  > {
+    const friendships = await this.prisma.friendship.findMany({
+      where: { characterId },
+      include: {
+        friend: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return friendships.map((friendship) => ({
+      id: friendship.friend.id,
+      name: friendship.friend.name,
+    }));
+  }
+
+  // Добавить в друзья
+  async addFriend(characterId: number, friendId: number): Promise<void> {
+    if (characterId === friendId) {
+      throw new BadRequestException('Cannot add yourself');
+    }
+
+    const friendExists = await this.prisma.character.findUnique({
+      where: { id: friendId },
+      select: { id: true },
+    });
+
+    if (!friendExists) {
+      throw new NotFoundException('Player not found');
+    }
+
+    const existing = await this.prisma.friendship.findUnique({
+      where: {
+        characterId_friendId: { characterId, friendId },
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException('Already in friends');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.friendship.create({
+        data: { characterId, friendId },
+      }),
+      this.prisma.friendship.upsert({
+        where: {
+          characterId_friendId: {
+            characterId: friendId,
+            friendId: characterId,
+          },
+        },
+        create: {
+          characterId: friendId,
+          friendId: characterId,
+        },
+        update: {},
+      }),
+    ]);
+  }
+
+  // Удалить из друзей
+  async removeFriend(characterId: number, friendId: number): Promise<void> {
+    await this.prisma.friendship.deleteMany({
+      where: {
+        OR: [
+          { characterId, friendId },
+          { characterId: friendId, friendId: characterId },
+        ],
+      },
+    });
+  }
+
+  // Отправить приватное сообщение напрямую
+  async sendPrivateMessage(
+    senderId: number,
+    receiverId: number,
+    content: string,
+  ): Promise<{ room: ChatRoomResponse; message: ChatMessageResponse }> {
+    if (senderId === receiverId) {
+      throw new BadRequestException('Cannot send message to yourself');
+    }
+
+    if (!content.trim()) {
+      throw new BadRequestException('Message content cannot be empty');
+    }
+
+    const blocked = await this.prisma.blockedUser.findFirst({
+      where: {
+        OR: [
+          { blockerId: receiverId, blockedId: senderId },
+          { blockerId: senderId, blockedId: receiverId },
+        ],
+      },
+    });
+
+    if (blocked) {
+      if (blocked.blockerId === senderId) {
+        throw new BadRequestException('You blocked this player');
+      }
+      throw new BadRequestException('You are blocked by this player');
+    }
+
+    const room = await this.createPrivateChat(senderId, receiverId);
+    const message = await this.prisma.chatMessage.create({
+      data: {
+        senderId,
+        roomId: room.id,
+        content,
+      },
+      include: {
+        sender: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    await this.incrementUnreadCount(room.id, senderId);
+
+    return {
+      room,
+      message: {
+        id: message.id,
+        roomId: message.roomId,
+        senderId: message.senderId,
+        senderName: message.sender.name,
+        content: message.content,
+        createdAt: message.createdAt,
+      },
+    };
+  }
+
   // Получить список заблокированных пользователей
   async getBlockedUsers(characterId: number): Promise<number[]> {
     const blocked = await this.prisma.blockedUser.findMany({

@@ -79,6 +79,8 @@ model Character {
   receivedInvitations ChatInvitation[]  @relation("ReceivedInvitations")
   blockedUsers       BlockedUser[]      @relation("BlockedBy")
   blockedByUsers     BlockedUser[]      @relation("Blocked")
+  friends            Friendship[]       @relation("CharacterFriends")
+  friendOf           Friendship[]       @relation("FriendOf")
 
   @@map("characters")
 }
@@ -315,6 +317,18 @@ model ChatInvitation {
   receiver     Character @relation("ReceivedInvitations", fields: [receiverId], references: [id])
   @@unique([senderId, receiverId, status])
   @@map("chat_invitations")
+}
+
+model Friendship {
+  id          Int       @id @default(autoincrement())
+  characterId Int
+  friendId    Int
+  createdAt   DateTime  @default(now())
+  character   Character @relation("CharacterFriends", fields: [characterId], references: [id], onDelete: Cascade)
+  friend      Character @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([characterId, friendId])
+  @@map("friendships")
 }
 
 // Игнор-лист для блокировки пользователей в чате

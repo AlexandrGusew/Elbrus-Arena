@@ -24,6 +24,9 @@ import {
   GetUnreadCountDto,
   SearchOnlinePlayersDto,
   UpdateOnlineStatusDto,
+  AddFriendDto,
+  RemoveFriendDto,
+  SendPrivateMessageDto,
 } from './dto/chat.dto';
 
 const corsOriginsString = process.env.CORS_ORIGINS || '';
@@ -459,6 +462,106 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.log(`Character ${blockerId} unblocked ${blockedId}`);
     } catch (error) {
       this.logger.error(`Error unblocking user: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Получить друзей
+  @SubscribeMessage('get_friends')
+  async handleGetFriends(
+    @MessageBody() data: { characterId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const friends = await this.chatService.getFriends(data.characterId);
+      client.emit('friends_list', friends);
+    } catch (error) {
+      this.logger.error(`Error getting friends: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Добавить друга
+  @SubscribeMessage('add_friend')
+  async handleAddFriend(
+    @MessageBody() data: AddFriendDto & { characterId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { characterId, friendId } = data;
+    try {
+      await this.chatService.addFriend(characterId, friendId);
+      const friends = await this.chatService.getFriends(characterId);
+      client.emit('friends_list', friends);
+
+      const friendSocketId = this.characterToSocket.get(friendId);
+      if (friendSocketId) {
+        const friendList = await this.chatService.getFriends(friendId);
+        this.server.to(friendSocketId).emit('friends_list', friendList);
+      }
+    } catch (error) {
+      this.logger.error(`Error adding friend: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Удалить друга
+  @SubscribeMessage('remove_friend')
+  async handleRemoveFriend(
+    @MessageBody() data: RemoveFriendDto & { characterId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { characterId, friendId } = data;
+    try {
+      await this.chatService.removeFriend(characterId, friendId);
+      const friends = await this.chatService.getFriends(characterId);
+      client.emit('friends_list', friends);
+
+      const friendSocketId = this.characterToSocket.get(friendId);
+      if (friendSocketId) {
+        const friendList = await this.chatService.getFriends(friendId);
+        this.server.to(friendSocketId).emit('friends_list', friendList);
+      }
+    } catch (error) {
+      this.logger.error(`Error removing friend: ${error.message}`);
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  // Приватное сообщение
+  @SubscribeMessage('send_private_message')
+  async handleSendPrivateMessage(
+    @MessageBody() data: SendPrivateMessageDto & { senderId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { senderId, receiverId, content } = data;
+    try {
+      const result = await this.chatService.sendPrivateMessage(
+        senderId,
+        receiverId,
+        content,
+      );
+
+      await client.join(result.room.id);
+
+      const receiverSocketId = this.characterToSocket.get(receiverId);
+      if (receiverSocketId) {
+        const receiverSocket = this.server.sockets.sockets.get(receiverSocketId);
+        if (receiverSocket) {
+          await receiverSocket.join(result.room.id);
+        }
+      }
+
+      const senderRooms = await this.chatService.getUserChats(senderId);
+      client.emit('user_chats', senderRooms);
+
+      if (receiverSocketId) {
+        const receiverRooms = await this.chatService.getUserChats(receiverId);
+        this.server.to(receiverSocketId).emit('user_chats', receiverRooms);
+      }
+
+      this.server.to(result.room.id).emit('new_message', result.message);
+    } catch (error) {
+      this.logger.error(`Error sending private message: ${error.message}`);
       client.emit('error', { message: error.message });
     }
   }
