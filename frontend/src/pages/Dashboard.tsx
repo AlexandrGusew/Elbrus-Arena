@@ -187,10 +187,22 @@ const Dashboard = () => {
       </video>
 
       {/* Фоновая музыка - два трека для crossfade */}
-      <audio ref={audioRef}>
+      <audio 
+        ref={audioRef}
+        onError={(e) => {
+          console.warn('[Dashboard] Audio file not found, music will be disabled');
+          setIsMusicPlaying(false);
+        }}
+      >
         <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
-      <audio ref={audioRef2}>
+      <audio 
+        ref={audioRef2}
+        onError={(e) => {
+          console.warn('[Dashboard] Audio file not found, music will be disabled');
+          setIsMusicPlaying(false);
+        }}
+      >
         <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
 
