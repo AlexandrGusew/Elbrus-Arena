@@ -1,115 +1,3 @@
-  const renderFriendsPanel = () => (
-    <div
-      style={{
-        position: 'absolute',
-        top: '60px',
-        right: '10px',
-        width: '320px',
-        maxHeight: '450px',
-        background: 'rgba(20, 20, 20, 0.98)',
-        borderRadius: '8px',
-        border: '2px solid #ffd700',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
-        zIndex: 1000,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <div
-        style={{
-          padding: '12px',
-          borderBottom: '2px solid #ffd700',
-          background: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <h4 style={{ margin: 0, color: '#ffd700', fontSize: '16px' }}>
-          Мои друзья
-        </h4>
-        <button
-          onClick={() => setShowFriends(false)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#f44336',
-            fontSize: '20px',
-            cursor: 'pointer',
-            padding: 0,
-            lineHeight: 1,
-          }}
-        >
-          ×
-        </button>
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
-        {chatState.friends.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px', fontSize: '13px' }}>
-            Список друзей пуст
-          </div>
-        ) : (
-          chatState.friends.map((friend) => (
-            <div
-              key={friend.id}
-              style={{
-                background: 'rgba(0, 0, 0, 0.5)',
-                padding: '10px',
-                marginBottom: '6px',
-                borderRadius: '6px',
-                border: '1px solid #4CAF50',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <div
-                style={{ color: '#ffd700', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
-                onClick={() => {
-                  promptPrivateMessage(friend.id, friend.name);
-                  setShowFriends(false);
-                }}
-              >
-                {friend.name}
-              </div>
-              <button
-                onClick={() => {
-                  if (confirm(`Удалить ${friend.name} из друзей?`)) {
-                    removeFriend(friend.id);
-                  }
-                }}
-                style={{
-                  padding: '4px 10px',
-                  background: '#f44336',
-                  border: 'none',
-                  borderRadius: '4px',
-                  color: '#fff',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                }}
-              >
-                Удалить
-              </button>
-            </div>
-          ))
-        )}
-      </div>
-      <div
-        style={{
-          padding: '10px',
-          borderTop: '1px solid rgba(255, 215, 0, 0.3)',
-          background: 'rgba(0, 0, 0, 0.5)',
-        }}
-      >
-        <div style={{ color: '#aaa', fontSize: '11px', lineHeight: '1.4' }}>
-          Нажмите на имя друга, чтобы отправить приватное сообщение, видимое только ему.
-        </div>
-      </div>
-    </div>
-  );
-
 import { useState, useEffect, useRef } from 'react';
 import { useChat } from '../hooks/useChat';
 import { ChatTabBar } from './ChatTabBar';
@@ -251,6 +139,118 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
   };
 
   const activeRoom = getActiveRoom();
+
+  const renderFriendsPanel = () => (
+    <div
+      style={{
+        position: 'absolute',
+        top: '60px',
+        right: '10px',
+        width: '320px',
+        maxHeight: '450px',
+        background: 'rgba(20, 20, 20, 0.98)',
+        borderRadius: '8px',
+        border: '2px solid #ffd700',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
+        zIndex: 1000,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <div
+        style={{
+          padding: '12px',
+          borderBottom: '2px solid #ffd700',
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <h4 style={{ margin: 0, color: '#ffd700', fontSize: '16px' }}>
+          Мои друзья
+        </h4>
+        <button
+          onClick={() => setShowFriends(false)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: '#f44336',
+            fontSize: '20px',
+            cursor: 'pointer',
+            padding: 0,
+            lineHeight: 1,
+          }}
+        >
+          ×
+        </button>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
+        {chatState.friends.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px', fontSize: '13px' }}>
+            Список друзей пуст
+          </div>
+        ) : (
+          chatState.friends.map((friend) => (
+            <div
+              key={friend.id}
+              style={{
+                background: 'rgba(0, 0, 0, 0.5)',
+                padding: '10px',
+                marginBottom: '6px',
+                borderRadius: '6px',
+                border: '1px solid #4CAF50',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div
+                style={{ color: '#ffd700', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+                onClick={() => {
+                  promptPrivateMessage(friend.id, friend.name);
+                  setShowFriends(false);
+                }}
+              >
+                {friend.name}
+              </div>
+              <button
+                onClick={() => {
+                  if (confirm(`Удалить ${friend.name} из друзей?`)) {
+                    removeFriend(friend.id);
+                  }
+                }}
+                style={{
+                  padding: '4px 10px',
+                  background: '#f44336',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#fff',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                }}
+              >
+                Удалить
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+      <div
+        style={{
+          padding: '10px',
+          borderTop: '1px solid rgba(255, 215, 0, 0.3)',
+          background: 'rgba(0, 0, 0, 0.5)',
+        }}
+      >
+        <div style={{ color: '#aaa', fontSize: '11px', lineHeight: '1.4' }}>
+          Нажмите на имя друга, чтобы отправить приватное сообщение, видимое только ему.
+        </div>
+      </div>
+    </div>
+  );
 
   const renderMessages = () => {
     const visibleMessages = chatState.messages

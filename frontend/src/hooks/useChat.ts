@@ -102,10 +102,30 @@ export function useChat(characterId: number | null) {
 
     // Событие: список чатов
     newSocket.on('user_chats', (rooms: ChatRoom[]) => {
-      setChatState((prev) => ({
-        ...prev,
-        rooms: rooms,
-      }));
+      setChatState((prev) => {
+        // Найти новые приватные чаты, которых ещё нет в openTabs
+        const newPrivateRooms = rooms
+          .filter((room) => room.type === 'PRIVATE')
+          .filter((room) => !prev.openTabs.includes(room.id));
+
+        // Автоматически открыть новые приватные чаты
+        const updatedOpenTabs = [...prev.openTabs];
+        newPrivateRooms.forEach((room) => {
+          if (!updatedOpenTabs.includes(room.id)) {
+            updatedOpenTabs.push(room.id);
+          }
+        });
+
+        return {
+          ...prev,
+          rooms: rooms,
+          openTabs: updatedOpenTabs,
+          // Если есть новый приватный чат, переключиться на него
+          activeTabId: newPrivateRooms.length > 0 
+            ? newPrivateRooms[0].id 
+            : prev.activeTabId,
+        };
+      });
     });
 
     // Событие: присоединился к глобальному чату
