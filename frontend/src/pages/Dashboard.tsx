@@ -1,5 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetCharacterQuery, useGetStaminaInfoQuery, useTestLevelBoostMutation } from '../store/api/characterApi';
+import { useLogoutMutation } from '../store/api/authApi';
+import { setAccessToken } from '../store/api/baseApi';
 import { styles } from './Dashboard.styles';
 import { useState, useEffect, useRef } from 'react';
 import { getAssetUrl } from '../utils/assetUrl';
@@ -34,6 +36,25 @@ const Dashboard = () => {
   );
 
   const [testLevelBoost, { isLoading: isBoostLoading }] = useTestLevelBoostMutation();
+  const [logout] = useLogoutMutation();
+
+  // Обработчик выхода
+  const handleLogout = async () => {
+    try {
+      // Вызываем logout API для очистки refresh token в cookie
+      await logout().unwrap();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Очищаем access token из памяти
+      setAccessToken(null);
+      // Очищаем localStorage
+      localStorage.removeItem('characterId');
+      localStorage.removeItem('isAuthenticated');
+      // Переходим на страницу входа
+      navigate('/');
+    }
+  };
 
   // Управление музыкой с crossfade
   useEffect(() => {
@@ -289,10 +310,7 @@ const Dashboard = () => {
 
       {/* Кнопка выхода - правый нижний угол */}
       <button
-        onClick={() => {
-          localStorage.removeItem('characterId');
-          navigate('/');
-        }}
+        onClick={handleLogout}
         style={{
           position: 'fixed',
           bottom: '40px',

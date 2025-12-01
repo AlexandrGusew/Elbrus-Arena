@@ -11,21 +11,9 @@ export class CharacterService {
     private inventoryService: InventoryService,
   ) {}
 
-  async create(telegramId: number, name: string, characterClass: CharacterClass): Promise<Character> {
-    let user = await this.prisma.user.findUnique({
-      where: { telegramId: BigInt(telegramId) }
-    });
-
-    if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          telegramId: BigInt(telegramId),
-          username: `user_${telegramId}`,
-        }
-      });
-    }
-
-    const existingCharacter = await this.findByUserId(user.id);
+  async create(userId: number, name: string, characterClass: CharacterClass): Promise<Character> {
+    // Проверяем есть ли уже персонаж у пользователя
+    const existingCharacter = await this.findByUserId(userId);
     if (existingCharacter) {
       return existingCharacter;
     }
@@ -38,7 +26,7 @@ export class CharacterService {
     const character = await this.prisma.$transaction(async (tx) => {
       const newCharacter = await tx.character.create({
         data: {
-          userId: user.id,
+          userId,
           name,
           class: characterClass,
           ...stats,

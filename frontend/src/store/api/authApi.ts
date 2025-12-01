@@ -2,7 +2,48 @@ import { baseApi, setAccessToken } from './baseApi';
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<{ accessToken: string }, { telegramId: number }>({
+    // TELEGRAM АВТОРИЗАЦИЯ через WebApp
+    loginWithTelegram: builder.mutation<{ accessToken: string }, { initData: string }>({
+      query: (body) => ({
+        url: '/auth/telegram',
+        method: 'POST',
+        body,
+      }),
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          setAccessToken(data.accessToken);
+          localStorage.setItem('isAuthenticated', 'true');
+          console.log('Telegram авторизация успешна');
+        } catch (err) {
+          console.error('Telegram login failed:', err);
+          localStorage.setItem('isAuthenticated', 'false');
+        }
+      },
+    }),
+
+    // РЕГИСТРАЦИЯ - простая с логином и паролем
+    register: builder.mutation<{ accessToken: string }, { username: string; password: string }>({
+      query: (body) => ({
+        url: '/auth/register',
+        method: 'POST',
+        body,
+      }),
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          setAccessToken(data.accessToken);
+          localStorage.setItem('isAuthenticated', 'true');
+          console.log('✅ Регистрация успешна');
+        } catch (err) {
+          console.error('❌ Registration failed:', err);
+          localStorage.setItem('isAuthenticated', 'false');
+        }
+      },
+    }),
+
+    // ВХОД - классическая авторизация
+    login: builder.mutation<{ accessToken: string }, { username: string; password: string }>({
       query: (body) => ({
         url: '/auth/login',
         method: 'POST',
@@ -11,17 +52,16 @@ export const authApi = baseApi.injectEndpoints({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          // Сохраняем access token в памяти (не в localStorage!)
           setAccessToken(data.accessToken);
-          // В localStorage храним только флаг авторизации для защищенных компонентов
           localStorage.setItem('isAuthenticated', 'true');
-          console.log('Access token сохранён в памяти, флаг авторизации установлен');
+          console.log('✅ Вход успешен');
         } catch (err) {
-          console.error('Login failed:', err);
+          console.error('❌ Login failed:', err);
           localStorage.setItem('isAuthenticated', 'false');
         }
       },
     }),
+
     logout: builder.mutation<{ message: string }, void>({
       query: () => ({
         url: '/auth/logout',
@@ -30,9 +70,7 @@ export const authApi = baseApi.injectEndpoints({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          // Очищаем access token из памяти
           setAccessToken(null);
-          // Убираем флаг авторизации
           localStorage.setItem('isAuthenticated', 'false');
           console.log('Logged out, access token cleared');
         } catch (err) {
@@ -40,7 +78,43 @@ export const authApi = baseApi.injectEndpoints({
         }
       },
     }),
+
+    // ИНИЦИАЦИЯ АВТОРИЗАЦИИ ЧЕРЕЗ TELEGRAM
+    initiateTelegramAuth: builder.mutation<{ success: boolean; message: string }, { telegramUsername: string }>({
+      query: (body) => ({
+        url: '/auth/telegram/initiate',
+        method: 'POST',
+        body,
+      }),
+    }),
+
+    // АВТОРИЗАЦИЯ ЧЕРЕЗ КОД ИЗ TELEGRAM
+    verifyTelegramCode: builder.mutation<{ accessToken: string }, { telegramUsername: string; code: string }>({
+      query: (body) => ({
+        url: '/auth/telegram/verify-code',
+        method: 'POST',
+        body,
+      }),
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          setAccessToken(data.accessToken);
+          localStorage.setItem('isAuthenticated', 'true');
+          console.log('Telegram авторизация через код успешна');
+        } catch (err) {
+          console.error('Telegram code verification failed:', err);
+          localStorage.setItem('isAuthenticated', 'false');
+        }
+      },
+    }),
   }),
 });
 
-export const { useLoginMutation, useLogoutMutation } = authApi;
+export const {
+  useLoginWithTelegramMutation,
+  useRegisterMutation,
+  useLoginMutation,
+  useLogoutMutation,
+  useInitiateTelegramAuthMutation,
+  useVerifyTelegramCodeMutation,
+} = authApi;

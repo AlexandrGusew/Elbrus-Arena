@@ -13,12 +13,14 @@ import { AuthModule } from './auth/auth.module';
 import { SpecializationModule } from './specialization/specialization.module';
 import { PvpModule } from './pvp/pvp.module';
 import { ChatModule } from './chat/chat.module';
+import { TelegramModule } from './telegram/telegram.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    TelegramModule,
     AuthModule,
     CharacterModule,
     DungeonModule,
