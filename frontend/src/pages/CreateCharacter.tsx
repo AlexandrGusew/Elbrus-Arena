@@ -76,6 +76,11 @@ const CreateCharacter = () => {
       return;
     }
 
+    if (!selectedClass) {
+      setError('Выберите класс персонажа');
+      return;
+    }
+
     setError('');
 
     try {
