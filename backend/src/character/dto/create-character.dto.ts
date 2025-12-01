@@ -1,10 +1,7 @@
-import { IsNumber, IsString, IsIn } from 'class-validator';
+import { IsString, IsIn } from 'class-validator';
 import { CHARACTER_CLASSES } from '../../../../shared/types/enums';
 
 export class CreateCharacterDto {
-  @IsNumber()
-  telegramId: number;
-
   @IsString()
   name: string;
 

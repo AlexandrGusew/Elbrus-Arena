@@ -2,10 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+
+  // Cookie parser для работы с cookies
+  app.use(cookieParser());
 
   // Глобальная валидация DTO
   app.useGlobalPipes(

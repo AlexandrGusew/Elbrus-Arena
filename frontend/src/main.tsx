@@ -1,12 +1,12 @@
-import { StrictMode, useEffect } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './store'
-import { authApi } from './store/api/authApi'
 import './index.css'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import Login from './pages/Login'
 import CreateCharacter from './pages/CreateCharacter'
 import Dashboard from './pages/Dashboard'
 import PvP from './pages/PvP'
@@ -17,37 +17,18 @@ import LevelUp from './pages/LevelUp'
 import Specialization from './pages/Specialization'
 import ClassMentor from './pages/ClassMentor'
 
-// Автоматическая авторизация при старте
-async function initAuth() {
-  try {
-    // Получаем telegramId из Telegram WebApp или используем тестовый
-    const telegramId = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id || 123456789;
-
-    // Всегда получаем свежий токен при загрузке
-    const result = await store.dispatch(
-      authApi.endpoints.login.initiate({ telegramId })
-    );
-
-    if ('data' in result && result.data) {
-      console.log('JWT токен получен и сохранён');
-    } else {
-      console.error('Не удалось получить токен');
-    }
-  } catch (err) {
-    console.error('Ошибка авторизации:', err);
-  }
-}
-
-initAuth();
-
 const router = createBrowserRouter([
   {
     path: '/',
+    element: <Login />
+  },
+  {
+    path: '/app',
     element: <Layout />,
     children: [
       {
         index: true,
-        element: <CreateCharacter />
+        element: <ProtectedRoute><CreateCharacter /></ProtectedRoute>
       },
       {
         path: 'dashboard',

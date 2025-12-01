@@ -5,10 +5,11 @@ import { CharacterStaminaService } from './character-stamina.service';
 import { InventoryEnhancementService } from '../inventory/inventory-enhancement.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { Public } from '../auth/public.decorator';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import type { Character } from '../../../shared/types';
+import type { JwtPayload } from '../auth/jwt.strategy';
 
-@Public()
 @Controller('character')
 export class CharacterController {
   private readonly logger = new Logger(CharacterController.name);
@@ -21,18 +22,22 @@ export class CharacterController {
     private inventoryService: InventoryService,
   ) {}
 
-  @Public()
   @Post()
-  async create(@Body() body: CreateCharacterDto): Promise<Character> {
+  async create(@CurrentUser() user: JwtPayload, @Body() body: CreateCharacterDto): Promise<Character> {
     try {
-      this.logger.log(`Creating character: ${JSON.stringify(body)}`);
-      const result = await this.characterService.create(body.telegramId, body.name, body.class);
+      this.logger.log(`Creating character for user ${user.userId}: ${JSON.stringify(body)}`);
+      const result = await this.characterService.create(user.userId, body.name, body.class);
       this.logger.log(`Character created successfully: ${result.id}`);
       return result;
     } catch (error) {
       this.logger.error(`Error creating character: ${error.message}`, error.stack);
       throw error;
     }
+  }
+
+  @Get('me')
+  async getMyCharacter(@CurrentUser() user: JwtPayload): Promise<Character | null> {
+    return this.characterService.findByUserId(user.userId);
   }
 
   @Public()

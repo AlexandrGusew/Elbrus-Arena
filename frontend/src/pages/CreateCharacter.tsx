@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateCharacterMutation, useGetCharacterByNameQuery } from '../store/api/characterApi';
+import { useCreateCharacterMutation, useGetCharacterByNameQuery, useGetMyCharacterQuery } from '../store/api/characterApi';
 import type { CharacterClass } from '../types/api';
 import { getAssetUrl } from '../utils/assetUrl';
 
@@ -27,10 +27,21 @@ const CreateCharacter = () => {
   const [createCharacter, { isLoading }] = useCreateCharacterMutation();
   const [searchName, setSearchName] = useState<string | null>(null);
 
+  // Проверяем есть ли персонаж у текущего пользователя
+  const { data: myCharacter, isLoading: isCheckingCharacter } = useGetMyCharacterQuery();
+
   const { data: foundCharacter, isLoading: isSearching, isSuccess } = useGetCharacterByNameQuery(
     searchName || '',
     { skip: !searchName }
   );
+
+  // Если персонаж уже есть - редирект на dashboard
+  useEffect(() => {
+    if (myCharacter) {
+      localStorage.setItem('characterId', myCharacter.id.toString());
+      navigate('/app/dashboard');
+    }
+  }, [myCharacter, navigate]);
 
   useEffect(() => {
     if (searchName && isSuccess) {
@@ -84,15 +95,13 @@ const CreateCharacter = () => {
     setError('');
 
     try {
-      const fakeTelegramId = Math.floor(Math.random() * 1000000000);
       const character = await createCharacter({
-        telegramId: fakeTelegramId,
         name: name.trim(),
         class: selectedClass,
       }).unwrap();
 
       localStorage.setItem('characterId', character.id.toString());
-      navigate('/dashboard');
+      navigate('/app/dashboard');
     } catch (err: any) {
       setError(err.data?.message || err.message || 'Ошибка при создании персонажа');
     }
@@ -279,7 +288,7 @@ const CreateCharacter = () => {
         </button>
 
         {/* Кнопка Create */}
-        <button
+        {/* <button
           onClick={() => {
             setMode('create');
             setError('');
@@ -297,10 +306,10 @@ const CreateCharacter = () => {
             alt="Create"
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
-        </button>
+        </button> */}
 
         {/* Кнопка Login */}
-        <button
+        {/* <button
           onClick={() => {
             setMode('login');
             setError('');
@@ -318,7 +327,7 @@ const CreateCharacter = () => {
             alt="Login"
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
-        </button>
+        </button> */}
       </div>
 
       {/* Ошибка */}
