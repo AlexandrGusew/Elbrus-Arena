@@ -17,7 +17,7 @@ interface AssetUrlOptions {
 }
 
 /**
- * Генерирует URL для медиа-файла из локальной папки asset
+ * Генерирует URL для медиа-файла из локальной папки asset или MinIO
  *
  * @param assetPath - путь к файлу в папке asset (например, 'dashboard/mainCityBackground.mp4')
  * @param options - опции генерации URL
@@ -33,8 +33,29 @@ interface AssetUrlOptions {
  * ```
  */
 export function getAssetUrl(assetPath: string, options: AssetUrlOptions = {}): string {
-  // Всегда используем локальные assets из папки asset
+  // Проверяем, нужно ли использовать MinIO
+  const useMinIO = import.meta.env.VITE_USE_MINIO === 'true';
+
+  if (useMinIO) {
+    return getMinIOAssetUrl(assetPath);
+  }
+
+  // Иначе используем локальные assets
   return getLocalAssetUrl(assetPath);
+}
+
+/**
+ * Генерирует URL для файла из MinIO (S3-совместимое хранилище)
+ */
+function getMinIOAssetUrl(assetPath: string): string {
+  const minioUrl = import.meta.env.VITE_MINIO_URL || 'http://178.72.139.236:9000';
+  const minioBucket = import.meta.env.VITE_MINIO_BUCKET || 'elbrus-arena-assets';
+
+  // Удаляем начальный слеш если есть
+  const cleanPath = assetPath.startsWith('/') ? assetPath.slice(1) : assetPath;
+
+  // Формируем URL: http://host:port/bucket/path/to/file
+  return `${minioUrl}/${minioBucket}/asset/${cleanPath}`;
 }
 
 /**
@@ -136,12 +157,20 @@ export async function checkAssetHealth(assetPath: string): Promise<boolean> {
 
 // Экспорт конфигурации для использования в других модулях
 export const assetConfig = {
-  useLocalAssets: true,
+  useLocalAssets: import.meta.env.VITE_USE_MINIO !== 'true',
+  useMinIO: import.meta.env.VITE_USE_MINIO === 'true',
+  minioUrl: import.meta.env.VITE_MINIO_URL || 'http://178.72.139.236:9000',
+  minioBucket: import.meta.env.VITE_MINIO_BUCKET || 'elbrus-arena-assets',
 } as const;
 
 /**
  * Debug информация для разработки
  */
 if (import.meta.env.DEV) {
-  console.log('[assetUrl] Using local assets from /asset folder');
+  if (assetConfig.useMinIO) {
+    console.log('[assetUrl] Using MinIO storage:', assetConfig.minioUrl);
+    console.log('[assetUrl] MinIO bucket:', assetConfig.minioBucket);
+  } else {
+    console.log('[assetUrl] Using local assets from /asset folder');
+  }
 }
