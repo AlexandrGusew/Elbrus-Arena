@@ -21,7 +21,8 @@ export class TelegramBotService implements OnModuleInit {
   ) {
     const token = this.configService.get<string>('TELEGRAM_BOT_TOKEN');
     if (!token) {
-      throw new Error('TELEGRAM_BOT_TOKEN не настроен в .env');
+      console.warn('⚠️  TELEGRAM_BOT_TOKEN не настроен в .env - Telegram бот отключен');
+      return;
     }
     this.bot = new Telegraf(token);
   }
@@ -31,6 +32,11 @@ export class TelegramBotService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    // Если бот не инициализирован, не запускаем обработчики
+    if (!this.bot) {
+      return;
+    }
+
     // Обработчик команды /start
     this.bot.command('start', async (ctx: Context) => {
       const telegramId = ctx.from?.id;
