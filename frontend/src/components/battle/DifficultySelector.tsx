@@ -20,7 +20,10 @@ export const DifficultySelector = ({ selectedDifficulty, onSelect }: DifficultyS
       gap: '20px',
       alignItems: 'center',
       marginTop: '20px',
-      marginBottom: '20px'
+      marginBottom: '20px',
+      width: '100%',
+      maxWidth: '700px',
+      padding: '0 20px',
     }}>
       <h1 style={{
         fontSize: '48px',
@@ -35,50 +38,62 @@ export const DifficultySelector = ({ selectedDifficulty, onSelect }: DifficultyS
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
         filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.4))',
+        textAlign: 'center',
+        lineHeight: '1.2',
       }}>
         Выберите подземелье
       </h1>
-      {DUNGEON_DIFFICULTIES.map((diff) => (
-        <div
-          key={diff}
-          onClick={() => onSelect(diff)}
-          style={{
-            width: '700px',
-            height: '150px',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            opacity: selectedDifficulty === diff ? 1 : 0.6,
-            transform: selectedDifficulty === diff ? 'scale(1.1)' : 'scale(1)',
-            position: 'relative',
-          }}
-          onMouseEnter={(e) => {
-            if (selectedDifficulty !== diff) {
-              e.currentTarget.style.opacity = '0.8';
-              e.currentTarget.style.transform = 'scale(1.02)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (selectedDifficulty !== diff) {
-              e.currentTarget.style.opacity = '0.6';
-              e.currentTarget.style.transform = 'scale(1)';
-            }
-          }}
-        >
-          <img
-            src={DIFFICULTY_INFO[diff].badge}
-            alt={DIFFICULTY_INFO[diff].name}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        width: '100%',
+        alignItems: 'center',
+      }}>
+        {DUNGEON_DIFFICULTIES.map((diff) => (
+          <div
+            key={diff}
+            onClick={() => onSelect(diff)}
             style={{
               width: '100%',
-              height: '100%',
-              display: 'block',
-              objectFit: 'contain',
-              pointerEvents: 'none',
+              maxWidth: '700px',
+              aspectRatio: '700 / 150',
+              height: '150px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              opacity: selectedDifficulty === diff ? 1 : 0.6,
+              transform: selectedDifficulty === diff ? 'scale(1.05)' : 'scale(1)',
+              position: 'relative',
             }}
-          />
-        </div>
-      ))}
+            onMouseEnter={(e) => {
+              if (selectedDifficulty !== diff) {
+                e.currentTarget.style.opacity = '0.8';
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedDifficulty !== diff) {
+                e.currentTarget.style.opacity = '0.6';
+                e.currentTarget.style.transform = 'scale(1)';
+              }
+            }}
+          >
+            <img
+              src={DIFFICULTY_INFO[diff].badge}
+              alt={DIFFICULTY_INFO[diff].name}
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'block',
+                objectFit: 'contain',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

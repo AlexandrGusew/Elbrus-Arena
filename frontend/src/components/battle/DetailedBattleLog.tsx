@@ -46,49 +46,77 @@ type DetailedBattleLogProps = {
   roundResults?: RoundResult[];
 };
 
-const getRandomAttackDescription = (zone: Zone): string => {
+// Детерминированная функция для получения описания атаки
+// Использует roundNumber, zone и attackIndex для стабильного выбора описания
+// Это гарантирует, что для завершенных раундов описания не меняются
+const getAttackDescription = (zone: Zone, roundNumber: number, attackIndex: number = 0): string => {
   const descriptions = ATTACK_DESCRIPTIONS[zone];
-  return descriptions[Math.floor(Math.random() * descriptions.length)];
+  if (!descriptions || descriptions.length === 0) {
+    return 'Удар';
+  }
+  // Используем roundNumber, zone и attackIndex для детерминированного выбора
+  // Это гарантирует, что для одного и того же раунда, зоны и индекса всегда будет одно описание
+  const seed = roundNumber * 1000 + zone.charCodeAt(0) * 10 + attackIndex;
+  const index = seed % descriptions.length;
+  return descriptions[index];
 };
 
 export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
   const results = roundResults ?? [];
+  
+  // Убираем дубликаты раундов по roundNumber (на случай если они есть)
+  const uniqueResults = results.reduce((acc, result) => {
+    const existing = acc.find(r => r.roundNumber === result.roundNumber);
+    if (!existing) {
+      acc.push(result);
+    }
+    return acc;
+  }, [] as typeof results);
+  
+  // Сортируем по номеру раунда на случай если порядок нарушен
+  const sortedResults = [...uniqueResults].sort((a, b) => a.roundNumber - b.roundNumber);
 
   return (
     <div style={{
       background: 'rgba(0, 0, 0, 0.85)',
       border: '2px solid rgba(212, 175, 55, 0.3)',
       borderRadius: '12px',
-      padding: '20px',
+      padding: '12px',
       height: '100%',
       overflowY: 'auto',
-      fontFamily: 'serif',
+      fontFamily: '"Cinzel", "MedievalSharp", "UnifrakturMaguntia", "IM Fell English", serif',
+      fontWeight: '500',
+      letterSpacing: '0.5px',
     }}>
       <h3 style={{
         color: '#d4af37',
-        fontSize: '22px',
-        marginBottom: '20px',
+        fontSize: '16px',
+        marginBottom: '10px',
         textAlign: 'center',
-        textShadow: '0 0 10px rgba(212, 175, 55, 0.5)',
+        textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(212, 175, 55, 0.5)',
         borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
-        paddingBottom: '10px',
+        paddingBottom: '6px',
+        fontFamily: '"Cinzel", "MedievalSharp", "UnifrakturMaguntia", "IM Fell English", serif',
+        fontWeight: '600',
+        letterSpacing: '1px',
+        textTransform: 'uppercase',
       }}>
         ⚔️ Хроника боя
       </h3>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {results.length === 0 ? (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {sortedResults.length === 0 ? (
           <div style={{
             textAlign: 'center',
             color: '#888',
-            fontSize: '16px',
-            marginTop: '40px',
+            fontSize: '12px',
+            marginTop: '20px',
             fontStyle: 'italic',
           }}>
             Бой ещё не начался...
           </div>
         ) : (
-          results.map((result, index) => {
+          sortedResults.map((result) => {
             const playerHits = result.playerActions.attacks.filter(
               zone => !result.monsterActions.defenses.includes(zone)
             );
@@ -104,42 +132,45 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
 
             return (
               <div
-                key={index}
+                key={`round-${result.roundNumber}`}
                 style={{
                   background: 'rgba(212, 175, 55, 0.05)',
                   border: '1px solid rgba(212, 175, 55, 0.2)',
-                  borderRadius: '8px',
-                  padding: '15px',
+                  borderRadius: '6px',
+                  padding: '8px',
                 }}
               >
                 <div style={{
                   color: '#d4af37',
-                  fontSize: '16px',
+                  fontSize: '12px',
                   fontWeight: 'bold',
-                  marginBottom: '12px',
+                  marginBottom: '6px',
                   borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
-                  paddingBottom: '8px',
+                  paddingBottom: '4px',
+                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
+                  letterSpacing: '0.5px',
                 }}>
                   Раунд {result.roundNumber}
                 </div>
 
                 {/* Атаки игрока */}
-                <div style={{ marginBottom: '10px' }}>
+                <div style={{ marginBottom: '6px' }}>
                   {playerHits.map((zone, idx) => (
                     <div
                       key={`hit-${idx}`}
                       style={{
                         color: '#4CAF50',
-                        fontSize: '14px',
-                        marginBottom: '6px',
-                        lineHeight: '1.5',
+                        fontSize: '11px',
+                        marginBottom: '3px',
+                        lineHeight: '1.3',
+                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
                       }}
                     >
                       ✅ <span style={{ fontWeight: 'bold' }}>Вы</span> нанесли{' '}
                       <span style={{ fontStyle: 'italic', color: '#66BB6A' }}>
-                        "{getRandomAttackDescription(zone)}"
+                        "{getAttackDescription(zone, result.roundNumber, idx)}"
                       </span>
-                      {' '}противнику в{' '}
+                      {' '}в{' '}
                       <span style={{ fontWeight: 'bold' }}>{ZONE_NAMES[zone]}</span>
                     </div>
                   ))}
@@ -148,12 +179,13 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
                       key={`miss-${idx}`}
                       style={{
                         color: '#FF9800',
-                        fontSize: '14px',
-                        marginBottom: '6px',
-                        lineHeight: '1.5',
+                        fontSize: '11px',
+                        marginBottom: '3px',
+                        lineHeight: '1.3',
+                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
                       }}
                     >
-                      🛡️ Противник {DEFENSE_DESCRIPTIONS[zone]} и заблокировал вашу атаку
+                      🛡️ Противник {DEFENSE_DESCRIPTIONS[zone]} и заблокировал
                     </div>
                   ))}
                 </div>
@@ -162,35 +194,37 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
                 {result.monsterDamage > 0 && (
                   <div style={{
                     color: '#d4af37',
-                    fontSize: '13px',
+                    fontSize: '10px',
                     fontWeight: 'bold',
-                    marginBottom: '10px',
-                    padding: '6px 10px',
+                    marginBottom: '6px',
+                    padding: '4px 6px',
                     background: 'rgba(76, 175, 80, 0.15)',
-                    borderRadius: '4px',
-                    borderLeft: '3px solid #4CAF50',
+                    borderRadius: '3px',
+                    borderLeft: '2px solid #4CAF50',
+                    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
                   }}>
-                    💥 Нанесено урона: {result.monsterDamage}
+                    💥 Нанесено: {result.monsterDamage}
                   </div>
                 )}
 
                 {/* Атаки монстра */}
-                <div style={{ marginBottom: '10px' }}>
+                <div style={{ marginBottom: '6px' }}>
                   {monsterHits.map((zone, idx) => (
                     <div
                       key={`m-hit-${idx}`}
                       style={{
                         color: '#f44336',
-                        fontSize: '14px',
-                        marginBottom: '6px',
-                        lineHeight: '1.5',
+                        fontSize: '11px',
+                        marginBottom: '3px',
+                        lineHeight: '1.3',
+                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
                       }}
                     >
                       ❌ <span style={{ fontWeight: 'bold' }}>Противник</span> нанёс{' '}
                       <span style={{ fontStyle: 'italic', color: '#EF5350' }}>
-                        "{getRandomAttackDescription(zone)}"
+                        "{getAttackDescription(zone, result.roundNumber, idx)}"
                       </span>
-                      {' '}вам в{' '}
+                      {' '}в{' '}
                       <span style={{ fontWeight: 'bold' }}>{ZONE_NAMES[zone]}</span>
                     </div>
                   ))}
@@ -199,12 +233,13 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
                       key={`block-${idx}`}
                       style={{
                         color: '#2196F3',
-                        fontSize: '14px',
-                        marginBottom: '6px',
-                        lineHeight: '1.5',
+                        fontSize: '11px',
+                        marginBottom: '3px',
+                        lineHeight: '1.3',
+                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
                       }}
                     >
-                      🛡️ Вы {DEFENSE_DESCRIPTIONS[zone]} и отразили атаку противника
+                      🛡️ Вы {DEFENSE_DESCRIPTIONS[zone]} и отразили
                     </div>
                   ))}
                 </div>
@@ -213,14 +248,15 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
                 {result.playerDamage > 0 && (
                   <div style={{
                     color: '#d4af37',
-                    fontSize: '13px',
+                    fontSize: '10px',
                     fontWeight: 'bold',
-                    padding: '6px 10px',
+                    padding: '4px 6px',
                     background: 'rgba(244, 67, 54, 0.15)',
-                    borderRadius: '4px',
-                    borderLeft: '3px solid #f44336',
+                    borderRadius: '3px',
+                    borderLeft: '2px solid #f44336',
+                    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
                   }}>
-                    💔 Получено урона: {result.playerDamage}
+                    💔 Получено: {result.playerDamage}
                   </div>
                 )}
               </div>

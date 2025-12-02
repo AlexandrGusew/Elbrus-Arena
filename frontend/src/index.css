@@ -4,13 +4,24 @@
 
 /* Dark Fantasy Base Styles */
 @layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Предотвращаем скролл на body */
+    background-color: #000000; /* Черный фон для всего экрана */
+  }
+
   body {
-    @apply bg-dark-bg text-dark-text min-h-screen;
+    @apply text-dark-text;
     font-family: system-ui, -apple-system, sans-serif;
   }
 
   #root {
-    @apply min-h-screen;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
   }
 }
 
