@@ -1,9 +1,7 @@
 import { Controller, Get, Post, Param, Body, ParseIntPipe } from '@nestjs/common';
 import { SpecializationService } from './specialization.service';
-import { Public } from '../auth/public.decorator';
 import { SpecializationBranch } from '@prisma/client';
 
-@Public()
 @Controller('specializations')
 export class SpecializationController {
   constructor(private specializationService: SpecializationService) {}

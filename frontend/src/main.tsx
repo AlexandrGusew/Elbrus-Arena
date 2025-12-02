@@ -28,7 +28,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <ProtectedRoute><CreateCharacter /></ProtectedRoute>
+        element: <CreateCharacter />
       },
       {
         path: 'dashboard',
