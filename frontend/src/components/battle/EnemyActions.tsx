@@ -32,8 +32,36 @@ export const EnemyActions = ({ lastRoundResult }: EnemyActionsProps) => {
     }
   }, [lastRoundResult]);
 
-  const enemyAttacks = savedResult?.monsterActions.attacks || [];
-  const enemyDefenses = savedResult?.monsterActions.defenses || [];
+  // Фильтруем 'back' из защит, так как визуально эта зона не отображается
+  const enemyAttacks = (savedResult?.monsterActions.attacks || []).filter(zone => ALL_ZONES.includes(zone as typeof ALL_ZONES[number]));
+  const enemyDefenses = (savedResult?.monsterActions.defenses || []).filter(zone => ALL_ZONES.includes(zone as typeof ALL_ZONES[number]));
+  
+  // Отладочное логирование
+  useEffect(() => {
+    if (savedResult) {
+      const rawAttacks = savedResult.monsterActions.attacks || [];
+      const rawDefenses = savedResult.monsterActions.defenses || [];
+      console.log('👹 EnemyActions - Действия противника:', {
+        rawAttacks,
+        rawDefenses,
+        filteredAttacks: enemyAttacks,
+        filteredDefenses: enemyDefenses,
+        attacksLength: enemyAttacks.length,
+        defensesLength: enemyDefenses.length,
+        allZones: ALL_ZONES,
+        attacksCheck: ALL_ZONES.map(zone => ({
+          zone,
+          isAttacking: enemyAttacks.some(att => att === zone),
+          foundInRaw: rawAttacks.includes(zone)
+        })),
+        defensesCheck: ALL_ZONES.map(zone => ({
+          zone,
+          isDefending: enemyDefenses.some(def => def === zone),
+          foundInRaw: rawDefenses.includes(zone)
+        })),
+      });
+    }
+  }, [savedResult, enemyAttacks, enemyDefenses]);
 
   return (
     <div style={{
@@ -49,12 +77,12 @@ export const EnemyActions = ({ lastRoundResult }: EnemyActionsProps) => {
     }}>
       <h3 style={{
         color: '#dc143c',
-        fontSize: '16px',
-        marginBottom: '8px',
+        fontSize: '14px',
+        marginBottom: '6px',
         textAlign: 'center',
         textShadow: '0 0 10px rgba(220, 20, 60, 0.5)',
         borderBottom: '1px solid rgba(139, 0, 0, 0.3)',
-        paddingBottom: '5px',
+        paddingBottom: '4px',
       }}>
         👹 Действия противника
       </h3>
@@ -77,11 +105,11 @@ export const EnemyActions = ({ lastRoundResult }: EnemyActionsProps) => {
           paddingRight: '5px',
         }}>
           {/* Атаки противника */}
-          <div style={{ marginBottom: '8px' }}>
+          <div style={{ marginBottom: '6px' }}>
             <h4 style={{
               color: '#ff6b6b',
-              fontSize: '13px',
-              marginBottom: '6px',
+              fontSize: '11px',
+              marginBottom: '4px',
               textTransform: 'uppercase',
               letterSpacing: '1px',
             }}>
@@ -90,18 +118,21 @@ export const EnemyActions = ({ lastRoundResult }: EnemyActionsProps) => {
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '4px',
+              gap: '3px',
             }}>
               {ALL_ZONES.map(zone => {
-                const isAttacking = enemyAttacks.includes(zone);
+                // Проверяем, выбрана ли эта зона для атаки
+                // Проверяем напрямую в исходных данных
+                const rawAttacks = savedResult?.monsterActions.attacks || [];
+                const isAttacking = rawAttacks.includes(zone as Zone);
                 return (
                   <div
                     key={`attack-${zone}`}
                     style={{
                       position: 'relative',
                       width: '100%',
-                      height: '240px',
-                      maxHeight: '240px',
+                      height: '120px',
+                      maxHeight: '120px',
                       border: isAttacking ? '3px solid #ff4444' : '2px solid rgba(255, 68, 68, 0.2)',
                       borderRadius: '6px',
                       overflow: 'hidden',
@@ -160,8 +191,8 @@ export const EnemyActions = ({ lastRoundResult }: EnemyActionsProps) => {
           <div>
             <h4 style={{
               color: '#4da6ff',
-              fontSize: '13px',
-              marginBottom: '6px',
+              fontSize: '11px',
+              marginBottom: '4px',
               textTransform: 'uppercase',
               letterSpacing: '1px',
             }}>
@@ -170,18 +201,21 @@ export const EnemyActions = ({ lastRoundResult }: EnemyActionsProps) => {
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '4px',
+              gap: '3px',
             }}>
               {ALL_ZONES.map(zone => {
-                const isDefending = enemyDefenses.includes(zone);
+                // Проверяем, выбрана ли эта зона для защиты
+                // Проверяем напрямую в исходных данных, чтобы не пропустить ни одну зону
+                const rawDefenses = savedResult?.monsterActions.defenses || [];
+                const isDefending = rawDefenses.includes(zone as Zone);
                 return (
                   <div
                     key={`defense-${zone}`}
                     style={{
                       position: 'relative',
                       width: '100%',
-                      height: '240px',
-                      maxHeight: '240px',
+                      height: '120px',
+                      maxHeight: '120px',
                       border: isDefending ? '3px solid #2196F3' : '2px solid rgba(33, 150, 243, 0.2)',
                       borderRadius: '6px',
                       overflow: 'hidden',
