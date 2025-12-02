@@ -28,9 +28,14 @@ export default defineConfig({
     minify: 'esbuild',
     sourcemap: false,
   },
-  // Убрал настройки ngrok для локальной разработки
+  server: {
+    host: '0.0.0.0', // Слушать на всех интерфейсах
+    port: 5173,
+    strictPort: true,
+  },
   // Раскомментируй когда будешь деплоить через ngrok:
   // server: {
+  //   host: '0.0.0.0',
   //   allowedHosts: ['.ngrok-free.dev', '.ngrok.io'],
   //   hmr: { clientPort: 443 }
   // }

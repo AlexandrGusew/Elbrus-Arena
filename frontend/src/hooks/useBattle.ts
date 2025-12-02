@@ -58,14 +58,23 @@ export function useBattle(battleId: string | null) {
       console.log('📡 round-start event received:', data);
       console.log('🏰 dungeonId from server:', data.dungeonId);
 
-      setBattleState({
-        roundNumber: data.roundNumber,
-        playerHp: data.playerHp,
-        monsterHp: data.monsterHp,
-        status: 'active',
-        currentMonster: data.currentMonster,
-        totalMonsters: data.totalMonsters,
-        dungeonId: data.dungeonId,
+      setBattleState((prev) => {
+        // Обновляем HP только если:
+        // 1. Это начало нового боя (раунд 1)
+        // 2. Или сменился моб (currentMonster изменился)
+        // Иначе сохраняем текущее HP, чтобы не перезаписывать урон от предыдущего раунда
+        const shouldUpdateHp = data.roundNumber === 1 || 
+          (prev.currentMonster !== undefined && prev.currentMonster !== data.currentMonster);
+        
+        return {
+          roundNumber: data.roundNumber,
+          playerHp: shouldUpdateHp ? data.playerHp : prev.playerHp,
+          monsterHp: data.monsterHp, // HP моба всегда обновляем, так как это новый моб или новый раунд
+          status: 'active',
+          currentMonster: data.currentMonster,
+          totalMonsters: data.totalMonsters,
+          dungeonId: data.dungeonId,
+        };
       });
       // Сбрасываем историю при начале нового боя (раунд 1)
       if (data.roundNumber === 1) {
@@ -80,8 +89,16 @@ export function useBattle(battleId: string | null) {
         monsterHp: result.monsterHp,
         lastRoundResult: result,
       }));
-      // Добавляем результат раунда в историю
-      setRoundHistory((prev) => [...prev, result]);
+      // Добавляем результат раунда в историю, избегая дубликатов
+      setRoundHistory((prev) => {
+        // Проверяем, нет ли уже такого раунда в истории
+        const exists = prev.some(r => r.roundNumber === result.roundNumber);
+        if (exists) {
+          console.warn(`⚠️ Раунд ${result.roundNumber} уже есть в истории, пропускаем дубликат`);
+          return prev;
+        }
+        return [...prev, result];
+      });
     });
 
     newSocket.on('battle-end', (data: {

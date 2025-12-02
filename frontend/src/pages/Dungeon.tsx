@@ -4,8 +4,6 @@ import { useGetCharacterQuery } from '../store/api/characterApi';
 import { useGetDungeonsQuery, useStartBattleMutation } from '../store/api/battleApi';
 import type { DungeonDifficulty } from '../types/api';
 import { useBattle } from '../hooks/useBattle';
-import { styles } from './Dungeon.styles';
-import { CharacterStats } from '../components/battle/CharacterStats';
 import { DifficultySelector } from '../components/battle/DifficultySelector';
 import { BattleArena } from '../components/battle/BattleArena';
 import { getAssetUrl } from '../utils/assetUrl';
@@ -50,6 +48,7 @@ const Dungeon = () => {
     });
   }, [dungeons, dungeonsLoading, dungeonsError]);
 
+
   // Управление музыкой
   useEffect(() => {
     if (audioRef.current) {
@@ -93,8 +92,13 @@ const Dungeon = () => {
 
       console.log('✅ Battle created:', result);
       setBattleId(result.id);
-    } catch (err: any) {
-      alert('Ошибка при создании боя: ' + (err?.data?.message || err.message || 'Неизвестная ошибка'));
+    } catch (err: unknown) {
+      const errorMessage = err && typeof err === 'object' && 'data' in err && typeof err.data === 'object' && err.data !== null && 'message' in err.data
+        ? String(err.data.message)
+        : err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+        ? err.message
+        : 'Неизвестная ошибка';
+      alert('Ошибка при создании боя: ' + errorMessage);
     }
   };
 
@@ -123,13 +127,13 @@ const Dungeon = () => {
         width: '100vw',
         height: '100vh',
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
         overflow: 'hidden',
+        backgroundColor: '#000',
       }}>
-        {/* Видео фон для экрана выбора */}
+        {/* Видео фон для экрана выбора - фиксированное */}
         <video
           autoPlay
           loop
@@ -153,7 +157,7 @@ const Dungeon = () => {
           <source src={getAssetUrl('dungeon/selection/enterDungeonMusic.mp3')} type="audio/mpeg" />
         </audio>
 
-        {/* Кнопка музыки - правый верхний угол */}
+        {/* Кнопка музыки - правый верхний угол - фиксированная */}
         <button
           onClick={toggleMusic}
           style={{
@@ -187,14 +191,14 @@ const Dungeon = () => {
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
+              objectFit: 'contain',
               borderRadius: '8px',
               filter: isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)',
             }}
           />
         </button>
 
-        {/* Кнопка чата - между музыкой и выходом справа */}
+        {/* Кнопка чата - между музыкой и выходом справа - фиксированная */}
         <button
           onClick={() => setIsChatOpen(true)}
           style={{
@@ -229,13 +233,13 @@ const Dungeon = () => {
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
+              objectFit: 'contain',
               borderRadius: '8px',
             }}
           />
         </button>
 
-        {/* Кнопка выхода - правый нижний угол */}
+        {/* Кнопка выхода - правый нижний угол - фиксированная */}
         <Link to="/dashboard" style={{ textDecoration: 'none' }}>
           <button
             style={{
@@ -269,21 +273,29 @@ const Dungeon = () => {
               style={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
+                objectFit: 'contain',
                 borderRadius: '8px',
               }}
             />
           </button>
         </Link>
 
-        {/* Контент без фона - только элементы */}
+        {/* Контент - фиксированный, как в Dashboard */}
         <div style={{
+          position: 'fixed',
+          top: '40%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '20px',
+          gap: '10px',
+          width: '100%',
+          maxWidth: '600px',
+          padding: '20px',
+          boxSizing: 'border-box',
         }}>
           {/* Выбор сложности */}
           <DifficultySelector
@@ -296,8 +308,9 @@ const Dungeon = () => {
             <div
               onClick={startBattle}
               style={{
-                width: '700px',
-                height: '360px',
+                width: '400px',
+                maxWidth: '100%',
+                aspectRatio: '700 / 360',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 position: 'relative',
@@ -317,7 +330,7 @@ const Dungeon = () => {
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
+                  objectFit: 'contain',
                   pointerEvents: 'none',
                 }}
               />
@@ -331,13 +344,14 @@ const Dungeon = () => {
               fontWeight: 'bold',
               borderRadius: '10px',
               textAlign: 'center',
+              maxWidth: '400px',
             }}>
               Недостаточно выносливости ({requiredStamina})
             </div>
           )}
         </div>
 
-        {/* Окно чата */}
+        {/* Окно чата - фиксированное */}
         {character && (
           <ChatWindow
             characterId={character.id}
