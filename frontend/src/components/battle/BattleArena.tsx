@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import type { Zone, RoundActions, BattleState } from '../../hooks/useBattle';
 import type { Character } from '../../types/api';
 import { BattleStats } from './BattleStats';
@@ -31,6 +31,13 @@ const dungeon2Mob3 = getAssetUrl('dungeon/mobs/dungeon2-mob-3-spider.png');
 const dungeon2Mob4 = getAssetUrl('dungeon/mobs/dungeon2-mob-4-monster.png');
 const dungeon2Mob5 = getAssetUrl('dungeon/mobs/dungeon2-mob-5-leshy-boss.png');
 
+// Изображения мобов для Данжа 3
+const dungeon3Mob1 = getAssetUrl('dungeon/mobs/dange3mob1.png');
+const dungeon3Mob2 = getAssetUrl('dungeon/mobs/dange3mob2.png');
+const dungeon3Mob3 = getAssetUrl('dungeon/mobs/dange3mob3.png');
+const dungeon3Mob4 = getAssetUrl('dungeon/mobs/dange3mob4.png');
+const dungeon3Mob5 = getAssetUrl('dungeon/mobs/dange3mob5.png');
+
 type BattleArenaProps = {
   character: Character;
   battleState: BattleState;
@@ -49,6 +56,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
   const [selectedAttacks, setSelectedAttacks] = useState<Zone[]>([]);
   const [selectedDefenses, setSelectedDefenses] = useState<Zone[]>([]);
   const [waitingForResult, setWaitingForResult] = useState(false);
+  const [isAttacking, setIsAttacking] = useState(false);
 
   // Используем dungeonId из battleState, или fallback если не пришло с сервера
   const dungeonId = battleState.dungeonId || fallbackDungeonId;
@@ -64,6 +72,16 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
       case 'mage': return getAssetUrl('dungeon/battle/mage_character.png');
       case 'rogue': return getAssetUrl('dungeon/battle/rogue_character.png');
       default: return getAssetUrl('dungeon/battle/warrior_character.png');
+    }
+  };
+
+  // Выбор видео атаки персонажа по классу
+  const getAttackVideo = () => {
+    switch (character.class) {
+      case 'warrior': return getAssetUrl('dungeon/battle/atakeWar.mp4');
+      case 'mage': return getAssetUrl('dungeon/battle/attakeMage.mp4');
+      case 'rogue': return getAssetUrl('dungeon/battle/atakeRogue.mp4');
+      default: return getAssetUrl('dungeon/battle/atakeWar.mp4');
     }
   };
 
@@ -94,6 +112,17 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
       ];
       return images[mobNumber - 1] || images[0];
     }
+    // Данж 3
+    else if (dungeonId === 3) {
+      const images = [
+        getAssetUrl('dungeon/mobs/dange3mob1.png'),
+        getAssetUrl('dungeon/mobs/dange3mob2.png'),
+        getAssetUrl('dungeon/mobs/dange3mob3.png'),
+        getAssetUrl('dungeon/mobs/dange3mob4.png'),
+        getAssetUrl('dungeon/mobs/dange3mob5.png'),
+      ];
+      return images[mobNumber - 1] || images[0];
+    }
     // По умолчанию - данж 1
     return getAssetUrl('dungeon/mobs/mob-1-skeleton.png');
   };
@@ -108,6 +137,11 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     // Данж 2 - Болото
     else if (dungeonId === 2) {
       const names = ['Слизь', 'Болотный Крокодил', 'Паук', 'Болотный Монстр', '🌿 ЛЕШИЙ-БОСС'];
+      return names[mobNumber - 1] || 'Монстр';
+    }
+    // Данж 3
+    else if (dungeonId === 3) {
+      const names = ['Темный Воин', 'Теневой Маг', 'Демон-Страж', 'Повелитель Тьмы', '🔥 ВЛАСТЕЛИН ПОДЗЕМЕЛЬЯ'];
       return names[mobNumber - 1] || 'Монстр';
     }
     return 'Монстр';
@@ -180,6 +214,12 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     setSelectedAttacks([]);
     setSelectedDefenses([]);
     setWaitingForResult(true);
+
+    // Запускаем анимацию атаки на 6 секунд
+    setIsAttacking(true);
+    setTimeout(() => {
+      setIsAttacking(false);
+    }, 6000);
   };
 
   const getStatusText = () => {
@@ -296,15 +336,32 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                       overflow: 'hidden',
                       position: 'relative',
                     }}>
-                    <img
-                      src={getCharacterImage()}
-                      alt={character.class}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                      }}
-                    />
+                    {isAttacking ? (
+                      <video
+                        key={`attack-${battleState.roundNumber}`}
+                        src={getAttackVideo()}
+                        autoPlay
+                        muted
+                        playsInline
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          mixBlendMode: 'multiply',
+                        }}
+                        onEnded={() => setIsAttacking(false)}
+                      />
+                    ) : (
+                      <img
+                        src={getCharacterImage()}
+                        alt={character.class}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    )}
                     <div style={{
                       position: 'absolute',
                       bottom: '8px',
