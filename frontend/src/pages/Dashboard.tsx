@@ -1,15 +1,31 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useGetCharacterQuery, useGetStaminaInfoQuery, useTestLevelBoostMutation } from '../store/api/characterApi';
+import { 
+  useGetCharacterQuery, 
+  useGetStaminaInfoQuery, 
+  useTestLevelBoostMutation,
+  useGetCharactersByUserIdQuery,
+  useAutoCreateCharactersMutation,
+  useUpdateCharacterNameMutation,
+} from '../store/api/characterApi';
 import { styles } from './Dashboard.styles';
 import { useState, useEffect, useRef } from 'react';
 import { getAssetUrl } from '../utils/assetUrl';
 import { ChatWindow } from '../components/ChatWindow';
+import { CharacterSelector } from '../components/CharacterSelector';
+import type { Character } from '../types/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const characterId = localStorage.getItem('characterId');
+  const characterIdFromStorage = localStorage.getItem('characterId');
   const [boostMessage, setBoostMessage] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  
+  // Состояние для выбора персонажа
+  const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(
+    characterIdFromStorage ? Number(characterIdFromStorage) : null
+  );
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [userId, setUserId] = useState<number | null>(null);
 
   // Загружаем настройку музыки из localStorage
   const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
@@ -20,20 +36,114 @@ const Dashboard = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioRef2 = useRef<HTMLAudioElement>(null);
 
+  // Получаем текущего персонажа для получения userId
+  const { data: initialCharacter } = useGetCharacterQuery(
+    Number(characterIdFromStorage),
+    { skip: !characterIdFromStorage }
+  );
+
+  // Получаем персонажа для отображения (из выбранного)
   const { data: character, isLoading, error } = useGetCharacterQuery(
-    Number(characterId),
-    { skip: !characterId }
+    Number(selectedCharacterId),
+    { skip: !selectedCharacterId }
   );
 
   const { data: staminaInfo } = useGetStaminaInfoQuery(
-    Number(characterId),
+    Number(selectedCharacterId),
     {
-      skip: !characterId || !character || !!error,
+      skip: !selectedCharacterId || !character || !!error,
       pollingInterval: 1000,
     }
   );
 
+  // Мутации для работы с персонажами
+  const [autoCreateCharacters] = useAutoCreateCharactersMutation();
+  const [updateCharacterName] = useUpdateCharacterNameMutation();
+
+  // Загружаем персонажей пользователя
+  const { data: userCharacters, isLoading: isLoadingCharacters, refetch: refetchUserCharacters } = useGetCharactersByUserIdQuery(
+    userId!,
+    { skip: !userId }
+  );
+
   const [testLevelBoost, { isLoading: isBoostLoading }] = useTestLevelBoostMutation();
+
+  // Получаем userId из текущего персонажа или из созданных персонажей
+  useEffect(() => {
+    if (initialCharacter?.userId) {
+      console.log('[Dashboard] Setting userId from initialCharacter:', initialCharacter.userId);
+      setUserId(initialCharacter.userId);
+    } else if (characters.length > 0 && characters[0]?.userId) {
+      // Если userId еще не установлен, но есть персонажи, берем userId из них
+      console.log('[Dashboard] Setting userId from characters:', characters[0].userId);
+      setUserId(characters[0].userId);
+    }
+  }, [initialCharacter, characters]);
+
+  // Загружаем персонажей пользователя и автосоздаем, если их нет
+  useEffect(() => {
+    console.log('[Dashboard] userCharacters changed:', userCharacters);
+    console.log('[Dashboard] userId:', userId);
+    
+    if (userCharacters !== undefined) {
+      // Убеждаемся, что это массив
+      const charactersArray = Array.isArray(userCharacters) ? userCharacters : [];
+      console.log('[Dashboard] Setting characters array:', charactersArray);
+      setCharacters(charactersArray);
+      
+      // Если персонажей меньше 3 - создаем автоматически недостающих
+      if (charactersArray.length < 3 && userId) {
+        console.log(`[Dashboard] Found ${charactersArray.length} characters, need 3. Attempting auto-create for userId:`, userId);
+        autoCreateCharacters(userId)
+          .unwrap()
+          .then((created) => {
+            const createdArray = Array.isArray(created) ? created : [];
+            console.log('[Dashboard] Auto-created characters:', createdArray);
+            console.log('[Dashboard] Created characters details:', createdArray.map(c => ({ id: c.id, name: c.name, class: c.class })));
+            // Обновляем список персонажей через рефетч
+            refetchUserCharacters().then((result) => {
+              const freshCharacters = Array.isArray(result.data) ? result.data : [];
+              console.log('[Dashboard] Refetched characters after auto-create:', freshCharacters);
+              setCharacters(freshCharacters);
+              // Выбираем первого персонажа, если не выбран
+              if (freshCharacters.length > 0 && !selectedCharacterId) {
+                setSelectedCharacterId(freshCharacters[0].id);
+                localStorage.setItem('characterId', freshCharacters[0].id.toString());
+              }
+            });
+          })
+          .catch((error) => {
+            console.error('[Dashboard] Failed to auto-create characters:', error);
+            console.error('[Dashboard] Error details:', error.status, error.data);
+          });
+      } else if (charactersArray.length > 0 && !selectedCharacterId) {
+        // Если есть персонажи, но не выбран - выбираем первого
+        console.log('[Dashboard] Selecting first character:', charactersArray[0].id);
+        setSelectedCharacterId(charactersArray[0].id);
+        localStorage.setItem('characterId', charactersArray[0].id.toString());
+      }
+    }
+  }, [userCharacters, userId, selectedCharacterId, autoCreateCharacters]);
+
+  // Обработчики для выбора персонажа
+  const handleSelectCharacter = (characterId: number) => {
+    setSelectedCharacterId(characterId);
+    localStorage.setItem('characterId', characterId.toString());
+  };
+
+  const handleUpdateName = async (characterId: number, newName: string) => {
+    try {
+      await updateCharacterName({ characterId, name: newName }).unwrap();
+      // Обновляем список персонажей
+      const updatedCharacters = characters.map((c) =>
+        c.id === characterId ? { ...c, name: newName } : c
+      );
+      setCharacters(updatedCharacters);
+    } catch (error) {
+      console.error('Failed to update character name:', error);
+      throw error;
+    }
+  };
 
   // Управление музыкой с crossfade
   useEffect(() => {
@@ -119,9 +229,9 @@ const Dashboard = () => {
   };
 
   const handleLevelBoost = async () => {
-    if (!characterId) return;
+    if (!selectedCharacterId) return;
     try {
-      const result = await testLevelBoost(Number(characterId)).unwrap();
+      const result = await testLevelBoost(Number(selectedCharacterId)).unwrap();
       setBoostMessage(result.message);
       setTimeout(() => setBoostMessage(null), 5000);
     } catch (error: any) {
@@ -130,41 +240,8 @@ const Dashboard = () => {
     }
   };
 
-  if (!characterId) {
-    navigate('/');
-    return null;
-  }
-
-  if (isLoading) {
-    return <div style={styles.loadingContainer}>Загрузка...</div>;
-  }
-
-  if (error || !character) {
-    return (
-      <div style={styles.errorContainer}>
-        Ошибка: {error ? 'error' in error ? error.error : 'Ошибка загрузки' : 'Персонаж не найден'}
-        <br />
-        <Link to="/">Создать персонажа</Link>
-      </div>
-    );
-  }
-
-  const hpPercent = (character.currentHp / character.maxHp) * 100;
-
-  const currentStamina = staminaInfo?.currentStamina ?? character.stamina;
-  const maxStamina = staminaInfo?.maxStamina ?? 100;
-  const staminaPercent = (currentStamina / maxStamina) * 100; // Максимум стамины 100
 
   // Выбор видео героя по классу
-  const getHeroVideo = () => {
-    if (!character) return '';
-    const classLower = character.class.toLowerCase();
-    if (classLower === 'warrior') return getAssetUrl('dashboard/warrior.mp4');
-    if (classLower === 'mage') return getAssetUrl('dashboard/mag.mp4');
-    if (classLower === 'rogue') return getAssetUrl('dashboard/sin.mp4');
-    return getAssetUrl('dashboard/warrior.mp4'); // fallback
-  };
-
   return (
     <div style={{ position: 'relative', width: '1366px', height: '768px', overflow: 'hidden' }}>
       {/* Видео фон */}
@@ -197,7 +274,7 @@ const Dashboard = () => {
       {/* Кнопки управления - верх страницы по центру */}
       <div style={{
         position: 'absolute',
-        top: '20px',
+        top: '10px',
         left: '50%',
         transform: 'translateX(-50%)',
         display: 'flex',
@@ -344,29 +421,34 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Навигационные кнопки - в ряд снизу по центру */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        gap: '2.5px',
-        zIndex: 1000,
-      }}>
-        <Link to="/dungeon" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/dungeons.png')}
-            alt="Подземелье"
-            style={{
-              width: '225px',
-              height: '120px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '4px',
-            }}
+      {/* Навигационные кнопки - сетка 2x3 слева */}
+      {selectedCharacterId && (
+        <div style={{
+          position: 'absolute',
+          left: '10px',
+          top: '120px', // Начинаются ниже кнопок музыки/чата/выхода
+          bottom: '10px', // Растягиваем до низа
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateRows: 'repeat(3, 1fr)', // Равномерно распределяем по высоте
+          gap: '8px', // Уменьшили расстояние между кнопками
+          alignItems: 'stretch',
+          justifyItems: 'stretch',
+          zIndex: 1000,
+        }}>
+          <Link to="/dungeon" style={{ display: 'block' }}>
+            <img
+              src={getAssetUrl('dashboard/dungeons.png')}
+              alt="Подземелье"
+              style={{
+                width: '216px',
+                height: '126px',
+                objectFit: 'cover',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                background: 'transparent',
+                borderRadius: '4px',
+              }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
               e.currentTarget.style.filter = 'brightness(1.2)';
@@ -382,8 +464,8 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/inventory.png')}
             alt="Инвентарь"
             style={{
-              width: '225px',
-              height: '120px',
+              width: '216px',
+              height: '126px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
@@ -405,8 +487,8 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/blacksmith.png')}
             alt="Кузница"
             style={{
-              width: '225px',
-              height: '120px',
+              width: '216px',
+              height: '126px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
@@ -428,8 +510,8 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/pvp.png')}
             alt="PvP"
             style={{
-              width: '225px',
-              height: '120px',
+              width: '216px',
+              height: '126px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
@@ -451,8 +533,8 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/specialization.png')}
             alt="Специализация"
             style={{
-              width: '225px',
-              height: '120px',
+              width: '216px',
+              height: '126px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
@@ -474,8 +556,8 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/mentor.png')}
             alt="Наставник"
             style={{
-              width: '225px',
-              height: '120px',
+              width: '216px',
+              height: '126px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
@@ -492,42 +574,12 @@ const Dashboard = () => {
             }}
           />
         </Link>
-      </div>
+        </div>
+      )}
 
-      {/* Портрет героя - центр экрана */}
-      <div style={{
-        position: 'absolute',
-        top: '40%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '340px',
-        height: '340px',
-        borderRadius: '10px',
-        overflow: 'hidden',
-        zIndex: 1000,
-        pointerEvents: 'none',
-      }}>
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-          onError={(e) => {
-            console.error('Hero video failed to load');
-            console.log('Video URL:', getHeroVideo());
-            console.log('Character class:', character?.class);
-          }}
-        >
-          <source src={getHeroVideo()} type="video/mp4" />
-        </video>
-      </div>
-
-
+      {/* Основной контент - показывается только если выбран персонаж */}
+      {selectedCharacterId && character ? (
+        <>
       {/* Кнопка Level Up - появляется только когда есть свободные очки */}
       {character.freePoints > 0 && (
         <Link to="/inventory" style={{
@@ -563,243 +615,6 @@ const Dashboard = () => {
         </Link>
       )}
 
-      {/* Имя, класс и уровень персонажа */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        left: '20px',
-        width: '240px',
-        height: '48px',
-        zIndex: 1000,
-      }}>
-        {/* Фоновое изображение */}
-        <img
-          src={getAssetUrl('dashboard/name.png')}
-          alt="Character Info Background"
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 1,
-            display: 'none',
-          }}
-        />
-
-        {/* Контент поверх фона */}
-        <div style={{
-          position: 'relative',
-          zIndex: 2,
-          display: 'flex',
-          gap: '6px',
-          padding: '8px',
-          height: '100%',
-          alignItems: 'center',
-          justifyContent: 'space-around',
-        }}>
-          {/* Имя персонажа */}
-          <div style={{
-            textAlign: 'center',
-          }}>
-            <div style={{
-              fontSize: '6.5px',
-              color: '#d4af37',
-              marginBottom: '1.5px',
-              fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.25px',
-            }}>
-              Имя
-            </div>
-            <div style={{
-              fontSize: '10.5px',
-              fontWeight: 'bold',
-              color: '#ffd700',
-              fontFamily: "'IM Fell English', serif",
-              textShadow: '0 0 5px rgba(255, 215, 0, 0.6)',
-              letterSpacing: '0.5px',
-            }}>
-              {character.name}
-            </div>
-          </div>
-
-          {/* Класс персонажа */}
-          <div style={{
-            textAlign: 'center',
-          }}>
-            <div style={{
-              fontSize: '6.5px',
-              color: '#d4af37',
-              marginBottom: '1.5px',
-              fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.25px',
-            }}>
-              Класс
-            </div>
-            <div style={{
-              fontSize: '10.5px',
-              fontWeight: 'bold',
-              color: '#ffd700',
-              fontFamily: "'IM Fell English', serif",
-              textShadow: '0 0 5px rgba(255, 215, 0, 0.6)',
-              letterSpacing: '0.5px',
-            }}>
-              {character.class}
-            </div>
-          </div>
-
-          {/* Уровень персонажа */}
-          <div style={{
-            textAlign: 'center',
-          }}>
-            <div style={{
-              fontSize: '6.5px',
-              color: '#d4af37',
-              marginBottom: '1.5px',
-              fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.25px',
-            }}>
-              Уровень
-            </div>
-            <div style={{
-              fontSize: '10.5px',
-              fontWeight: 'bold',
-              color: '#ffd700',
-              fontFamily: "'IM Fell English', serif",
-              textShadow: '0 0 5px rgba(255, 215, 0, 0.6)',
-              letterSpacing: '0.5px',
-            }}>
-              {character.level}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* HP и Stamina бары */}
-      <div style={{
-        position: 'absolute',
-        top: '90px',
-        left: '20px',
-        width: '240px',
-        height: '80px',
-        zIndex: 1000,
-      }}>
-        {/* Фоновое изображение */}
-        <img
-          src={getAssetUrl('dashboard/hp.png')}
-          alt="Health and Stamina Background"
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 1,
-            display: 'none',
-          }}
-        />
-
-        {/* Контент поверх фона */}
-        <div style={{
-          position: 'relative',
-          zIndex: 2,
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '7px',
-          height: '100%',
-          justifyContent: 'center',
-        }}>
-          {/* HP Bar */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-              <span style={{
-                color: '#ff6b6b',
-                fontSize: '9px',
-                fontWeight: 'bold',
-                fontFamily: "'IM Fell English', serif",
-                textShadow: '0 0 4px rgba(255, 68, 68, 0.6)',
-                letterSpacing: '0.5px',
-              }}>HP</span>
-              <span style={{
-                color: '#fff',
-                fontSize: '8px',
-                fontWeight: 'bold',
-                fontFamily: "'IM Fell English', serif",
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
-              }}>
-                {character.currentHp} / {character.maxHp}
-              </span>
-            </div>
-            <div style={{
-              width: '100%',
-              height: '10px',
-              background: '#1a1a1a',
-              borderRadius: '5px',
-              overflow: 'hidden',
-              border: '1px solid #cc0000',
-              boxShadow: '0 0 5px rgba(204, 0, 0, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.5)',
-            }}>
-              <div style={{
-                width: `${hpPercent}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, #ff4444, #cc0000)',
-                transition: 'width 0.3s ease',
-                boxShadow: '0 0 5px rgba(255, 68, 68, 0.5)',
-              }} />
-            </div>
-          </div>
-
-          {/* Stamina Bar */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-              <span style={{
-                color: '#66bb6a',
-                fontSize: '9px',
-                fontWeight: 'bold',
-                fontFamily: "'IM Fell English', serif",
-                textShadow: '0 0 4px rgba(76, 175, 80, 0.6)',
-                letterSpacing: '0.5px',
-              }}>Выносливость</span>
-              <span style={{
-                color: '#fff',
-                fontSize: '8px',
-                fontWeight: 'bold',
-                fontFamily: "'IM Fell English', serif",
-                textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)',
-              }}>
-                {currentStamina} / {maxStamina}
-              </span>
-            </div>
-            <div style={{
-              width: '100%',
-              height: '10px',
-              background: '#1a1a1a',
-              borderRadius: '5px',
-              overflow: 'hidden',
-              border: '1px solid #2E7D32',
-              boxShadow: '0 0 5px rgba(46, 125, 50, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.5)',
-            }}>
-              <div style={{
-                width: `${staminaPercent}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, #4CAF50, #2E7D32)',
-                transition: 'width 0.3s ease',
-                boxShadow: '0 0 5px rgba(76, 175, 80, 0.5)',
-              }} />
-            </div>
-            <div style={{
-              fontSize: '6.5px',
-              color: '#d4af37',
-              marginTop: '3px',
-              fontFamily: "'IM Fell English', serif",
-            }}>
-              Восстанавливается: 1/сек
-              {staminaInfo?.secondsToFull && staminaInfo.secondsToFull > 0 && (
-                <span> • Полная через {Math.ceil(staminaInfo.secondsToFull)}с</span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div style={{ ...styles.container, position: 'relative', zIndex: 2, height: '768px', overflowY: 'auto' }}>
       {boostMessage && (
@@ -816,182 +631,38 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Объединённый блок: Золото + Характеристики */}
-      <div style={{
-        position: 'absolute',
-        top: '200px',
-        left: '20px',
-        width: '240px',
-        height: '128px',
-        zIndex: 1000,
-      }}>
-        {/* Фоновое изображение */}
-        <img
-          src={getAssetUrl('dashboard/charaktery.png')}
-          alt="Stats and Gold Background"
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 1,
-            display: 'none',
-          }}
-        />
 
-        {/* Контент поверх фона */}
+      </div>
+        </>
+      ) : (
+        /* Сообщение о выборе персонажа */
         <div style={{
-          position: 'relative',
-          zIndex: 2,
-          padding: '6px',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center',
+          color: '#ffd700',
+          fontSize: '24px',
+          fontFamily: "'IM Fell English', serif",
+          textShadow: '0 0 10px rgba(255, 215, 0, 0.8)',
+          zIndex: 1000,
         }}>
-          {/* Характеристики */}
-          <div style={{ marginBottom: '10px' }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '6px',
-            }}>
-              <h3 style={{
-                margin: 0,
-                color: '#ffd700',
-                fontSize: '9.5px',
-                fontFamily: "'IM Fell English', serif",
-                fontWeight: 700,
-                textShadow: '0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3)',
-                letterSpacing: '1px',
-              }}>
-                Характеристики
-              </h3>
-              {character.freePoints > 0 && (
-                <Link to="/levelup" style={{ textDecoration: 'none' }}>
-                  <button style={{
-                    padding: '3px 6.5px',
-                    fontSize: '5.5px',
-                    background: 'linear-gradient(135deg, #4CAF50, #45a049)',
-                    color: '#fff',
-                    border: '0.5px solid #66bb6a',
-                    borderRadius: '2.5px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontFamily: "'IM Fell English', serif",
-                    boxShadow: '0 0 5px rgba(76, 175, 80, 0.4)',
-                    transition: 'all 0.3s ease',
-                  }}>
-                    Прокачка ({character.freePoints})
-                  </button>
-                </Link>
-              )}
-            </div>
-            <div style={{
-              display: 'grid',
-              gap: '5px',
-              color: '#fff',
-              fontSize: '9px',
-              fontFamily: "'IM Fell English', serif",
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
-              }}>
-                <span style={{ marginRight: '4px' }}>⚔️</span>
-                <span>Сила:</span>
-                <span style={{
-                  color: '#ffd700',
-                  fontWeight: 'bold',
-                  marginLeft: '4px',
-                  textShadow: '0 0 4px rgba(255, 215, 0, 0.6)',
-                }}>{character.strength}</span>
-              </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)',
-              }}>
-                <span style={{ marginRight: '4px' }}>🏹</span>
-                <span>Ловкость:</span>
-                <span style={{
-                  color: '#ffd700',
-                  fontWeight: 'bold',
-                  marginLeft: '4px',
-                  textShadow: '0 0 4px rgba(255, 215, 0, 0.6)',
-                }}>{character.agility}</span>
-              </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)',
-              }}>
-                <span style={{ marginRight: '4px' }}>🔮</span>
-                <span>Интеллект:</span>
-                <span style={{
-                  color: '#ffd700',
-                  fontWeight: 'bold',
-                  marginLeft: '4px',
-                  textShadow: '0 0 4px rgba(255, 215, 0, 0.6)',
-                }}>{character.intelligence}</span>
-              </div>
-              {character.freePoints > 0 && (
-                <div style={{
-                  marginTop: '3px',
-                  padding: '3px',
-                  background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))',
-                  borderRadius: '2.5px',
-                  textAlign: 'center',
-                  fontSize: '7px',
-                  border: '0.5px solid rgba(76, 175, 80, 0.3)',
-                  boxShadow: '0 0 5px rgba(76, 175, 80, 0.2)',
-                }}>
-                  Свободных очков: <span style={{
-                    color: '#4CAF50',
-                    fontWeight: 'bold',
-                    textShadow: '0 0 4px rgba(76, 175, 80, 0.6)',
-                  }}>{character.freePoints}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Золото */}
-          <div style={{
-            borderTop: '0.5px solid rgba(255, 215, 0, 0.2)',
-            paddingTop: '6px',
-          }}>
-            <div style={{
-              fontSize: '7px',
-              color: '#d4af37',
-              marginBottom: '3px',
-              fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.5px',
-              textShadow: '0 0 2.5px rgba(212, 175, 55, 0.3)',
-            }}>
-              Золото
-            </div>
-            <div style={{
-              fontSize: '16px',
-              fontWeight: 'bold',
-              fontFamily: "'IM Fell English', serif",
-              background: 'linear-gradient(135deg, #FFD700, #FFA500, #FFD700)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 15px rgba(255, 215, 0, 0.5)',
-              filter: 'drop-shadow(0 0 5px rgba(255, 215, 0, 0.6))',
-              letterSpacing: '1px',
-            }}>
-              {character.gold.toLocaleString()}
-            </div>
-          </div>
+          {isLoadingCharacters ? (
+            'Загрузка персонажей...'
+          ) : (
+            'Выберите персонажа'
+          )}
         </div>
-      </div>
+      )}
 
-      </div>
+      {/* CharacterSelector - всегда видим справа */}
+      <CharacterSelector
+        characters={characters || []}
+        selectedCharacterId={selectedCharacterId}
+        onSelectCharacter={handleSelectCharacter}
+        onUpdateName={handleUpdateName}
+      />
 
       {/* Окно чата */}
       {character && (

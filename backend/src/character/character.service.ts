@@ -25,9 +25,19 @@ export class CharacterService {
       });
     }
 
-    const existingCharacter = await this.findByUserId(user.id);
-    if (existingCharacter) {
-      return existingCharacter;
+    // Проверяем, сколько персонажей уже у пользователя
+    const userCharacters = await this.prisma.character.findMany({
+      where: { userId: user.id },
+    });
+
+    if (userCharacters.length >= 3) {
+      throw new BadRequestException('У пользователя уже есть максимальное количество персонажей (3)');
+    }
+
+    // Проверяем, нет ли уже персонажа этого класса
+    const existingClass = userCharacters.find(c => c.class.toUpperCase() === characterClass.toUpperCase());
+    if (existingClass) {
+      throw new BadRequestException(`У пользователя уже есть персонаж класса ${characterClass}`);
     }
 
     // Проверяем, не существует ли персонаж с таким именем
@@ -83,10 +93,19 @@ export class CharacterService {
     }) as Promise<Character | null>;
   }
 
-  async findByUserId(userId: number): Promise<Character | null> {
-    return this.prisma.character.findUnique({
+  async findByUserId(userId: number): Promise<Character[]> {
+    return this.prisma.character.findMany({
       where: { userId },
       include: CHARACTER_INCLUDE,
+      orderBy: { createdAt: 'asc' },
+    }) as unknown as Promise<Character[]>;
+  }
+
+  async findFirstByUserId(userId: number): Promise<Character | null> {
+    return this.prisma.character.findFirst({
+      where: { userId },
+      include: CHARACTER_INCLUDE,
+      orderBy: { createdAt: 'asc' },
     }) as Promise<Character | null>;
   }
 
@@ -105,5 +124,78 @@ export class CharacterService {
   async unequipItem(characterId: number, inventoryItemId: number): Promise<Character> {
     await this.inventoryService.unequipItem(inventoryItemId);
     return this.findById(characterId) as Promise<Character>;
+  }
+
+  async autoCreateCharactersForUser(userId: number): Promise<Character[]> {
+    // Проверить, есть ли уже персонажи у пользователя
+    const existingCharacters = await this.prisma.character.findMany({
+      where: { userId },
+      select: { class: true },
+    });
+
+    const existingClasses = existingCharacters.map(c => c.class.toUpperCase());
+    const allClasses: CharacterClass[] = ['warrior', 'mage', 'rogue'];
+    const classesToCreate = allClasses.filter(cls => {
+      const classUpper = cls.toUpperCase();
+      return !existingClasses.includes(classUpper);
+    });
+
+    if (classesToCreate.length === 0) {
+      // Все персонажи уже созданы
+      return this.findByUserId(userId);
+    }
+
+    // Получаем пользователя для telegramId
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Пользователь с id ${userId} не найден`);
+    }
+
+    // Создаем недостающих персонажей
+    await Promise.all(
+      classesToCreate.map(async (classType) => {
+        const defaultName = this.getDefaultNameForClass(classType);
+        try {
+          await this.create(Number(user.telegramId), defaultName, classType);
+        } catch (error: any) {
+          // Игнорируем ошибку, если персонаж уже существует (на случай параллельного создания)
+          if (!error.message?.includes('уже существует')) {
+            throw error;
+          }
+        }
+      })
+    );
+
+    return this.findByUserId(userId);
+  }
+
+  private getDefaultNameForClass(classType: CharacterClass): string {
+    const classNames: Record<CharacterClass, string> = {
+      warrior: 'Воин',
+      mage: 'Маг',
+      rogue: 'Разбойник',
+    };
+    const timestamp = Date.now();
+    return `${classNames[classType]}${timestamp}`;
+  }
+
+  async updateName(characterId: number, newName: string): Promise<Character> {
+    // Проверить уникальность имени
+    const existing = await this.prisma.character.findUnique({
+      where: { name: newName },
+    });
+
+    if (existing && existing.id !== characterId) {
+      throw new BadRequestException(`Персонаж с именем "${newName}" уже существует`);
+    }
+
+    return this.prisma.character.update({
+      where: { id: characterId },
+      data: { name: newName },
+      include: CHARACTER_INCLUDE,
+    }) as unknown as Promise<Character>;
   }
 }

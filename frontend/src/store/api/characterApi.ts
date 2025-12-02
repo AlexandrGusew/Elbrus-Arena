@@ -126,6 +126,41 @@ export const characterApi = baseApi.injectEndpoints({
         { type: 'Character', id: characterId },
       ],
     }),
+
+    getCharactersByUserId: builder.query<Character[], number>({
+      query: (userId) => `/character/user/${userId}`,
+      providesTags: (result) =>
+        result && Array.isArray(result)
+          ? result.map(({ id }) => ({ type: 'Character', id }))
+          : [],
+      transformResponse: (response: Character[] | unknown) => {
+        // Убеждаемся, что возвращаем массив
+        if (Array.isArray(response)) {
+          return response;
+        }
+        console.error('getCharactersByUserId: Expected array, got:', response);
+        return [];
+      },
+    }),
+
+    autoCreateCharacters: builder.mutation<Character[], number>({
+      query: (userId) => ({
+        url: `/character/auto-create/${userId}`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Character'],
+    }),
+
+    updateCharacterName: builder.mutation<Character, { characterId: number; name: string }>({
+      query: ({ characterId, name }) => ({
+        url: `/character/${characterId}/name`,
+        method: 'PUT',
+        body: { name },
+      }),
+      invalidatesTags: (result, error, { characterId }) => [
+        { type: 'Character', id: characterId },
+      ],
+    }),
   }),
 })
 
@@ -142,4 +177,7 @@ export const {
   useGetStaminaInfoQuery,
   useTestLevelBoostMutation,
   useEnhanceOffhandMutation,
+  useGetCharactersByUserIdQuery,
+  useAutoCreateCharactersMutation,
+  useUpdateCharacterNameMutation,
 } = characterApi

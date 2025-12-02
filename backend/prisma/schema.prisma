@@ -40,14 +40,14 @@ model User {
   username   String?
   firstName  String?
   createdAt  DateTime   @default(now())
-  character  Character?
+  characters Character[]
 
   @@map("users")
 }
 
 model Character {
   id                 Int                @id @default(autoincrement())
-  userId             Int                @unique
+  userId             Int
   name               String             @unique
   class              String
   level              Int                @default(1)
@@ -80,6 +80,7 @@ model Character {
   blockedUsers       BlockedUser[]      @relation("BlockedBy")
   blockedByUsers     BlockedUser[]      @relation("Blocked")
 
+  @@index([userId])
   @@map("characters")
 }
 
