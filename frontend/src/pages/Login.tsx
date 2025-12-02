@@ -7,6 +7,7 @@ import {
   useVerifyTelegramCodeMutation,
 } from '../store/api/authApi';
 import { useLazyGetMyCharacterQuery } from '../store/api/characterApi';
+import { setAccessToken } from '../store/api/baseApi';
 import { getAssetUrl } from '../utils/assetUrl';
 
 type AuthMode = 'username' | 'telegram';
@@ -75,8 +76,15 @@ export default function Login() {
         return;
       }
 
-      await register({ username, password }).unwrap();
-      handleAuthSuccess();
+      const result = await register({ username, password }).unwrap();
+      // Явно сохраняем токен перед проверкой персонажа
+      setAccessToken(result.accessToken);
+      localStorage.setItem('isAuthenticated', 'true');
+
+      // Небольшая задержка, чтобы токен точно применился
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      await handleAuthSuccess();
     } catch (err: any) {
       console.error('Registration error:', err);
       setError(err.data?.message || 'Ошибка регистрации');
@@ -96,8 +104,15 @@ export default function Login() {
         return;
       }
 
-      await login({ username, password }).unwrap();
-      handleAuthSuccess();
+      const result = await login({ username, password }).unwrap();
+      // Явно сохраняем токен перед проверкой персонажа
+      setAccessToken(result.accessToken);
+      localStorage.setItem('isAuthenticated', 'true');
+
+      // Небольшая задержка, чтобы токен точно применился
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      await handleAuthSuccess();
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.data?.message || 'Неверный логин или пароль');
@@ -149,8 +164,15 @@ export default function Login() {
         return;
       }
 
-      await verifyTelegramCode({ telegramUsername, code }).unwrap();
-      handleAuthSuccess();
+      const result = await verifyTelegramCode({ telegramUsername, code }).unwrap();
+      // Явно сохраняем токен перед проверкой персонажа
+      setAccessToken(result.accessToken);
+      localStorage.setItem('isAuthenticated', 'true');
+
+      // Небольшая задержка, чтобы токен точно применился
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      await handleAuthSuccess();
     } catch (err: any) {
       console.error('Verify code error:', err);
       setError(err.data?.message || 'Неверный или истекший код');
@@ -161,7 +183,17 @@ export default function Login() {
   useEffect(() => {
     if (audioRef.current) {
       if (isMusicPlaying) {
-        audioRef.current.play().catch((e) => console.log('Autoplay blocked:', e));
+        // Пытаемся воспроизвести только если пользователь уже взаимодействовал со страницей
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((e) => {
+            // Автовоспроизведение заблокировано - ждем первого взаимодействия
+            console.log('Autoplay blocked, waiting for user interaction');
+            // Отключаем флаг музыки, чтобы не было путаницы
+            setIsMusicPlaying(false);
+            localStorage.setItem('musicPlaying', 'false');
+          });
+        }
       } else {
         audioRef.current.pause();
       }
