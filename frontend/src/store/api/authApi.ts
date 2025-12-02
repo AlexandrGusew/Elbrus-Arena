@@ -107,6 +107,25 @@ export const authApi = baseApi.injectEndpoints({
         }
       },
     }),
+
+    // ПРОВЕРКА АВТОРИЗАЦИИ
+    checkAuth: builder.query<{ authenticated: boolean }, void>({
+      query: () => ({
+        url: '/character/me',
+        method: 'GET',
+      }),
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
+        try {
+          await queryFulfilled;
+          localStorage.setItem('isAuthenticated', 'true');
+        } catch (err: any) {
+          if (err.error?.status === 401 || err.error?.status === 403) {
+            setAccessToken(null);
+            localStorage.setItem('isAuthenticated', 'false');
+          }
+        }
+      },
+    }),
   }),
 });
 
@@ -117,4 +136,6 @@ export const {
   useLogoutMutation,
   useInitiateTelegramAuthMutation,
   useVerifyTelegramCodeMutation,
+  useCheckAuthQuery,
+  useLazyCheckAuthQuery,
 } = authApi;

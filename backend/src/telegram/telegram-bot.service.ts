@@ -14,6 +14,7 @@ interface AuthAttempt {
 export class TelegramBotService implements OnModuleInit {
   private bot: Telegraf;
   private authAttempts: Map<string, AuthAttempt> = new Map(); // telegramUsername -> данные
+  private isEnabled = false;
 
   constructor(
     private configService: ConfigService,
@@ -21,10 +22,12 @@ export class TelegramBotService implements OnModuleInit {
   ) {
     const token = this.configService.get<string>('TELEGRAM_BOT_TOKEN');
     if (!token) {
-      console.warn('⚠️  TELEGRAM_BOT_TOKEN не настроен в .env - Telegram бот отключен');
+      console.warn('⚠️  TELEGRAM_BOT_TOKEN не настроен в .env. Telegram бот будет отключен.');
+      this.isEnabled = false;
       return;
     }
     this.bot = new Telegraf(token);
+    this.isEnabled = true;
   }
 
   private generateCode(): string {
@@ -32,8 +35,8 @@ export class TelegramBotService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    // Если бот не инициализирован, не запускаем обработчики
-    if (!this.bot) {
+    if (!this.isEnabled || !this.bot) {
+      console.log('ℹ️  Telegram бот отключен (TELEGRAM_BOT_TOKEN не настроен)');
       return;
     }
 
@@ -113,12 +116,24 @@ export class TelegramBotService implements OnModuleInit {
     });
 
     // Graceful shutdown
-    process.once('SIGINT', () => this.bot.stop('SIGINT'));
-    process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
+    process.once('SIGINT', () => {
+      if (this.bot) {
+        this.bot.stop('SIGINT');
+      }
+    });
+    process.once('SIGTERM', () => {
+      if (this.bot) {
+        this.bot.stop('SIGTERM');
+      }
+    });
   }
 
   // Инициализация попытки авторизации (вызывается с фронта)
   initiateAuth(telegramUsername: string): void {
+    if (!this.isEnabled) {
+      console.warn('⚠️  Попытка инициализации авторизации через Telegram, но бот отключен');
+      return;
+    }
     // Убираем @ если есть
     const username = telegramUsername.startsWith('@') ? telegramUsername.slice(1) : telegramUsername;
 
@@ -136,6 +151,10 @@ export class TelegramBotService implements OnModuleInit {
 
   // Проверка кода (telegramUsername + code)
   verifyCode(telegramUsername: string, code: string): number | null {
+    if (!this.isEnabled) {
+      console.warn('⚠️  Попытка проверки кода через Telegram, но бот отключен');
+      return null;
+    }
     // Убираем @ если есть
     const username = telegramUsername.startsWith('@') ? telegramUsername.slice(1) : telegramUsername;
 

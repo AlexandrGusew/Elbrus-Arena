@@ -1,9 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { DungeonService } from './dungeon.service';
-import { Public } from '../auth/public.decorator';
 import type { DungeonWithMonsters } from '../../../shared/types';
 
-@Public()
 @Controller('dungeons')
 export class DungeonController {
   constructor(private dungeonService: DungeonService) {}

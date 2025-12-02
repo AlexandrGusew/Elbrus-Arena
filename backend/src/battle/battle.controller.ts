@@ -1,8 +1,6 @@
 import { Controller, Post, Get, Body, Param } from '@nestjs/common';
 import { BattleService, Battle } from './battle.service';
-import { Public } from '../auth/public.decorator';
 
-@Public()
 @Controller('battle')
 export class BattleController {
   constructor(private battleService: BattleService) {}

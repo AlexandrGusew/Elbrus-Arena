@@ -23,7 +23,7 @@ export class AuthService {
     const botToken = this.configService.get<string>('TELEGRAM_BOT_TOKEN');
 
     if (!botToken) {
-      throw new Error('TELEGRAM_BOT_TOKEN не настроен');
+      throw new BadRequestException('Telegram authentication is not available');
     }
 
     // Валидируем подпись от Telegram
