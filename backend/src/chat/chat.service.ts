@@ -17,25 +17,43 @@ export class ChatService {
 
   // Инициализация глобального чата при запуске
   private async initGlobalChat() {
-    const globalRoom = await this.prisma.chatRoom.findFirst({
-      where: { type: ChatRoomType.GLOBAL },
-    });
-
-    if (!globalRoom) {
-      const newGlobalRoom = await this.prisma.chatRoom.create({
-        data: { type: ChatRoomType.GLOBAL },
+    try {
+      const globalRoom = await this.prisma.chatRoom.findFirst({
+        where: { type: ChatRoomType.GLOBAL },
       });
-      this.globalChatRoomId = newGlobalRoom.id;
-    } else {
-      this.globalChatRoomId = globalRoom.id;
+
+      if (!globalRoom) {
+        const newGlobalRoom = await this.prisma.chatRoom.create({
+          data: { type: ChatRoomType.GLOBAL },
+        });
+        this.globalChatRoomId = newGlobalRoom.id;
+      } else {
+        this.globalChatRoomId = globalRoom.id;
+      }
+    } catch (error) {
+      console.error('Failed to initialize global chat (database unavailable):', error.message);
+      // Не блокируем запуск приложения, инициализация произойдет позже
+      setTimeout(() => {
+        this.initGlobalChat().catch(err => {
+          console.error('Retry failed to initialize global chat:', err.message);
+        });
+      }, 5000); // Повтор через 5 секунд
     }
   }
 
   async getGlobalChatRoomId(): Promise<string> {
     if (!this.globalChatRoomId) {
-      await this.initGlobalChat();
+      try {
+        await this.initGlobalChat();
+      } catch (error) {
+        console.error('Failed to get global chat room ID:', error.message);
+        throw new BadRequestException('Chat service is temporarily unavailable');
+      }
     }
-    return this.globalChatRoomId!;
+    if (!this.globalChatRoomId) {
+      throw new BadRequestException('Global chat room is not initialized');
+    }
+    return this.globalChatRoomId;
   }
 
   // Отправить сообщение в чат

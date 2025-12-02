@@ -35,7 +35,7 @@ export class TelegramBotService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    if (!this.isEnabled) {
+    if (!this.isEnabled || !this.bot) {
       console.log('ℹ️  Telegram бот отключен (TELEGRAM_BOT_TOKEN не настроен)');
       return;
     }
