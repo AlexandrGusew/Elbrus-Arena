@@ -50,15 +50,15 @@ export default function Login() {
       if (character) {
         // Персонаж найден - сохраняем ID и переходим на Dashboard
         localStorage.setItem('characterId', character.id.toString());
-        navigate('/app/dashboard');
+        navigate('/dashboard');
       } else {
         // Персонажа нет - переходим на создание персонажа
-        navigate('/app');
+        navigate('/create-character');
       }
     } catch (error) {
       console.error('Error checking character:', error);
       // В случае ошибки переходим на создание персонажа
-      navigate('/app');
+      navigate('/create-character');
     }
   };
 

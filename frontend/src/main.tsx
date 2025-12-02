@@ -23,43 +23,42 @@ const router = createBrowserRouter([
     element: <Login />
   },
   {
-    path: '/app',
     element: <Layout />,
     children: [
       {
-        index: true,
+        path: '/create-character',
         element: <CreateCharacter />
       },
       {
-        path: 'dashboard',
+        path: '/dashboard',
         element: <ProtectedRoute><Dashboard /></ProtectedRoute>
       },
       {
-        path: 'pvp',
+        path: '/pvp',
         element: <ProtectedRoute><PvP /></ProtectedRoute>
       },
       {
-        path: 'dungeon',
+        path: '/dungeon',
         element: <ProtectedRoute><Dungeon /></ProtectedRoute>
       },
       {
-        path: 'blacksmith',
+        path: '/blacksmith',
         element: <ProtectedRoute><Blacksmith /></ProtectedRoute>
       },
       {
-        path: 'inventory',
+        path: '/inventory',
         element: <ProtectedRoute><Inventory /></ProtectedRoute>
       },
       {
-        path: 'levelup',
+        path: '/levelup',
         element: <ProtectedRoute><LevelUp /></ProtectedRoute>
       },
       {
-        path: 'specialization',
+        path: '/specialization',
         element: <ProtectedRoute><Specialization /></ProtectedRoute>
       },
       {
-        path: 'class-mentor',
+        path: '/class-mentor',
         element: <ProtectedRoute><ClassMentor /></ProtectedRoute>
       }
     ]

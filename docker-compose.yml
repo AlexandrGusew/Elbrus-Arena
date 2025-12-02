@@ -41,36 +41,9 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-      minio:
-        condition: service_started
     networks:
       - app-network
-
-  minio:
-    image: minio/minio:latest
-    container_name: elbrusgame-minio
-    restart: unless-stopped
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin123
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  minio_data:
-    driver: local
