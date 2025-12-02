@@ -166,7 +166,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '1366px', height: '768px', overflow: 'hidden' }}>
       {/* Видео фон */}
       <video
         autoPlay
@@ -174,11 +174,11 @@ const Dashboard = () => {
         muted
         playsInline
         style={{
-          position: 'fixed',
+          position: 'absolute',
           top: 0,
           left: 0,
-          width: '100vw',
-          height: '100vh',
+          width: '100%',
+          height: '100%',
           objectFit: 'cover',
           zIndex: 1,
         }}
@@ -194,129 +194,127 @@ const Dashboard = () => {
         <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
 
-      {/* Кнопка музыки - правый верхний угол */}
-      <button
-        onClick={toggleMusic}
-        style={{
-          position: 'fixed',
-          top: '40px',
-          right: '40px',
-          padding: '0',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          width: '200px',
-          height: '200px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.filter = 'brightness(1.2)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.filter = 'brightness(1)';
-        }}
-      >
-        <img
-          src={getAssetUrl('dashboard/music.png')}
-          alt="Music"
+      {/* Кнопки управления - верх страницы по центру */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        gap: '2.5px',
+        zIndex: 1000,
+      }}>
+        {/* Кнопка музыки */}
+        <button
+          onClick={toggleMusic}
           style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            borderRadius: '8px',
+            padding: '0',
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            width: '100px',
+            height: '100px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
-        />
-      </button>
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)';
+            e.currentTarget.style.filter = 'brightness(1.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.filter = 'brightness(1)';
+          }}
+        >
+          <img
+            src={getAssetUrl('dashboard/music.png')}
+            alt="Music"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '4px',
+            }}
+          />
+        </button>
 
-      {/* Кнопка чата - между музыкой и выходом справа */}
-      <button
-        onClick={() => setIsChatOpen(true)}
-        style={{
-          position: 'fixed',
-          top: '50%',
-          right: '40px',
-          transform: 'translateY(-50%)',
-          padding: '0',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          width: '200px',
-          height: '200px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
-          e.currentTarget.style.filter = 'brightness(1.2)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
-          e.currentTarget.style.filter = 'brightness(1)';
-        }}
-      >
-        <img
-          src={getAssetUrl('dashboard/buttonChat.png')}
-          alt="Chat"
+        {/* Кнопка чата */}
+        <button
+          onClick={() => setIsChatOpen(true)}
           style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            borderRadius: '8px',
+            padding: '0',
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            width: '100px',
+            height: '100px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
-        />
-      </button>
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)';
+            e.currentTarget.style.filter = 'brightness(1.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.filter = 'brightness(1)';
+          }}
+        >
+          <img
+            src={getAssetUrl('dashboard/buttonChat.png')}
+            alt="Chat"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '4px',
+            }}
+          />
+        </button>
 
-      {/* Кнопка выхода - правый нижний угол */}
-      <button
-        onClick={() => {
-          localStorage.removeItem('characterId');
-          navigate('/');
-        }}
-        style={{
-          position: 'fixed',
-          bottom: '40px',
-          right: '40px',
-          padding: '0',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          width: '200px',
-          height: '200px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.filter = 'brightness(1.2)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.filter = 'brightness(1)';
-        }}
-      >
-        <img
-          src={getAssetUrl('dashboard/exit.png')}
-          alt="Exit"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            borderRadius: '8px',
+        {/* Кнопка выхода */}
+        <button
+          onClick={() => {
+            localStorage.removeItem('characterId');
+            navigate('/');
           }}
-        />
-      </button>
+          style={{
+            padding: '0',
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            width: '100px',
+            height: '100px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)';
+            e.currentTarget.style.filter = 'brightness(1.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.filter = 'brightness(1)';
+          }}
+        >
+          <img
+            src={getAssetUrl('dashboard/exit.png')}
+            alt="Exit"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '4px',
+            }}
+          />
+        </button>
+      </div>
 
       <div style={{
         display: 'none',
@@ -327,16 +325,16 @@ const Dashboard = () => {
           onClick={handleLevelBoost}
           disabled={isBoostLoading}
           style={{
-            padding: '10px',
-            border: '2px solid #fff',
+            padding: '5px',
+            border: '1px solid #fff',
             background: isBoostLoading ? 'rgba(128, 128, 128, 0.8)' : 'rgba(255, 152, 0, 0.8)',
             color: '#fff',
-            fontSize: '20px',
+            fontSize: '10px',
             cursor: isBoostLoading ? 'not-allowed' : 'pointer',
-            borderRadius: '8px',
+            borderRadius: '2px',
             transition: 'all 0.3s ease',
-            width: '50px',
-            height: '50px',
+            width: '25px',
+            height: '25px',
             display: 'none', // Скрыто
             alignItems: 'center',
             justifyContent: 'center',
@@ -348,12 +346,12 @@ const Dashboard = () => {
 
       {/* Навигационные кнопки - в ряд снизу по центру */}
       <div style={{
-        position: 'fixed',
-        bottom: '40px',
+        position: 'absolute',
+        bottom: '20px',
         left: '50%',
         transform: 'translateX(-50%)',
         display: 'flex',
-        gap: '5px',
+        gap: '2.5px',
         zIndex: 1000,
       }}>
         <Link to="/dungeon" style={{ display: 'block' }}>
@@ -361,13 +359,13 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/dungeons.png')}
             alt="Подземелье"
             style={{
-              width: '450px',
-              height: '240px',
+              width: '225px',
+              height: '120px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
-              borderRadius: '8px',
+              borderRadius: '4px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -384,13 +382,13 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/inventory.png')}
             alt="Инвентарь"
             style={{
-              width: '450px',
-              height: '240px',
+              width: '225px',
+              height: '120px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
-              borderRadius: '8px',
+              borderRadius: '4px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -407,13 +405,13 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/blacksmith.png')}
             alt="Кузница"
             style={{
-              width: '450px',
-              height: '240px',
+              width: '225px',
+              height: '120px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
-              borderRadius: '8px',
+              borderRadius: '4px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -430,13 +428,13 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/pvp.png')}
             alt="PvP"
             style={{
-              width: '450px',
-              height: '240px',
+              width: '225px',
+              height: '120px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
-              borderRadius: '8px',
+              borderRadius: '4px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -453,13 +451,13 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/specialization.png')}
             alt="Специализация"
             style={{
-              width: '450px',
-              height: '240px',
+              width: '225px',
+              height: '120px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
-              borderRadius: '8px',
+              borderRadius: '4px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -476,13 +474,13 @@ const Dashboard = () => {
             src={getAssetUrl('dashboard/mentor.png')}
             alt="Наставник"
             style={{
-              width: '450px',
-              height: '240px',
+              width: '225px',
+              height: '120px',
               objectFit: 'cover',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               background: 'transparent',
-              borderRadius: '8px',
+              borderRadius: '4px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -498,13 +496,13 @@ const Dashboard = () => {
 
       {/* Портрет героя - центр экрана */}
       <div style={{
-        position: 'fixed',
+        position: 'absolute',
         top: '40%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '680px',
-        height: '680px',
-        borderRadius: '20px',
+        width: '340px',
+        height: '340px',
+        borderRadius: '10px',
         overflow: 'hidden',
         zIndex: 1000,
         pointerEvents: 'none',
@@ -533,11 +531,11 @@ const Dashboard = () => {
       {/* Кнопка Level Up - появляется только когда есть свободные очки */}
       {character.freePoints > 0 && (
         <Link to="/inventory" style={{
-          position: 'fixed',
-          top: '285px', // Сразу под портретом
-          left: '40px',
-          width: '150px',
-          height: '60px',
+          position: 'absolute',
+          top: '142.5px', // Сразу под портретом
+          left: '20px',
+          width: '75px',
+          height: '30px',
           zIndex: 1000,
           cursor: 'pointer',
           transition: 'all 0.3s ease',
@@ -550,7 +548,7 @@ const Dashboard = () => {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              borderRadius: '8px',
+              borderRadius: '4px',
               boxShadow: '0 4px 15px rgba(255, 215, 0, 0.6)',
             }}
             onMouseEnter={(e) => {
@@ -567,11 +565,11 @@ const Dashboard = () => {
 
       {/* Имя, класс и уровень персонажа */}
       <div style={{
-        position: 'fixed',
-        top: '40px',
-        left: '40px',
-        width: '480px',
-        height: '96px',
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        width: '240px',
+        height: '48px',
         zIndex: 1000,
       }}>
         {/* Фоновое изображение */}
@@ -593,8 +591,8 @@ const Dashboard = () => {
           position: 'relative',
           zIndex: 2,
           display: 'flex',
-          gap: '12px',
-          padding: '16px',
+          gap: '6px',
+          padding: '8px',
           height: '100%',
           alignItems: 'center',
           justifyContent: 'space-around',
@@ -604,21 +602,21 @@ const Dashboard = () => {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '13px',
+              fontSize: '6.5px',
               color: '#d4af37',
-              marginBottom: '3px',
+              marginBottom: '1.5px',
               fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.5px',
+              letterSpacing: '0.25px',
             }}>
               Имя
             </div>
             <div style={{
-              fontSize: '21px',
+              fontSize: '10.5px',
               fontWeight: 'bold',
               color: '#ffd700',
               fontFamily: "'IM Fell English', serif",
-              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
-              letterSpacing: '1px',
+              textShadow: '0 0 5px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '0.5px',
             }}>
               {character.name}
             </div>
@@ -629,21 +627,21 @@ const Dashboard = () => {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '13px',
+              fontSize: '6.5px',
               color: '#d4af37',
-              marginBottom: '3px',
+              marginBottom: '1.5px',
               fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.5px',
+              letterSpacing: '0.25px',
             }}>
               Класс
             </div>
             <div style={{
-              fontSize: '21px',
+              fontSize: '10.5px',
               fontWeight: 'bold',
               color: '#ffd700',
               fontFamily: "'IM Fell English', serif",
-              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
-              letterSpacing: '1px',
+              textShadow: '0 0 5px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '0.5px',
             }}>
               {character.class}
             </div>
@@ -654,21 +652,21 @@ const Dashboard = () => {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '13px',
+              fontSize: '6.5px',
               color: '#d4af37',
-              marginBottom: '3px',
+              marginBottom: '1.5px',
               fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.5px',
+              letterSpacing: '0.25px',
             }}>
               Уровень
             </div>
             <div style={{
-              fontSize: '21px',
+              fontSize: '10.5px',
               fontWeight: 'bold',
               color: '#ffd700',
               fontFamily: "'IM Fell English', serif",
-              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
-              letterSpacing: '1px',
+              textShadow: '0 0 5px rgba(255, 215, 0, 0.6)',
+              letterSpacing: '0.5px',
             }}>
               {character.level}
             </div>
@@ -678,11 +676,11 @@ const Dashboard = () => {
 
       {/* HP и Stamina бары */}
       <div style={{
-        position: 'fixed',
-        top: '180px',
-        left: '40px',
-        width: '480px',
-        height: '160px',
+        position: 'absolute',
+        top: '90px',
+        left: '20px',
+        width: '240px',
+        height: '80px',
         zIndex: 1000,
       }}>
         {/* Фоновое изображение */}
@@ -703,27 +701,27 @@ const Dashboard = () => {
         <div style={{
           position: 'relative',
           zIndex: 2,
-          padding: '16px',
+          padding: '8px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '14px',
+          gap: '7px',
           height: '100%',
           justifyContent: 'center',
         }}>
           {/* HP Bar */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
               <span style={{
                 color: '#ff6b6b',
-                fontSize: '18px',
+                fontSize: '9px',
                 fontWeight: 'bold',
                 fontFamily: "'IM Fell English', serif",
-                textShadow: '0 0 8px rgba(255, 68, 68, 0.6)',
-                letterSpacing: '1px',
+                textShadow: '0 0 4px rgba(255, 68, 68, 0.6)',
+                letterSpacing: '0.5px',
               }}>HP</span>
               <span style={{
                 color: '#fff',
-                fontSize: '16px',
+                fontSize: '8px',
                 fontWeight: 'bold',
                 fontFamily: "'IM Fell English', serif",
                 textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
@@ -733,65 +731,65 @@ const Dashboard = () => {
             </div>
             <div style={{
               width: '100%',
-              height: '20px',
+              height: '10px',
               background: '#1a1a1a',
-              borderRadius: '10px',
+              borderRadius: '5px',
               overflow: 'hidden',
-              border: '2px solid #cc0000',
-              boxShadow: '0 0 10px rgba(204, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
+              border: '1px solid #cc0000',
+              boxShadow: '0 0 5px rgba(204, 0, 0, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.5)',
             }}>
               <div style={{
                 width: `${hpPercent}%`,
                 height: '100%',
                 background: 'linear-gradient(90deg, #ff4444, #cc0000)',
                 transition: 'width 0.3s ease',
-                boxShadow: '0 0 10px rgba(255, 68, 68, 0.5)',
+                boxShadow: '0 0 5px rgba(255, 68, 68, 0.5)',
               }} />
             </div>
           </div>
 
           {/* Stamina Bar */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
               <span style={{
                 color: '#66bb6a',
-                fontSize: '18px',
+                fontSize: '9px',
                 fontWeight: 'bold',
                 fontFamily: "'IM Fell English', serif",
-                textShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
-                letterSpacing: '1px',
+                textShadow: '0 0 4px rgba(76, 175, 80, 0.6)',
+                letterSpacing: '0.5px',
               }}>Выносливость</span>
               <span style={{
                 color: '#fff',
-                fontSize: '16px',
+                fontSize: '8px',
                 fontWeight: 'bold',
                 fontFamily: "'IM Fell English', serif",
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+                textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)',
               }}>
                 {currentStamina} / {maxStamina}
               </span>
             </div>
             <div style={{
               width: '100%',
-              height: '20px',
+              height: '10px',
               background: '#1a1a1a',
-              borderRadius: '10px',
+              borderRadius: '5px',
               overflow: 'hidden',
-              border: '2px solid #2E7D32',
-              boxShadow: '0 0 10px rgba(46, 125, 50, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
+              border: '1px solid #2E7D32',
+              boxShadow: '0 0 5px rgba(46, 125, 50, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.5)',
             }}>
               <div style={{
                 width: `${staminaPercent}%`,
                 height: '100%',
                 background: 'linear-gradient(90deg, #4CAF50, #2E7D32)',
                 transition: 'width 0.3s ease',
-                boxShadow: '0 0 10px rgba(76, 175, 80, 0.5)',
+                boxShadow: '0 0 5px rgba(76, 175, 80, 0.5)',
               }} />
             </div>
             <div style={{
-              fontSize: '13px',
+              fontSize: '6.5px',
               color: '#d4af37',
-              marginTop: '6px',
+              marginTop: '3px',
               fontFamily: "'IM Fell English', serif",
             }}>
               Восстанавливается: 1/сек
@@ -803,15 +801,15 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div style={{ ...styles.container, position: 'relative', zIndex: 2, height: '100vh', overflowY: 'auto' }}>
+      <div style={{ ...styles.container, position: 'relative', zIndex: 2, height: '768px', overflowY: 'auto' }}>
       {boostMessage && (
         <div style={{
-          marginTop: '10px',
-          marginBottom: '20px',
-          padding: '10px',
+          marginTop: '5px',
+          marginBottom: '10px',
+          padding: '5px',
           background: '#4caf50',
-          borderRadius: '4px',
-          fontSize: '14px',
+          borderRadius: '2px',
+          fontSize: '7px',
           textAlign: 'center',
         }}>
           {boostMessage}
@@ -820,11 +818,11 @@ const Dashboard = () => {
 
       {/* Объединённый блок: Золото + Характеристики */}
       <div style={{
-        position: 'fixed',
-        top: '400px',
-        left: '40px',
-        width: '480px',
-        height: '256px',
+        position: 'absolute',
+        top: '200px',
+        left: '20px',
+        width: '240px',
+        height: '128px',
         zIndex: 1000,
       }}>
         {/* Фоновое изображение */}
@@ -845,24 +843,24 @@ const Dashboard = () => {
         <div style={{
           position: 'relative',
           zIndex: 2,
-          padding: '12px',
+          padding: '6px',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
         }}>
           {/* Характеристики */}
-          <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '10px' }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '12px',
+              marginBottom: '6px',
             }}>
               <h3 style={{
                 margin: 0,
                 color: '#ffd700',
-                fontSize: '19px',
+                fontSize: '9.5px',
                 fontFamily: "'IM Fell English', serif",
                 fontWeight: 700,
                 textShadow: '0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3)',
@@ -873,16 +871,16 @@ const Dashboard = () => {
               {character.freePoints > 0 && (
                 <Link to="/levelup" style={{ textDecoration: 'none' }}>
                   <button style={{
-                    padding: '6px 13px',
-                    fontSize: '11px',
+                    padding: '3px 6.5px',
+                    fontSize: '5.5px',
                     background: 'linear-gradient(135deg, #4CAF50, #45a049)',
                     color: '#fff',
-                    border: '1px solid #66bb6a',
-                    borderRadius: '5px',
+                    border: '0.5px solid #66bb6a',
+                    borderRadius: '2.5px',
                     cursor: 'pointer',
                     fontWeight: 'bold',
                     fontFamily: "'IM Fell English', serif",
-                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.4)',
+                    boxShadow: '0 0 5px rgba(76, 175, 80, 0.4)',
                     transition: 'all 0.3s ease',
                   }}>
                     Прокачка ({character.freePoints})
@@ -892,9 +890,9 @@ const Dashboard = () => {
             </div>
             <div style={{
               display: 'grid',
-              gap: '10px',
+              gap: '5px',
               color: '#fff',
-              fontSize: '18px',
+              fontSize: '9px',
               fontFamily: "'IM Fell English', serif",
             }}>
               <div style={{
@@ -902,58 +900,58 @@ const Dashboard = () => {
                 alignItems: 'center',
                 textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
               }}>
-                <span style={{ marginRight: '8px' }}>⚔️</span>
+                <span style={{ marginRight: '4px' }}>⚔️</span>
                 <span>Сила:</span>
                 <span style={{
                   color: '#ffd700',
                   fontWeight: 'bold',
-                  marginLeft: '8px',
-                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
+                  marginLeft: '4px',
+                  textShadow: '0 0 4px rgba(255, 215, 0, 0.6)',
                 }}>{character.strength}</span>
               </div>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+                textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)',
               }}>
-                <span style={{ marginRight: '8px' }}>🏹</span>
+                <span style={{ marginRight: '4px' }}>🏹</span>
                 <span>Ловкость:</span>
                 <span style={{
                   color: '#ffd700',
                   fontWeight: 'bold',
-                  marginLeft: '8px',
-                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
+                  marginLeft: '4px',
+                  textShadow: '0 0 4px rgba(255, 215, 0, 0.6)',
                 }}>{character.agility}</span>
               </div>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
+                textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)',
               }}>
-                <span style={{ marginRight: '8px' }}>🔮</span>
+                <span style={{ marginRight: '4px' }}>🔮</span>
                 <span>Интеллект:</span>
                 <span style={{
                   color: '#ffd700',
                   fontWeight: 'bold',
-                  marginLeft: '8px',
-                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
+                  marginLeft: '4px',
+                  textShadow: '0 0 4px rgba(255, 215, 0, 0.6)',
                 }}>{character.intelligence}</span>
               </div>
               {character.freePoints > 0 && (
                 <div style={{
-                  marginTop: '6px',
-                  padding: '6px',
+                  marginTop: '3px',
+                  padding: '3px',
                   background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))',
-                  borderRadius: '5px',
+                  borderRadius: '2.5px',
                   textAlign: 'center',
-                  fontSize: '14px',
-                  border: '1px solid rgba(76, 175, 80, 0.3)',
-                  boxShadow: '0 0 10px rgba(76, 175, 80, 0.2)',
+                  fontSize: '7px',
+                  border: '0.5px solid rgba(76, 175, 80, 0.3)',
+                  boxShadow: '0 0 5px rgba(76, 175, 80, 0.2)',
                 }}>
                   Свободных очков: <span style={{
                     color: '#4CAF50',
                     fontWeight: 'bold',
-                    textShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
+                    textShadow: '0 0 4px rgba(76, 175, 80, 0.6)',
                   }}>{character.freePoints}</span>
                 </div>
               )}
@@ -962,30 +960,30 @@ const Dashboard = () => {
 
           {/* Золото */}
           <div style={{
-            borderTop: '1px solid rgba(255, 215, 0, 0.2)',
-            paddingTop: '12px',
+            borderTop: '0.5px solid rgba(255, 215, 0, 0.2)',
+            paddingTop: '6px',
           }}>
             <div style={{
-              fontSize: '14px',
+              fontSize: '7px',
               color: '#d4af37',
-              marginBottom: '6px',
+              marginBottom: '3px',
               fontFamily: "'IM Fell English', serif",
-              letterSpacing: '1px',
-              textShadow: '0 0 5px rgba(212, 175, 55, 0.3)',
+              letterSpacing: '0.5px',
+              textShadow: '0 0 2.5px rgba(212, 175, 55, 0.3)',
             }}>
               Золото
             </div>
             <div style={{
-              fontSize: '32px',
+              fontSize: '16px',
               fontWeight: 'bold',
               fontFamily: "'IM Fell English', serif",
               background: 'linear-gradient(135deg, #FFD700, #FFA500, #FFD700)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
-              textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.5)',
-              filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
-              letterSpacing: '2px',
+              textShadow: '0 0 10px rgba(255, 215, 0, 0.8), 0 0 15px rgba(255, 215, 0, 0.5)',
+              filter: 'drop-shadow(0 0 5px rgba(255, 215, 0, 0.6))',
+              letterSpacing: '1px',
             }}>
               {character.gold.toLocaleString()}
             </div>
