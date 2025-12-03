@@ -1,12 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './store'
 import './index.css'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
-import Login from './pages/Login'
 import CreateCharacter from './pages/CreateCharacter'
 import Dashboard from './pages/Dashboard'
 import PvP from './pages/PvP'
@@ -22,7 +21,7 @@ import { getAssetUrl } from './utils/assetUrl'
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Login />
+    element: <Navigate to="/create-character" replace />
   },
   {
     element: <Layout />,
