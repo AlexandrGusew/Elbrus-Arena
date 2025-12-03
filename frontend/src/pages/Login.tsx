@@ -115,7 +115,24 @@ export default function Login() {
       await handleAuthSuccess();
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.data?.message || 'Неверный логин или пароль');
+      
+      // Детальная обработка ошибок
+      let errorMessage = 'Неверный логин или пароль';
+      
+      if (err.status === 500) {
+        errorMessage = 'Ошибка сервера. Проверьте логи бэкенда или обратитесь к администратору';
+        console.error('Server error details:', err.data || err);
+      } else if (err.status === 401) {
+        errorMessage = err.data?.message || 'Неверный логин или пароль';
+      } else if (err.status === 404) {
+        errorMessage = 'API endpoint не найден. Проверьте конфигурацию сервера';
+      } else if (err.data?.message) {
+        errorMessage = err.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     }
   };
 

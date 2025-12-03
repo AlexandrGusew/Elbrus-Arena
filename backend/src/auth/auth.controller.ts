@@ -66,17 +66,23 @@ export class AuthController {
     @Body() body: { username: string; password: string },
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { accessToken, refreshToken } = await this.authService.login(body.username, body.password);
+    try {
+      const { accessToken, refreshToken } = await this.authService.login(body.username, body.password);
 
-    // Refresh token отправляем в httpOnly cookie
-    response.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
-    });
+      // Refresh token отправляем в httpOnly cookie
+      response.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
+      });
 
-    return { accessToken };
+      return { accessToken };
+    } catch (error) {
+      // Логируем ошибку для отладки
+      console.error('Login error:', error);
+      throw error; // Пробрасываем дальше для обработки NestJS exception filters
+    }
   }
 
   /**
