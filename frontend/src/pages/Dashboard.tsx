@@ -30,7 +30,7 @@ const Dashboard = () => {
   const { data: staminaInfo } = useGetStaminaInfoQuery(
     Number(characterId),
     {
-      skip: !characterId || !character || !!error,
+      skip: !characterId || !character || isLoading || !!error,
       pollingInterval: 1000,
     }
   );
