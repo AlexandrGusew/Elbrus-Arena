@@ -1,0 +1,39 @@
+[1mdiff --git a/backend/src/auth/auth.controller.ts b/backend/src/auth/auth.controller.ts[m
+[1mindex 914a9fc..878428d 100644[m
+[1m--- a/backend/src/auth/auth.controller.ts[m
+[1m+++ b/backend/src/auth/auth.controller.ts[m
+[36m@@ -66,17 +66,23 @@[m [mexport class AuthController {[m
+     @Body() body: { username: string; password: string },[m
+     @Res({ passthrough: true }) response: Response,[m
+   ) {[m
+[31m-    const { accessToken, refreshToken } = await this.authService.login(body.username, body.password);[m
+[31m-[m
+[31m-    // Refresh token отправляем в httpOnly cookie[m
+[31m-    response.cookie('refreshToken', refreshToken, {[m
+[31m-      httpOnly: true,[m
+[31m-      secure: process.env.NODE_ENV === 'production',[m
+[31m-      sameSite: 'strict',[m
+[31m-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней[m
+[31m-    });[m
+[31m-[m
+[31m-    return { accessToken };[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      const { accessToken, refreshToken } = await this.authService.login(body.username, body.password);[m
+[32m+[m
+[32m+[m[32m      // Refresh token отправляем в httpOnly cookie[m
+[32m+[m[32m      response.cookie('refreshToken', refreshToken, {[m
+[32m+[m[32m        httpOnly: true,[m
+[32m+[m[32m        secure: process.env.NODE_ENV === 'production',[m
+[32m+[m[32m        sameSite: 'strict',[m
+[32m+[m[32m        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней[m
+[32m+[m[32m      });[m
+[32m+[m
+[32m+[m[32m      return { accessToken };[m
+[32m+[m[32m    } catch (error) {[m
+[32m+[m[32m      // Логируем ошибку для отладки[m
+[32m+[m[32m      console.error('Login error:', error);[m
+[32m+[m[32m      throw error; // Пробрасываем дальше для обработки NestJS exception filters[m
+[32m+[m[32m    }[m
+   }[m
+ [m
+   /**[m
