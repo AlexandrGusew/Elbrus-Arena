@@ -39,7 +39,7 @@ const CreateCharacter = () => {
   useEffect(() => {
     if (myCharacter) {
       localStorage.setItem('characterId', myCharacter.id.toString());
-      navigate('/app/dashboard');
+      navigate('/dashboard');
     }
   }, [myCharacter, navigate]);
 
@@ -101,7 +101,7 @@ const CreateCharacter = () => {
       }).unwrap();
 
       localStorage.setItem('characterId', character.id.toString());
-      navigate('/app/dashboard');
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.data?.message || err.message || 'Ошибка при создании персонажа');
     }
