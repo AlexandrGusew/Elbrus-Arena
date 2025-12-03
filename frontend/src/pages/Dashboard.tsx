@@ -3,7 +3,7 @@ import {
   useGetCharacterQuery,
   useGetStaminaInfoQuery,
   useTestLevelBoostMutation,
-  useGetCharactersByUserIdQuery,
+  useGetMyCharacterQuery,
   useAutoCreateCharactersMutation,
   useUpdateCharacterNameMutation,
 } from '../store/api/characterApi';
@@ -21,13 +21,12 @@ const Dashboard = () => {
   const characterIdFromStorage = localStorage.getItem('characterId');
   const [boostMessage, setBoostMessage] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  
+
   // Состояние для выбора персонажа
   const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(
     characterIdFromStorage ? Number(characterIdFromStorage) : null
   );
   const [characters, setCharacters] = useState<Character[]>([]);
-  const [userId, setUserId] = useState<number | null>(null);
 
   // Загружаем настройку музыки из localStorage
   const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
@@ -38,11 +37,8 @@ const Dashboard = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioRef2 = useRef<HTMLAudioElement>(null);
 
-  // Получаем текущего персонажа для получения userId
-  const { data: initialCharacter } = useGetCharacterQuery(
-    Number(characterIdFromStorage),
-    { skip: !characterIdFromStorage }
-  );
+  // Загружаем персонажей текущего пользователя через /character/me
+  const { data: myCharacters, isLoading: isLoadingCharacters, refetch: refetchMyCharacters } = useGetMyCharacterQuery();
 
   // Получаем персонажа для отображения (из выбранного)
   const { data: character, isLoading, error } = useGetCharacterQuery(
@@ -61,12 +57,6 @@ const Dashboard = () => {
   // Мутации для работы с персонажами
   const [autoCreateCharacters] = useAutoCreateCharactersMutation();
   const [updateCharacterName] = useUpdateCharacterNameMutation();
-
-  // Загружаем персонажей пользователя
-  const { data: userCharacters, isLoading: isLoadingCharacters, refetch: refetchUserCharacters } = useGetCharactersByUserIdQuery(
-    userId!,
-    { skip: !userId }
-  );
 
   const [testLevelBoost, { isLoading: isBoostLoading }] = useTestLevelBoostMutation();
   const [logout] = useLogoutMutation();
@@ -89,40 +79,27 @@ const Dashboard = () => {
     }
   };
 
-  // Получаем userId из текущего персонажа или из созданных персонажей
-  useEffect(() => {
-    if (initialCharacter?.userId) {
-      console.log('[Dashboard] Setting userId from initialCharacter:', initialCharacter.userId);
-      setUserId(initialCharacter.userId);
-    } else if (characters.length > 0 && characters[0]?.userId) {
-      // Если userId еще не установлен, но есть персонажи, берем userId из них
-      console.log('[Dashboard] Setting userId from characters:', characters[0].userId);
-      setUserId(characters[0].userId);
-    }
-  }, [initialCharacter, characters]);
-
   // Загружаем персонажей пользователя и автосоздаем, если их нет
   useEffect(() => {
-    console.log('[Dashboard] userCharacters changed:', userCharacters);
-    console.log('[Dashboard] userId:', userId);
-    
-    if (userCharacters !== undefined) {
+    console.log('[Dashboard] myCharacters changed:', myCharacters);
+
+    if (myCharacters !== undefined) {
       // Убеждаемся, что это массив
-      const charactersArray = Array.isArray(userCharacters) ? userCharacters : [];
+      const charactersArray = Array.isArray(myCharacters) ? myCharacters : [];
       console.log('[Dashboard] Setting characters array:', charactersArray);
       setCharacters(charactersArray);
-      
+
       // Если персонажей меньше 3 - создаем автоматически недостающих
-      if (charactersArray.length < 3 && userId) {
-        console.log(`[Dashboard] Found ${charactersArray.length} characters, need 3. Attempting auto-create for userId:`, userId);
-        autoCreateCharacters(userId)
+      if (charactersArray.length < 3) {
+        console.log(`[Dashboard] Found ${charactersArray.length} characters, need 3. Attempting auto-create`);
+        autoCreateCharacters()
           .unwrap()
           .then((created) => {
             const createdArray = Array.isArray(created) ? created : [];
             console.log('[Dashboard] Auto-created characters:', createdArray);
             console.log('[Dashboard] Created characters details:', createdArray.map(c => ({ id: c.id, name: c.name, class: c.class })));
             // Обновляем список персонажей через рефетч
-            refetchUserCharacters().then((result) => {
+            refetchMyCharacters().then((result) => {
               const freshCharacters = Array.isArray(result.data) ? result.data : [];
               console.log('[Dashboard] Refetched characters after auto-create:', freshCharacters);
               setCharacters(freshCharacters);
@@ -144,7 +121,7 @@ const Dashboard = () => {
         localStorage.setItem('characterId', charactersArray[0].id.toString());
       }
     }
-  }, [userCharacters, userId, selectedCharacterId, autoCreateCharacters]);
+  }, [myCharacters, selectedCharacterId, autoCreateCharacters, refetchMyCharacters]);
 
   // Обработчики для выбора персонажа
   const handleSelectCharacter = (characterId: number) => {

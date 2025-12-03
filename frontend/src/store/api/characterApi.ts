@@ -8,9 +8,12 @@ export const characterApi = baseApi.injectEndpoints({
       providesTags: (result, error, id) => [{ type: 'Character', id }],
     }),
 
-    getMyCharacter: builder.query<Character | null, void>({
+    getMyCharacter: builder.query<Character[], void>({
       query: () => `/character/me`,
-      providesTags: (result) => result ? [{ type: 'Character', id: result.id }] : [],
+      providesTags: (result) =>
+        result && Array.isArray(result)
+          ? result.map(({ id }) => ({ type: 'Character', id }))
+          : [],
     }),
 
     getCharacterByName: builder.query<Character | null, string>({
@@ -148,9 +151,9 @@ export const characterApi = baseApi.injectEndpoints({
       },
     }),
 
-    autoCreateCharacters: builder.mutation<Character[], number>({
-      query: (userId) => ({
-        url: `/character/auto-create/${userId}`,
+    autoCreateCharacters: builder.mutation<Character[], void>({
+      query: () => ({
+        url: `/character/auto-create`,
         method: 'POST',
       }),
       invalidatesTags: ['Character'],

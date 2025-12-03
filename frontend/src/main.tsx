@@ -7,7 +7,6 @@ import './index.css'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
-import CreateCharacter from './pages/CreateCharacter'
 import Dashboard from './pages/Dashboard'
 import PvP from './pages/PvP'
 import Dungeon from './pages/Dungeon'
@@ -27,10 +26,6 @@ const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      {
-        path: '/create-character',
-        element: <CreateCharacter />
-      },
       {
         path: '/dashboard',
         element: <ProtectedRoute><Dashboard /></ProtectedRoute>
@@ -86,19 +81,6 @@ registerServiceWorker({
 
     // Список критических ресурсов для предзагрузки
     const criticalAssets = [
-      // Login/CreateCharacter страницы
-      getAssetUrl('createCharacter/animatedBackground.mp4'),
-      getAssetUrl('createCharacter/backgroundIntro.mp3'),
-      getAssetUrl('createCharacter/fonModal.png'),
-      getAssetUrl('createCharacter/inputName.png'),
-      getAssetUrl('createCharacter/buttonEnter.png'),
-      getAssetUrl('createCharacter/music.png'),
-
-      // Персонажи
-      getAssetUrl('createCharacter/warrior (1).png'),
-      getAssetUrl('createCharacter/mage (1).png'),
-      getAssetUrl('createCharacter/rogue (1).png'),
-
       // Dashboard
       getAssetUrl('dashboard/mainCity.mp3'),
       getAssetUrl('dashboard/mainCityBackground.mp4'),

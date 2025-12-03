@@ -12,6 +12,16 @@ export class CharacterService {
   ) {}
 
   async create(userId: number, name: string, characterClass: CharacterClass): Promise<Character> {
+    // Проверяем, существует ли пользователь
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Пользователь с id ${userId} не найден`);
+    }
+
     // Проверяем, сколько персонажей уже у пользователя
     const userCharacters = await this.prisma.character.findMany({
       where: { userId },
@@ -40,11 +50,13 @@ export class CharacterService {
 
 try {
       const character = await this.prisma.$transaction(async (tx) => {
+        // Преобразуем класс в верхний регистр для соответствия Prisma enum
+        const classUpper = characterClass.toUpperCase() as 'WARRIOR' | 'ROGUE' | 'MAGE';
         const newCharacter = await tx.character.create({
           data: {
             userId,
             name,
-            class: characterClass,
+            class: classUpper,
             ...stats,
           },
         });
@@ -69,38 +81,57 @@ try {
       if (error.code === 'P2002' && error.meta?.target?.includes('name')) {
         throw new BadRequestException(`Персонаж с именем "${name}" уже существует`);
       }
+      // Обработка ошибки foreign key constraint
+      if (error.code === 'P2003' && error.meta?.field_name?.includes('userId')) {
+        throw new NotFoundException(`Пользователь с id ${userId} не найден в базе данных`);
+      }
       throw error;
     }
   }
 
+  // Преобразует класс из верхнего регистра (БД) в нижний (API)
+  private transformCharacterClass(character: any): any {
+    if (character && character.class) {
+      return {
+        ...character,
+        class: character.class.toLowerCase(),
+      };
+    }
+    return character;
+  }
+
   async findById(id: number): Promise<Character | null> {
-    return this.prisma.character.findUnique({
+    const character = await this.prisma.character.findUnique({
       where: { id },
       include: CHARACTER_INCLUDE,
-    }) as Promise<Character | null>;
+    });
+    return character ? (this.transformCharacterClass(character) as Character) : null;
   }
 
   async findByUserId(userId: number): Promise<Character[]> {
-    return this.prisma.character.findMany({
+    const characters = await this.prisma.character.findMany({
       where: { userId },
       include: CHARACTER_INCLUDE,
       orderBy: { createdAt: 'asc' },
-    }) as unknown as Promise<Character[]>;
+    });
+    return characters.map(c => this.transformCharacterClass(c)) as Character[];
   }
 
   async findFirstByUserId(userId: number): Promise<Character | null> {
-    return this.prisma.character.findFirst({
+    const character = await this.prisma.character.findFirst({
       where: { userId },
       include: CHARACTER_INCLUDE,
       orderBy: { createdAt: 'asc' },
-    }) as Promise<Character | null>;
+    });
+    return character ? (this.transformCharacterClass(character) as Character) : null;
   }
 
   async findByName(name: string): Promise<Character | null> {
-    return this.prisma.character.findFirst({
+    const character = await this.prisma.character.findFirst({
       where: { name },
       include: CHARACTER_INCLUDE,
-    }) as Promise<Character | null>;
+    });
+    return character ? (this.transformCharacterClass(character) as Character) : null;
   }
 
   async equipItem(characterId: number, inventoryItemId: number): Promise<Character> {
@@ -142,19 +173,30 @@ try {
     }
 
     // Создаем недостающих персонажей
-    await Promise.all(
+    const createResults = await Promise.allSettled(
       classesToCreate.map(async (classType) => {
         const defaultName = this.getDefaultNameForClass(classType);
-        try {
-          await this.create(Number(user.telegramId), defaultName, classType);
-        } catch (error: any) {
-          // Игнорируем ошибку, если персонаж уже существует (на случай параллельного создания)
-          if (!error.message?.includes('уже существует')) {
-            throw error;
-          }
-        }
+        // Используем userId напрямую, а не telegramId (для поддержки username/password регистрации)
+        return await this.create(userId, defaultName, classType);
       })
     );
+
+    // Проверяем результаты и логируем ошибки
+    const errors: any[] = [];
+    createResults.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        const error = result.reason;
+        // Игнорируем ошибки, если персонаж уже существует (на случай параллельного создания)
+        if (!error?.message?.includes('уже существует') && !error?.message?.includes('уже есть')) {
+          errors.push({ class: classesToCreate[index], error });
+        }
+      }
+    });
+
+    // Если есть критические ошибки (не связанные с дубликатами), выбрасываем первую
+    if (errors.length > 0) {
+      throw errors[0].error;
+    }
 
     return this.findByUserId(userId);
   }

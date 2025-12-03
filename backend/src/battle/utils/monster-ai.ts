@@ -105,11 +105,7 @@ export class MonsterAI {
         availableZones
       });
       // Убираем 'back' и заменяем на валидную зону
-<<<<<<< HEAD
       const filtered: ValidZone[] = selected.filter((z): z is ValidZone => z !== 'back');
-=======
-      const filtered: ('head' | 'body' | 'legs' | 'arms')[] = selected.filter(z => z !== 'back') as ('head' | 'body' | 'legs' | 'arms')[];
->>>>>>> develop
       const missing = count - filtered.length;
       for (let i = 0; i < missing; i++) {
         const available = VALID_ZONES_ONLY.find(z => !filtered.includes(z));

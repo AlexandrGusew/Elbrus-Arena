@@ -37,7 +37,7 @@ export class CharacterController {
   }
 
   @Get('me')
-  async getMyCharacter(@CurrentUser() user: JwtPayload): Promise<Character | null> {
+  async getMyCharacter(@CurrentUser() user: JwtPayload): Promise<Character[]> {
     return this.characterService.findByUserId(user.userId);
   }
 
@@ -63,16 +63,15 @@ export class CharacterController {
     }
   }
 
-  @Public()
-  @Post('auto-create/:userId')
-  async autoCreateCharacters(@Param('userId') userId: string): Promise<Character[]> {
+  @Post('auto-create')
+  async autoCreateCharacters(@CurrentUser() user: JwtPayload): Promise<Character[]> {
     try {
-      this.logger.log(`Auto-creating characters for userId: ${userId}`);
-      const result = await this.characterService.autoCreateCharactersForUser(Number(userId));
-      this.logger.log(`Auto-created ${result.length} characters for userId: ${userId}`);
+      this.logger.log(`Auto-creating characters for userId: ${user.userId}`);
+      const result = await this.characterService.autoCreateCharactersForUser(user.userId);
+      this.logger.log(`Auto-created ${result.length} characters for userId: ${user.userId}`);
       return result;
     } catch (error) {
-      this.logger.error(`Error auto-creating characters for userId ${userId}: ${error.message}`, error.stack);
+      this.logger.error(`Error auto-creating characters for userId ${user.userId}: ${error.message}`, error.stack);
       throw error;
     }
   }

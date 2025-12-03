@@ -6,7 +6,6 @@ import {
   useInitiateTelegramAuthMutation,
   useVerifyTelegramCodeMutation,
 } from '../store/api/authApi';
-import { useLazyGetMyCharacterQuery } from '../store/api/characterApi';
 import { setAccessToken } from '../store/api/baseApi';
 import { getAssetUrl } from '../utils/assetUrl';
 
@@ -40,27 +39,12 @@ export default function Login() {
   const [login, { isLoading: isLoggingIn }] = useLoginMutation();
   const [initiateTelegramAuth] = useInitiateTelegramAuthMutation();
   const [verifyTelegramCode, { isLoading: isVerifying }] = useVerifyTelegramCodeMutation();
-  const [getMyCharacter] = useLazyGetMyCharacterQuery();
 
   // После успешной авторизации
   const handleAuthSuccess = async () => {
-    try {
-      // Проверяем, есть ли у пользователя персонаж
-      const { data: character } = await getMyCharacter();
-
-      if (character) {
-        // Персонаж найден - сохраняем ID и переходим на Dashboard
-        localStorage.setItem('characterId', character.id.toString());
-        navigate('/dashboard');
-      } else {
-        // Персонажа нет - переходим на создание персонажа
-        navigate('/create-character');
-      }
-    } catch (error) {
-      console.error('Error checking character:', error);
-      // В случае ошибки переходим на создание персонажа
-      navigate('/create-character');
-    }
+    // Просто переходим на Dashboard
+    // На Dashboard есть логика автосоздания персонажей и выбора активного персонажа
+    navigate('/dashboard');
   };
 
   // РЕГИСТРАЦИЯ

@@ -24,10 +24,10 @@ const CreateCharacter = () => {
     { skip: !searchName }
   );
 
-  // Если персонаж уже есть - редирект на dashboard
+  // Если персонажи уже есть - редирект на dashboard
   useEffect(() => {
-    if (myCharacter) {
-      localStorage.setItem('characterId', myCharacter.id.toString());
+    if (myCharacter && myCharacter.length > 0) {
+      localStorage.setItem('characterId', myCharacter[0].id.toString());
       navigate('/app/dashboard');
     }
   }, [myCharacter, navigate]);
