@@ -77,10 +77,17 @@ export const characterApi = baseApi.injectEndpoints({
     }),
 
     getLevelProgress: builder.query<
-      { currentLevel: number; currentExp: number; expForNextLevel: number; freePoints: number },
+      { currentLevel: number; currentExp: number; expForNextLevel: number; freePoints: number; progress: number },
       number
     >({
       query: (characterId) => `/character/${characterId}/level-progress`,
+      transformResponse: (response: { currentLevel: number; currentExp: number; requiredExp: number; freePoints: number; progress: number }) => ({
+        currentLevel: response.currentLevel,
+        currentExp: response.currentExp,
+        expForNextLevel: response.requiredExp, // Преобразуем requiredExp в expForNextLevel для совместимости
+        freePoints: response.freePoints,
+        progress: response.progress,
+      }),
     }),
 
     distributeStats: builder.mutation<

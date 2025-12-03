@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Character, CharacterClass } from '../types/api';
 import { getAssetUrl } from '../utils/assetUrl';
+import { useGetLevelProgressQuery } from '../store/api/characterApi';
 
 interface CharacterSelectorProps {
   characters: Character[]; // Массив персонажей пользователя
@@ -72,6 +73,12 @@ export const CharacterSelector = ({
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   const selectedCharacter = characters.find((c) => c.id === selectedCharacterId);
+
+  // Получаем прогресс опыта для выбранного персонажа
+  const { data: levelProgress } = useGetLevelProgressQuery(
+    selectedCharacterId || 0,
+    { skip: !selectedCharacterId }
+  );
 
   useEffect(() => {
     if (selectedCharacter) {
@@ -149,9 +156,9 @@ export const CharacterSelector = ({
         const exists = !!character;
 
         // Ширина контейнера зависит от того, развернут ли персонаж
-        const containerWidth = isSelected ? '800px' : '180px';
+        const containerWidth = isSelected ? '950px' : '180px';
         const iconWidth = isSelected ? '250px' : '180px';
-        const infoPanelWidth = isSelected ? '530px' : '0px';
+        const infoPanelWidth = isSelected ? '680px' : '0px';
 
         return (
           <div
@@ -279,10 +286,10 @@ export const CharacterSelector = ({
                   background: 'rgba(0, 0, 0, 0.6)',
                   borderRadius: '0 8px 8px 0',
                   border: 'none',
-                  padding: '5px',
+                  padding: '8px',
                   display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '0',
+                  gridTemplateColumns: '1fr 1fr 1fr',
+                  gap: '6px',
                   overflow: 'hidden',
                   transition: 'width 0.4s ease, opacity 0.4s ease',
                   opacity: isSelected ? 1 : 0,
@@ -290,158 +297,15 @@ export const CharacterSelector = ({
                   fontSize: '10px',
                 }}
               >
-                {/* Левый столбец: Характеристики */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', justifyContent: 'center', padding: '5px' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '8px',
-                      color: '#d4af37',
-                      marginBottom: '3px',
-                      fontFamily: "'IM Fell English', serif",
-                    }}
-                  >
-                    Характеристики
-                  </label>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: '3px 4px',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '3px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: '9px',
-                          color: '#d4af37',
-                        }}
-                      >
-                        Сил
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          color: '#c62828',
-                        }}
-                      >
-                        {character.strength}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        padding: '3px 4px',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '3px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: '9px',
-                          color: '#d4af37',
-                        }}
-                      >
-                        Ловк
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          color: '#00695c',
-                        }}
-                      >
-                        {character.agility}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        padding: '3px 4px',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '3px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: '9px',
-                          color: '#d4af37',
-                        }}
-                      >
-                        Инт
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          color: '#0277bd',
-                        }}
-                      >
-                        {character.intelligence}
-                      </span>
-                    </div>
-                    
-                    {/* Золото */}
-                    <div
-                      style={{
-                        padding: '3px 4px',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '3px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: '9px',
-                          color: '#d4af37',
-                          fontFamily: "'IM Fell English', serif",
-                        }}
-                      >
-                        Золото
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          color: '#ffd700',
-                          fontFamily: "'IM Fell English', serif",
-                        }}
-                      >
-                        💰 {character.gold.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Правый столбец: Имя, Уровень, Класс, HP, Выносливость */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', justifyContent: 'space-between', padding: '5px' }}>
+                {/* Столбец 1: Имя, Уровень, Класс, Золото */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', justifyContent: 'flex-start', padding: '0' }}>
                   {/* Имя */}
                   {isEditingName ? (
                     <div
                       style={{
-                        padding: '3px 4px',
+                        padding: '6px 8px',
                         background: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '3px',
+                        borderRadius: '4px',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
@@ -450,7 +314,7 @@ export const CharacterSelector = ({
                     >
                       <span
                         style={{
-                          fontSize: '9px',
+                          fontSize: '10px',
                           color: '#d4af37',
                           fontFamily: "'IM Fell English', serif",
                         }}
@@ -468,8 +332,8 @@ export const CharacterSelector = ({
                         maxLength={20}
                         style={{
                           width: '60%',
-                          padding: '2px 4px',
-                          fontSize: '9px',
+                          padding: '3px 6px',
+                          fontSize: '10px',
                           fontWeight: 'bold',
                           color: '#fff',
                           background: 'rgba(0, 0, 0, 0.3)',
@@ -483,7 +347,7 @@ export const CharacterSelector = ({
                       {isUpdating && (
                         <span
                           style={{
-                            fontSize: '7px',
+                            fontSize: '8px',
                             color: '#d4af37',
                             marginLeft: '5px',
                           }}
@@ -496,9 +360,9 @@ export const CharacterSelector = ({
                     <div
                       onClick={() => setIsEditingName(true)}
                       style={{
-                        padding: '3px 4px',
+                        padding: '6px 8px',
                         background: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '3px',
+                        borderRadius: '4px',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
@@ -517,7 +381,7 @@ export const CharacterSelector = ({
                     >
                       <span
                         style={{
-                          fontSize: '9px',
+                          fontSize: '10px',
                           color: '#d4af37',
                           fontFamily: "'IM Fell English', serif",
                         }}
@@ -526,7 +390,7 @@ export const CharacterSelector = ({
                       </span>
                       <span
                         style={{
-                          fontSize: '10px',
+                          fontSize: '11px',
                           fontWeight: 'bold',
                           color: '#fff',
                           fontFamily: "'IM Fell English', serif",
@@ -540,9 +404,9 @@ export const CharacterSelector = ({
                   {/* Уровень */}
                   <div
                     style={{
-                      padding: '3px 4px',
+                      padding: '6px 8px',
                       background: 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: '3px',
+                      borderRadius: '4px',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -551,7 +415,7 @@ export const CharacterSelector = ({
                   >
                     <span
                       style={{
-                        fontSize: '9px',
+                        fontSize: '10px',
                         color: '#d4af37',
                         fontFamily: "'IM Fell English', serif",
                       }}
@@ -560,7 +424,7 @@ export const CharacterSelector = ({
                     </span>
                     <span
                       style={{
-                        fontSize: '10px',
+                        fontSize: '11px',
                         fontWeight: 'bold',
                         color: '#fff',
                         fontFamily: "'IM Fell English', serif",
@@ -573,9 +437,9 @@ export const CharacterSelector = ({
                   {/* Класс */}
                   <div
                     style={{
-                      padding: '3px 4px',
+                      padding: '6px 8px',
                       background: 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: '3px',
+                      borderRadius: '4px',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -584,7 +448,7 @@ export const CharacterSelector = ({
                   >
                     <span
                       style={{
-                        fontSize: '9px',
+                        fontSize: '10px',
                         color: '#d4af37',
                         fontFamily: "'IM Fell English', serif",
                       }}
@@ -593,7 +457,7 @@ export const CharacterSelector = ({
                     </span>
                     <span
                       style={{
-                        fontSize: '10px',
+                        fontSize: '11px',
                         fontWeight: 'bold',
                         color: '#fff',
                         fontFamily: "'IM Fell English', serif",
@@ -603,12 +467,12 @@ export const CharacterSelector = ({
                     </span>
                   </div>
 
-                  {/* HP */}
+                  {/* Золото */}
                   <div
                     style={{
-                      padding: '3px 4px',
+                      padding: '6px 8px',
                       background: 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: '3px',
+                      borderRadius: '4px',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -617,31 +481,247 @@ export const CharacterSelector = ({
                   >
                     <span
                       style={{
-                        fontSize: '9px',
+                        fontSize: '10px',
                         color: '#d4af37',
                         fontFamily: "'IM Fell English', serif",
                       }}
                     >
-                      HP
+                      Золото
                     </span>
                     <span
                       style={{
-                        fontSize: '10px',
+                        fontSize: '11px',
                         fontWeight: 'bold',
-                        color: '#fff',
+                        color: '#ffd700',
                         fontFamily: "'IM Fell English', serif",
                       }}
                     >
-                      {character.currentHp}/{character.maxHp}
+                      💰 {character.gold.toLocaleString()}
                     </span>
+                  </div>
+                </div>
+
+                {/* Столбец 2: HP, Выносливость, Опыт */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', justifyContent: 'flex-start', padding: '0' }}>
+                  {/* HP */}
+                  <div
+                    style={{
+                      padding: '6px 8px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          color: '#d4af37',
+                          fontFamily: "'IM Fell English', serif",
+                        }}
+                      >
+                        HP
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          color: '#fff',
+                          fontFamily: "'IM Fell English', serif",
+                        }}
+                      >
+                        {character.currentHp}/{character.maxHp}
+                      </span>
+                    </div>
+                    {/* Прогресс-бар HP */}
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '10px',
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: '5px',
+                        overflow: 'hidden',
+                        position: 'relative',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${Math.min(100, (character.currentHp / character.maxHp) * 100)}%`,
+                          background: (character.currentHp / character.maxHp) > 0.5 
+                            ? 'linear-gradient(90deg, #4caf50 0%, #8bc34a 100%)' 
+                            : (character.currentHp / character.maxHp) > 0.25
+                            ? 'linear-gradient(90deg, #ff9800 0%, #ffc107 100%)'
+                            : 'linear-gradient(90deg, #f44336 0%, #e91e63 100%)',
+                          transition: 'width 0.3s ease',
+                          boxShadow: '0 0 5px rgba(255, 255, 255, 0.3)',
+                          borderRadius: '5px',
+                        }}
+                      />
+                    </div>
                   </div>
 
                   {/* Выносливость */}
                   <div
                     style={{
-                      padding: '3px 4px',
+                      padding: '6px 8px',
                       background: 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: '3px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          color: '#d4af37',
+                          fontFamily: "'IM Fell English', serif",
+                        }}
+                      >
+                        Выносливость
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          color: '#fff',
+                          fontFamily: "'IM Fell English', serif",
+                        }}
+                      >
+                        {character.stamina}/100
+                      </span>
+                    </div>
+                    {/* Прогресс-бар выносливости */}
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '10px',
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: '5px',
+                        overflow: 'hidden',
+                        position: 'relative',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${Math.min(100, (character.stamina / 100) * 100)}%`,
+                          background: (character.stamina / 100) > 0.5 
+                            ? 'linear-gradient(90deg, #3498db 0%, #5dade2 100%)' 
+                            : (character.stamina / 100) > 0.25
+                            ? 'linear-gradient(90deg, #e67e22 0%, #f39c12 100%)'
+                            : 'linear-gradient(90deg, #e74c3c 0%, #c0392b 100%)',
+                          transition: 'width 0.3s ease',
+                          boxShadow: '0 0 5px rgba(255, 255, 255, 0.3)',
+                          borderRadius: '5px',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Прогресс опыта */}
+                  {levelProgress && (
+                    <div
+                      style={{
+                        padding: '6px 8px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            color: '#d4af37',
+                            fontFamily: "'IM Fell English', serif",
+                          }}
+                        >
+                          Опыт
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 'bold',
+                            color: '#fff',
+                            fontFamily: "'IM Fell English', serif",
+                          }}
+                        >
+                          {levelProgress.currentExp.toLocaleString()} / {levelProgress.expForNextLevel.toLocaleString()}
+                        </span>
+                      </div>
+                      {/* Прогресс-бар опыта */}
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '10px',
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          borderRadius: '5px',
+                          overflow: 'hidden',
+                          position: 'relative',
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${Math.min(100, (levelProgress.currentExp / levelProgress.expForNextLevel) * 100)}%`,
+                            background: 'linear-gradient(90deg, #e0e0e0 0%, #ffffff 100%)',
+                            transition: 'width 0.3s ease',
+                            boxShadow: '0 0 5px rgba(255, 255, 255, 0.5)',
+                            borderRadius: '5px',
+                          }}
+                        />
+                      </div>
+                      {/* Осталось до следующего уровня */}
+                      <div
+                        style={{
+                          fontSize: '8px',
+                          color: '#aaa',
+                          textAlign: 'right',
+                          fontFamily: "'IM Fell English', serif",
+                        }}
+                      >
+                        Осталось: {(levelProgress.expForNextLevel - levelProgress.currentExp).toLocaleString()} опыта
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Столбец 3: Сила, Ловкость, Интеллект */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', justifyContent: 'flex-start', padding: '0' }}>
+                  {/* Сила */}
+                  <div
+                    style={{
+                      padding: '6px 8px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: '4px',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -650,25 +730,87 @@ export const CharacterSelector = ({
                   >
                     <span
                       style={{
-                        fontSize: '9px',
+                        fontSize: '10px',
                         color: '#d4af37',
                         fontFamily: "'IM Fell English', serif",
                       }}
                     >
-                      Выносливость
+                      Сила
                     </span>
                     <span
                       style={{
-                        fontSize: '10px',
+                        fontSize: '11px',
                         fontWeight: 'bold',
-                        color: '#fff',
-                        fontFamily: "'IM Fell English', serif",
+                        color: '#c62828',
                       }}
                     >
-                      {character.stamina}/100
+                      {character.strength}
                     </span>
                   </div>
 
+                  {/* Ловкость */}
+                  <div
+                    style={{
+                      padding: '6px 8px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        color: '#d4af37',
+                        fontFamily: "'IM Fell English', serif",
+                      }}
+                    >
+                      Ловкость
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        color: '#00695c',
+                      }}
+                    >
+                      {character.agility}
+                    </span>
+                  </div>
+
+                  {/* Интеллект */}
+                  <div
+                    style={{
+                      padding: '6px 8px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        color: '#d4af37',
+                        fontFamily: "'IM Fell English', serif",
+                      }}
+                    >
+                      Интеллект
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        color: '#0277bd',
+                      }}
+                    >
+                      {character.intelligence}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
