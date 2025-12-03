@@ -71,6 +71,10 @@ export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
   tagTypes: ['Character', 'Battle', 'Inventory', 'Item', 'Specialization'],
+  // Увеличиваем время кэширования для улучшения производительности
+  keepUnusedDataFor: 300, // 5 минут (по умолчанию 60 секунд)
+  // Количество повторных попыток при ошибке
+  refetchOnMountOrArgChange: 60, // Повторный запрос если данные старше 60 секунд
   endpoints: () => ({}),
 })
 

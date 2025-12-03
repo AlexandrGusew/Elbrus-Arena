@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGetCharacterByNameQuery } from '../store/api/characterApi';
+import { useCreateCharacterMutation, useGetCharacterByNameQuery, useGetMyCharacterQuery } from '../store/api/characterApi';
+import type { CharacterClass } from '../types/api';
 import { getAssetUrl } from '../utils/assetUrl';
 
 const CreateCharacter = () => {
@@ -15,10 +16,21 @@ const CreateCharacter = () => {
 
   const [searchName, setSearchName] = useState<string | null>(null);
 
+  // Проверяем есть ли персонаж у текущего пользователя
+  const { data: myCharacter, isLoading: isCheckingCharacter } = useGetMyCharacterQuery();
+
   const { data: foundCharacter, isLoading: isSearching, isSuccess } = useGetCharacterByNameQuery(
     searchName || '',
     { skip: !searchName }
   );
+
+  // Если персонаж уже есть - редирект на dashboard
+  useEffect(() => {
+    if (myCharacter) {
+      localStorage.setItem('characterId', myCharacter.id.toString());
+      navigate('/app/dashboard');
+    }
+  }, [myCharacter, navigate]);
 
   useEffect(() => {
     if (searchName && isSuccess) {
@@ -58,7 +70,6 @@ const CreateCharacter = () => {
     setError('');
     setSearchName(loginName.trim());
   };
-
   const containerStyle: React.CSSProperties = {
     width: '100vw',
     height: '100vh',

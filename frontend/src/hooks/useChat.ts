@@ -22,17 +22,7 @@ export interface ChatRoom {
   unreadCount?: number; // Количество непрочитанных сообщений
 }
 
-export interface ChatInvitation {
-  id: number;
-  senderId: number;
-  senderName: string;
-  receiverId: number;
-  receiverName: string;
-  status: string;
-  createdAt: Date;
-}
-
-export interface OnlinePlayer {
+export interface Friend {
   id: number;
   name: string;
 }
@@ -43,13 +33,11 @@ export interface ChatState {
   currentRoomType: 'GLOBAL' | 'PRIVATE' | 'BATTLE' | 'PARTY' | null;
   messages: ChatMessage[];
   rooms: ChatRoom[];
-  invitations: ChatInvitation[];
   globalRoomId: string | null;
   openTabs: string[]; // Массив ID открытых вкладок
   activeTabId: string | null; // ID активной вкладки
   blockedUsers: number[]; // Массив ID заблокированных пользователей
-  onlinePlayers: OnlinePlayer[]; // Результат поиска онлайн игроков
-  playerSearchLoading: boolean; // Индикатор загрузки результатов поиска игроков
+  friends: Friend[];
 }
 
 export function useChat(characterId: number | null) {
@@ -60,13 +48,11 @@ export function useChat(characterId: number | null) {
     currentRoomType: null,
     messages: [],
     rooms: [],
-    invitations: [],
     globalRoomId: null,
     openTabs: [],
     activeTabId: null,
     blockedUsers: [],
-    onlinePlayers: [],
-    playerSearchLoading: false,
+    friends: [],
   });
 
   // Подключение к WebSocket
@@ -116,36 +102,30 @@ export function useChat(characterId: number | null) {
 
     // Событие: список чатов
     newSocket.on('user_chats', (rooms: ChatRoom[]) => {
-      setChatState((prev) => ({
-        ...prev,
-        rooms: rooms,
-      }));
-    });
+      setChatState((prev) => {
+        // Найти новые приватные чаты, которых ещё нет в openTabs
+        const newPrivateRooms = rooms
+          .filter((room) => room.type === 'PRIVATE')
+          .filter((room) => !prev.openTabs.includes(room.id));
 
-    // Событие: новое приглашение (получено от другого игрока)
-    newSocket.on('chat_invitation_received', (invitation: ChatInvitation) => {
-      setChatState((prev) => ({
-        ...prev,
-        invitations: [...prev.invitations, invitation],
-      }));
-    });
+        // Автоматически открыть новые приватные чаты
+        const updatedOpenTabs = [...prev.openTabs];
+        newPrivateRooms.forEach((room) => {
+          if (!updatedOpenTabs.includes(room.id)) {
+            updatedOpenTabs.push(room.id);
+          }
+        });
 
-    // Событие: приглашение отправлено (подтверждение)
-    newSocket.on('invitation_sent', (invitation: ChatInvitation) => {
-      // Можно добавить уведомление об успешной отправке
-      console.log('Invitation sent:', invitation);
-    });
-
-    // Событие: приглашение принято - создан новый чат
-    newSocket.on('invitation_accepted', (room: ChatRoom) => {
-      setChatState((prev) => ({
-        ...prev,
-        rooms: [...prev.rooms, room],
-        invitations: prev.invitations.filter((inv) =>
-          !(inv.senderId === room.participants[0]?.characterId &&
-            inv.receiverId === room.participants[1]?.characterId)
-        ),
-      }));
+        return {
+          ...prev,
+          rooms: rooms,
+          openTabs: updatedOpenTabs,
+          // Если есть новый приватный чат, переключиться на него
+          activeTabId: newPrivateRooms.length > 0 
+            ? newPrivateRooms[0].id 
+            : prev.activeTabId,
+        };
+      });
     });
 
     // Событие: присоединился к глобальному чату
@@ -174,57 +154,18 @@ export function useChat(characterId: number | null) {
       });
     });
 
-    // Событие: список приглашений (исправлено название события)
-    newSocket.on('invitations_list', (invitations: ChatInvitation[]) => {
-      setChatState((prev) => ({
-        ...prev,
-        invitations: invitations,
-      }));
-    });
-
     // Событие: ошибка
     newSocket.on('error', (error: { message: string } | string) => {
       const errorMessage = typeof error === 'string' ? error : error?.message || JSON.stringify(error);
       console.error('Chat error:', errorMessage);
     });
 
-    // ========== НОВЫЕ СОБЫТИЯ ==========
-
-    // Событие: создан командный чат
-    newSocket.on('party_chat_created', (data: { roomId: string; partyId: string; name: string }) => {
-      console.log('Party chat created:', data);
-      // Добавить новую вкладку и переключиться на неё
+    // Событие: список друзей
+    newSocket.on('friends_list', (friends: Friend[]) => {
       setChatState((prev) => ({
         ...prev,
-        openTabs: [...prev.openTabs, data.roomId],
-        activeTabId: data.roomId,
+        friends,
       }));
-      // Присоединиться к комнате и получить список чатов
-      newSocket.emit('join_room', { roomId: data.roomId, characterId });
-      newSocket.emit('get_user_chats', { characterId });
-    });
-
-    // Событие: участник добавлен в командный чат
-    newSocket.on('party_member_added', (data: { roomId: string; characterId: number }) => {
-      console.log('Party member added:', data);
-      // Обновить список чатов для получения обновленного списка участников
-      newSocket.emit('get_user_chats', { characterId });
-    });
-
-    // Событие: участник удален из командного чата
-    newSocket.on('party_member_removed', (data: { roomId: string; characterId: number }) => {
-      console.log('Party member removed:', data);
-      // Обновить список чатов для получения обновленного списка участников
-      newSocket.emit('get_user_chats', { characterId });
-
-      // Если удалили текущего пользователя, закрыть эту вкладку
-      if (data.characterId === characterId) {
-        setChatState((prev) => ({
-          ...prev,
-          openTabs: prev.openTabs.filter((id) => id !== data.roomId),
-          activeTabId: prev.activeTabId === data.roomId ? prev.globalRoomId : prev.activeTabId,
-        }));
-      }
     });
 
     // Событие: пользователь заблокирован
@@ -268,15 +209,6 @@ export function useChat(characterId: number | null) {
         rooms: prev.rooms.map((room) =>
           room.id === data.roomId ? { ...room, unreadCount: data.count } : room
         ),
-      }));
-    });
-
-    // Событие: результаты поиска онлайн игроков
-    newSocket.on('online_players_result', (players: OnlinePlayer[]) => {
-      setChatState((prev) => ({
-        ...prev,
-        onlinePlayers: players,
-        playerSearchLoading: false,
       }));
     });
 
@@ -326,32 +258,11 @@ export function useChat(characterId: number | null) {
     socket.emit('send_message', { content, roomId: targetRoomId, characterId });
   }, [socket, characterId, chatState.currentRoomId]);
 
-  // Отправить приглашение в приватный чат
-  const sendInvitation = useCallback((receiverId: number) => {
-    if (!socket || !characterId) return;
-
-    socket.emit('invite_to_private_chat', { receiverId, senderId: characterId });
-  }, [socket, characterId]);
-
-  // Ответить на приглашение
-  const respondToInvitation = useCallback((invitationId: number, accept: boolean) => {
-    if (!socket || !characterId) return;
-
-    socket.emit('respond_to_invitation', { invitationId, accept, characterId });
-  }, [socket, characterId]);
-
   // Получить список чатов пользователя
   const getUserChats = useCallback(() => {
     if (!socket || !characterId) return;
 
     socket.emit('get_user_chats', { characterId });
-  }, [socket, characterId]);
-
-  // Получить приглашения
-  const getInvitations = useCallback(() => {
-    if (!socket || !characterId) return;
-
-    socket.emit('get_invitations', { characterId });
   }, [socket, characterId]);
 
   // Вернуться к глобальному чату
@@ -366,26 +277,6 @@ export function useChat(characterId: number | null) {
       socket.emit('join_room', { roomId: chatState.globalRoomId, characterId });
     }
   }, [chatState.globalRoomId, socket, characterId]);
-
-  // ========== НОВЫЕ МЕТОДЫ ==========
-
-  // Создать командный чат
-  const createPartyChat = useCallback((partyId: string, name: string) => {
-    if (!socket || !characterId) return;
-    socket.emit('create_party_chat', { partyId, name, creatorId: characterId });
-  }, [socket, characterId]);
-
-  // Добавить участника в командный чат
-  const addPartyMember = useCallback((roomId: string, memberId: number) => {
-    if (!socket) return;
-    socket.emit('add_party_member', { roomId, characterId: memberId });
-  }, [socket]);
-
-  // Удалить участника из командного чата
-  const removePartyMember = useCallback((roomId: string, memberId: number) => {
-    if (!socket) return;
-    socket.emit('remove_party_member', { roomId, characterId: memberId });
-  }, [socket]);
 
   // Заблокировать пользователя
   const blockUser = useCallback((blockedId: number, reason?: string) => {
@@ -417,28 +308,26 @@ export function useChat(characterId: number | null) {
     socket.emit('get_unread_count', { roomId, characterId });
   }, [socket, characterId]);
 
-  // Поиск онлайн игроков
-  const searchOnlinePlayers = useCallback((query: string) => {
-    if (!socket) return;
+  // Работа с друзьями
+  const getFriends = useCallback(() => {
+    if (!socket || !characterId) return;
+    socket.emit('get_friends', { characterId });
+  }, [socket, characterId]);
 
-    // Сбросим текущие результаты и включим индикатор загрузки
-    setChatState((prev) => ({
-      ...prev,
-      onlinePlayers: [],
-      playerSearchLoading: true,
-    }));
+  const addFriend = useCallback((friendId: number) => {
+    if (!socket || !characterId) return;
+    socket.emit('add_friend', { characterId, friendId });
+  }, [socket, characterId]);
 
-    socket.emit('search_online_players', { query });
-  }, [socket]);
+  const removeFriend = useCallback((friendId: number) => {
+    if (!socket || !characterId) return;
+    socket.emit('remove_friend', { characterId, friendId });
+  }, [socket, characterId]);
 
-  // Очистить результаты поиска игроков
-  const clearPlayerSearch = useCallback(() => {
-    setChatState((prev) => ({
-      ...prev,
-      onlinePlayers: [],
-      playerSearchLoading: false,
-    }));
-  }, []);
+  const sendPrivateMessageToUser = useCallback((receiverId: number, content: string) => {
+    if (!socket || !characterId || !content.trim()) return;
+    socket.emit('send_private_message', { senderId: characterId, receiverId, content });
+  }, [socket, characterId]);
 
   // Обновить статус онлайн
   const updateOnlineStatus = useCallback((isOnline: boolean) => {
@@ -489,21 +378,17 @@ export function useChat(characterId: number | null) {
     joinGlobalChat,
     joinRoom,
     sendMessage,
-    sendInvitation,
-    respondToInvitation,
     getUserChats,
-    getInvitations,
     returnToGlobalChat,
-    createPartyChat,
-    addPartyMember,
-    removePartyMember,
     blockUser,
     unblockUser,
     getBlockedUsers,
     markAsRead,
     getUnreadCount,
-    searchOnlinePlayers,
-    clearPlayerSearch,
+    getFriends,
+    addFriend,
+    removeFriend,
+    sendPrivateMessageToUser,
     updateOnlineStatus,
     openTab,
     closeTab,

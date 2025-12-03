@@ -17,32 +17,27 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
     sendMessage,
     switchTab,
     closeTab,
-    searchOnlinePlayers,
-    sendInvitation,
-    respondToInvitation,
-    getInvitations,
     getUserChats,
     joinRoom,
-    createPartyChat,
-    addPartyMember,
-    removePartyMember,
     blockUser,
     unblockUser,
     getBlockedUsers,
-    clearPlayerSearch,
+    getFriends,
+    addFriend,
+    removeFriend,
+    sendPrivateMessageToUser,
     updateOnlineStatus,
-    openTab,
   } = useChat(characterId);
 
   const [messageInput, setMessageInput] = useState('');
-  const [showInvitations, setShowInvitations] = useState(false);
-  const [showPlayerSearch, setShowPlayerSearch] = useState(false);
-  const [showCreateParty, setShowCreateParty] = useState(false);
-  const [showPartyMembers, setShowPartyMembers] = useState(false);
   const [showBlockedUsers, setShowBlockedUsers] = useState(false);
-  const [playerSearchQuery, setPlayerSearchQuery] = useState('');
-  const [partyName, setPartyName] = useState('');
-  const [partySearchQuery, setPartySearchQuery] = useState('');
+  const [showFriends, setShowFriends] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    userId: number;
+    userName: string;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Обновляем онлайн-статус персонажа при открытии/закрытии чата
@@ -64,40 +59,32 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
     if (isOpen && characterId && chatState.isConnected && !chatState.globalRoomId) {
       joinGlobalChat();
       getUserChats();
-      getInvitations();
+      getFriends();
+      getBlockedUsers();
     }
-  }, [isOpen, characterId, chatState.isConnected, chatState.globalRoomId, joinGlobalChat, getUserChats, getInvitations]);
+  }, [
+    isOpen,
+    characterId,
+    chatState.isConnected,
+    chatState.globalRoomId,
+    joinGlobalChat,
+    getUserChats,
+    getFriends,
+    getBlockedUsers,
+  ]);
 
   // Автопрокрутка к последнему сообщению
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatState.messages]);
 
-  // Поиск игроков при изменении запроса (приватный чат)
   useEffect(() => {
-    const trimmed = playerSearchQuery.trim();
-    if (trimmed.length >= 2) {
-      const debounce = setTimeout(() => {
-        searchOnlinePlayers(trimmed);
-      }, 300);
-      return () => clearTimeout(debounce);
-    } else {
-      clearPlayerSearch();
-    }
-  }, [playerSearchQuery, searchOnlinePlayers, clearPlayerSearch]);
-
-  // Поиск игроков для добавления в группу
-  useEffect(() => {
-    const trimmed = partySearchQuery.trim();
-    if (trimmed.length >= 2) {
-      const debounce = setTimeout(() => {
-        searchOnlinePlayers(trimmed);
-      }, 300);
-      return () => clearTimeout(debounce);
-    } else {
-      clearPlayerSearch();
-    }
-  }, [partySearchQuery, searchOnlinePlayers, clearPlayerSearch]);
+    const handleClick = () => setContextMenu(null);
+    window.addEventListener('click', handleClick);
+    return () => {
+      window.removeEventListener('click', handleClick);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -127,22 +114,166 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
     return chatState.rooms.find((room) => room.id === chatState.activeTabId);
   };
 
-  const renderMessages = () => (
+  const openContextMenuForUser = (
+    event: React.MouseEvent,
+    userId: number,
+    userName: string,
+  ) => {
+    if (!activeRoom || activeRoom.type !== 'GLOBAL') return;
+    if (userId === characterId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+      userId,
+      userName,
+    });
+  };
+
+  const promptPrivateMessage = (targetId: number, targetName: string) => {
+    const message = prompt(`Сообщение для ${targetName}:`);
+    if (message && message.trim()) {
+      sendPrivateMessageToUser(targetId, message.trim());
+    }
+  };
+
+  const activeRoom = getActiveRoom();
+
+  const renderFriendsPanel = () => (
     <div
       style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '15px',
+        position: 'absolute',
+        top: '60px',
+        right: '10px',
+        width: '320px',
+        maxHeight: '450px',
+        background: 'rgba(20, 20, 20, 0.98)',
+        borderRadius: '8px',
+        border: '2px solid #ffd700',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
+        zIndex: 1000,
+        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        gap: '10px',
       }}
     >
-      {chatState.messages
-        .filter((msg) => msg.roomId === chatState.activeTabId)
-        .map((msg: ChatMessage) => {
+      <div
+        style={{
+          padding: '12px',
+          borderBottom: '2px solid #ffd700',
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <h4 style={{ margin: 0, color: '#ffd700', fontSize: '16px' }}>
+          Мои друзья
+        </h4>
+        <button
+          onClick={() => setShowFriends(false)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: '#f44336',
+            fontSize: '20px',
+            cursor: 'pointer',
+            padding: 0,
+            lineHeight: 1,
+          }}
+        >
+          ×
+        </button>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
+        {chatState.friends.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px', fontSize: '13px' }}>
+            Список друзей пуст
+          </div>
+        ) : (
+          chatState.friends.map((friend) => (
+            <div
+              key={friend.id}
+              style={{
+                background: 'rgba(0, 0, 0, 0.5)',
+                padding: '10px',
+                marginBottom: '6px',
+                borderRadius: '6px',
+                border: '1px solid #4CAF50',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div
+                style={{ color: '#ffd700', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+                onClick={() => {
+                  promptPrivateMessage(friend.id, friend.name);
+                  setShowFriends(false);
+                }}
+              >
+                {friend.name}
+              </div>
+              <button
+                onClick={() => {
+                  if (confirm(`Удалить ${friend.name} из друзей?`)) {
+                    removeFriend(friend.id);
+                  }
+                }}
+                style={{
+                  padding: '4px 10px',
+                  background: '#f44336',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#fff',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                }}
+              >
+                Удалить
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+      <div
+        style={{
+          padding: '10px',
+          borderTop: '1px solid rgba(255, 215, 0, 0.3)',
+          background: 'rgba(0, 0, 0, 0.5)',
+        }}
+      >
+        <div style={{ color: '#aaa', fontSize: '11px', lineHeight: '1.4' }}>
+          Нажмите на имя друга, чтобы отправить приватное сообщение, видимое только ему.
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMessages = () => {
+    const visibleMessages = chatState.messages
+      .filter((msg) => msg.roomId === chatState.activeTabId)
+      .filter(
+        (msg) =>
+          msg.senderId === characterId ||
+          !chatState.blockedUsers.includes(msg.senderId),
+      );
+
+    return (
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '15px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+        }}
+      >
+        {visibleMessages.map((msg: ChatMessage) => {
           const isOwnMessage = msg.senderId === characterId;
-          const isBlocked = chatState.blockedUsers.includes(msg.senderId);
 
           return (
             <div
@@ -150,12 +281,10 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
               style={{
                 background: isOwnMessage
                   ? 'rgba(76, 175, 80, 0.2)'
-                  : isBlocked
-                  ? 'rgba(244, 67, 54, 0.1)'
                   : 'rgba(0, 0, 0, 0.3)',
                 padding: '10px',
                 borderRadius: '8px',
-                border: `1px solid ${isBlocked ? '#f44336' : 'rgba(255, 215, 0, 0.3)'}`,
+                border: '1px solid rgba(255, 215, 0, 0.3)',
                 position: 'relative',
               }}
             >
@@ -172,52 +301,25 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
                     color: '#ffd700',
                     fontWeight: 'bold',
                     fontSize: '14px',
+                    cursor:
+                      !isOwnMessage && activeRoom?.type === 'GLOBAL'
+                        ? 'context-menu'
+                        : 'default',
                   }}
+                  onContextMenu={(event) =>
+                    openContextMenuForUser(event, msg.senderId, msg.senderName)
+                  }
                 >
                   {msg.senderName}
-                  {isBlocked && (
-                    <span style={{ color: '#f44336', fontSize: '11px', marginLeft: '8px' }}>
-                      (заблокирован)
-                    </span>
-                  )}
                 </span>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  {!isOwnMessage && !isBlocked && (
-                    <button
-                      onClick={() => {
-                        if (confirm(`Заблокировать пользователя ${msg.senderName}?`)) {
-                          blockUser(msg.senderId);
-                        }
-                      }}
-                      style={{
-                        padding: '2px 8px',
-                        background: '#f44336',
-                        border: 'none',
-                        borderRadius: '3px',
-                        color: '#fff',
-                        fontSize: '10px',
-                        cursor: 'pointer',
-                        opacity: 0.7,
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.opacity = '1';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.opacity = '0.7';
-                      }}
-                    >
-                      Заблокировать
-                    </button>
-                  )}
-                  <span
-                    style={{
-                      color: '#aaa',
-                      fontSize: '12px',
-                    }}
-                  >
-                    {formatTime(msg.createdAt)}
-                  </span>
-                </div>
+                <span
+                  style={{
+                    color: '#aaa',
+                    fontSize: '12px',
+                  }}
+                >
+                  {formatTime(msg.createdAt)}
+                </span>
               </div>
               <div
                 style={{
@@ -231,517 +333,7 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
             </div>
           );
         })}
-      <div ref={messagesEndRef} />
-    </div>
-  );
-
-  const renderInvitationsPanel = () => (
-    <div
-      style={{
-        position: 'absolute',
-        top: '60px',
-        right: '10px',
-        width: '300px',
-        maxHeight: '400px',
-        background: 'rgba(20, 20, 20, 0.98)',
-        borderRadius: '8px',
-        border: '2px solid #ffd700',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
-        zIndex: 1000,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <div
-        style={{
-          padding: '12px',
-          borderBottom: '2px solid #ffd700',
-          background: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <h4 style={{ margin: 0, color: '#ffd700', fontSize: '16px' }}>
-          Приглашения
-        </h4>
-        <button
-          onClick={() => setShowInvitations(false)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#f44336',
-            fontSize: '20px',
-            cursor: 'pointer',
-            padding: 0,
-            lineHeight: 1,
-          }}
-        >
-          ×
-        </button>
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
-        {chatState.invitations.filter((inv) => inv.status === 'pending').length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px' }}>
-            Нет приглашений
-          </div>
-        ) : (
-          chatState.invitations
-            .filter((inv) => inv.status === 'pending')
-            .map((invitation) => (
-              <div
-                key={invitation.id}
-                style={{
-                  background: 'rgba(0, 0, 0, 0.5)',
-                  padding: '10px',
-                  marginBottom: '8px',
-                  borderRadius: '6px',
-                  border: '1px solid #ffd700',
-                }}
-              >
-                <div style={{ color: '#fff', marginBottom: '8px', fontSize: '13px' }}>
-                  <span style={{ color: '#ffd700', fontWeight: 'bold' }}>
-                    {invitation.senderId === characterId
-                      ? invitation.receiverName
-                      : invitation.senderName}
-                  </span>
-                  {invitation.senderId === characterId ? (
-                    <span> (отправлено)</span>
-                  ) : (
-                    <span> приглашает в чат</span>
-                  )}
-                </div>
-                {invitation.receiverId === characterId && (
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={() => respondToInvitation(invitation.id, true)}
-                      style={{
-                        flex: 1,
-                        padding: '6px',
-                        background: '#4CAF50',
-                        border: 'none',
-                        borderRadius: '4px',
-                        color: '#fff',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Принять
-                    </button>
-                    <button
-                      onClick={() => respondToInvitation(invitation.id, false)}
-                      style={{
-                        flex: 1,
-                        padding: '6px',
-                        background: '#f44336',
-                        border: 'none',
-                        borderRadius: '4px',
-                        color: '#fff',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Отклонить
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))
-        )}
-      </div>
-    </div>
-  );
-
-  const renderPlayerSearchPanel = () => (
-    <div
-      style={{
-        position: 'absolute',
-        top: '60px',
-        right: '10px',
-        width: '300px',
-        maxHeight: '400px',
-        background: 'rgba(20, 20, 20, 0.98)',
-        borderRadius: '8px',
-        border: '2px solid #ffd700',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
-        zIndex: 1000,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <div
-        style={{
-          padding: '12px',
-          borderBottom: '2px solid #ffd700',
-          background: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <h4 style={{ margin: 0, color: '#ffd700', fontSize: '16px' }}>
-          Поиск игроков
-        </h4>
-        <button
-          onClick={() => setShowPlayerSearch(false)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#f44336',
-            fontSize: '20px',
-            cursor: 'pointer',
-            padding: 0,
-            lineHeight: 1,
-          }}
-        >
-          ×
-        </button>
-      </div>
-      <div style={{ padding: '10px' }}>
-        <input
-          type="text"
-          value={playerSearchQuery}
-          onChange={(e) => setPlayerSearchQuery(e.target.value)}
-          placeholder="Введите имя игрока..."
-          style={{
-            width: '100%',
-            padding: '8px',
-            background: 'rgba(0, 0, 0, 0.7)',
-            border: '1px solid #ffd700',
-            borderRadius: '4px',
-            color: '#fff',
-            fontSize: '14px',
-            boxSizing: 'border-box',
-          }}
-        />
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 10px 10px' }}>
-        {chatState.playerSearchLoading ? (
-          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px', fontSize: '13px' }}>
-            Поиск игроков...
-          </div>
-        ) : playerSearchQuery.trim().length < 2 ? (
-          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px', fontSize: '13px' }}>
-            Введите имя для поиска
-          </div>
-        ) : chatState.onlinePlayers.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '20px', fontSize: '13px' }}>
-            Игроки не найдены
-          </div>
-        ) : (
-          chatState.onlinePlayers.map((player) => (
-            <div
-              key={player.id}
-              onClick={() => {
-                sendInvitation(player.id);
-                setShowPlayerSearch(false);
-                setPlayerSearchQuery('');
-              }}
-              style={{
-                background: 'rgba(0, 0, 0, 0.5)',
-                padding: '10px',
-                marginBottom: '6px',
-                borderRadius: '6px',
-                border: '1px solid #ffd700',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(33, 150, 243, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.5)';
-              }}
-            >
-              <div style={{ color: '#ffd700', fontWeight: 'bold', fontSize: '14px' }}>
-                {player.name}
-              </div>
-              <div style={{ color: '#4CAF50', fontSize: '11px', marginTop: '2px' }}>
-                🟢 Онлайн
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-
-  const handleCreateParty = () => {
-    if (partyName.trim()) {
-      const partyId = `party-${Date.now()}`; // Генерируем уникальный ID группы
-      createPartyChat(partyId, partyName.trim());
-      setPartyName('');
-      setShowCreateParty(false);
-    }
-  };
-
-  const renderCreatePartyPanel = () => (
-    <div
-      style={{
-        position: 'absolute',
-        top: '60px',
-        right: '10px',
-        width: '300px',
-        background: 'rgba(20, 20, 20, 0.98)',
-        borderRadius: '8px',
-        border: '2px solid #ffd700',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
-        zIndex: 1000,
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <div
-        style={{
-          padding: '12px',
-          borderBottom: '2px solid #ffd700',
-          background: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <h4 style={{ margin: 0, color: '#ffd700', fontSize: '16px' }}>
-          Создать группу
-        </h4>
-        <button
-          onClick={() => setShowCreateParty(false)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#f44336',
-            fontSize: '20px',
-            cursor: 'pointer',
-            padding: 0,
-            lineHeight: 1,
-          }}
-        >
-          ×
-        </button>
-      </div>
-      <div style={{ padding: '15px' }}>
-        <label style={{ color: '#ffd700', fontSize: '14px', marginBottom: '8px', display: 'block' }}>
-          Название группы:
-        </label>
-        <input
-          type="text"
-          value={partyName}
-          onChange={(e) => setPartyName(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleCreateParty()}
-          placeholder="Введите название..."
-          maxLength={30}
-          style={{
-            width: '100%',
-            padding: '10px',
-            background: 'rgba(0, 0, 0, 0.7)',
-            border: '1px solid #ffd700',
-            borderRadius: '4px',
-            color: '#fff',
-            fontSize: '14px',
-            boxSizing: 'border-box',
-            marginBottom: '15px',
-          }}
-        />
-        <button
-          onClick={handleCreateParty}
-          disabled={!partyName.trim()}
-          style={{
-            width: '100%',
-            padding: '10px',
-            background: partyName.trim() ? '#9C27B0' : '#666',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            cursor: partyName.trim() ? 'pointer' : 'not-allowed',
-          }}
-        >
-          Создать
-        </button>
-        <div style={{ marginTop: '15px', fontSize: '12px', color: '#aaa', lineHeight: '1.5' }}>
-          Групповой чат позволяет общаться с несколькими игроками одновременно.
-          После создания вы сможете пригласить участников.
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderPartyMembersPanel = () => {
-    const activeRoom = getActiveRoom();
-    if (!activeRoom || activeRoom.type !== 'PARTY') return null;
-
-    return (
-      <div
-        style={{
-          position: 'absolute',
-          top: '60px',
-          right: '10px',
-          width: '350px',
-          maxHeight: '500px',
-          background: 'rgba(20, 20, 20, 0.98)',
-          borderRadius: '8px',
-          border: '2px solid #ffd700',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
-          zIndex: 1000,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div
-          style={{
-            padding: '12px',
-            borderBottom: '2px solid #ffd700',
-            background: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <h4 style={{ margin: 0, color: '#ffd700', fontSize: '16px' }}>
-            Участники группы
-          </h4>
-          <button
-            onClick={() => setShowPartyMembers(false)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#f44336',
-              fontSize: '20px',
-              cursor: 'pointer',
-              padding: 0,
-              lineHeight: 1,
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Текущие участники */}
-        <div style={{ padding: '10px', borderBottom: '1px solid rgba(255, 215, 0, 0.3)' }}>
-          <div style={{ color: '#ffd700', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px' }}>
-            Текущие участники ({activeRoom.participants.length}):
-          </div>
-          <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-            {activeRoom.participants.map((participant) => (
-              <div
-                key={participant.characterId}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '6px 8px',
-                  background: 'rgba(0, 0, 0, 0.4)',
-                  marginBottom: '4px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(255, 215, 0, 0.2)',
-                }}
-              >
-                <span style={{ color: '#fff', fontSize: '13px' }}>
-                  {participant.characterName}
-                  {participant.characterId === characterId && ' (вы)'}
-                </span>
-                {participant.characterId !== characterId && (
-                  <button
-                    onClick={() => {
-                      if (confirm(`Удалить ${participant.characterName} из группы?`)) {
-                        removePartyMember(activeRoom.id, participant.characterId);
-                      }
-                    }}
-                    style={{
-                      padding: '2px 8px',
-                      background: '#f44336',
-                      border: 'none',
-                      borderRadius: '3px',
-                      color: '#fff',
-                      fontSize: '11px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Удалить
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Добавить нового участника */}
-        <div style={{ padding: '10px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ color: '#ffd700', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px' }}>
-            Добавить участника:
-          </div>
-          <input
-            type="text"
-            value={partySearchQuery}
-            onChange={(e) => setPartySearchQuery(e.target.value)}
-            placeholder="Введите имя игрока..."
-            style={{
-              width: '100%',
-              padding: '8px',
-              background: 'rgba(0, 0, 0, 0.7)',
-              border: '1px solid #ffd700',
-              borderRadius: '4px',
-              color: '#fff',
-              fontSize: '13px',
-              boxSizing: 'border-box',
-              marginBottom: '8px',
-            }}
-          />
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            {partySearchQuery.length < 2 ? (
-              <div style={{ textAlign: 'center', color: '#aaa', marginTop: '15px', fontSize: '12px' }}>
-                Введите имя для поиска
-              </div>
-            ) : chatState.onlinePlayers.filter(
-              (player) => !activeRoom.participants.some((p) => p.characterId === player.id)
-            ).length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#aaa', marginTop: '15px', fontSize: '12px' }}>
-                Игроки не найдены
-              </div>
-            ) : (
-              chatState.onlinePlayers
-                .filter((player) => !activeRoom.participants.some((p) => p.characterId === player.id))
-                .map((player) => (
-                  <div
-                    key={player.id}
-                    onClick={() => {
-                      addPartyMember(activeRoom.id, player.id);
-                      setPartySearchQuery('');
-                    }}
-                    style={{
-                      background: 'rgba(0, 0, 0, 0.5)',
-                      padding: '8px',
-                      marginBottom: '4px',
-                      borderRadius: '4px',
-                      border: '1px solid #9C27B0',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(156, 39, 176, 0.3)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.5)';
-                    }}
-                  >
-                    <div style={{ color: '#ffd700', fontWeight: 'bold', fontSize: '13px' }}>
-                      {player.name}
-                    </div>
-                    <div style={{ color: '#4CAF50', fontSize: '11px', marginTop: '2px' }}>
-                      🟢 Онлайн
-                    </div>
-                  </div>
-                ))
-            )}
-          </div>
-        </div>
+        <div ref={messagesEndRef} />
       </div>
     );
   };
@@ -858,11 +450,6 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
     </div>
   );
 
-  const activeRoom = getActiveRoom();
-  const pendingInvitationsCount = chatState.invitations.filter(
-    (inv) => inv.status === 'pending' && inv.receiverId === characterId
-  ).length;
-
   return (
     <div
       style={{
@@ -907,55 +494,12 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
               onClick={() => {
-                setShowCreateParty(!showCreateParty);
-                setShowInvitations(false);
-                setShowPlayerSearch(false);
-                setShowPartyMembers(false);
+                const next = !showFriends;
+                setShowFriends(next);
                 setShowBlockedUsers(false);
-              }}
-              style={{
-                padding: '8px 15px',
-                background: '#9C27B0',
-                border: 'none',
-                borderRadius: '4px',
-                color: '#fff',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                fontSize: '14px',
-              }}
-            >
-              Создать группу
-            </button>
-            {activeRoom && activeRoom.type === 'PARTY' && (
-              <button
-                onClick={() => {
-                  setShowPartyMembers(!showPartyMembers);
-                  setShowInvitations(false);
-                  setShowPlayerSearch(false);
-                  setShowCreateParty(false);
-                  setShowBlockedUsers(false);
-                }}
-                style={{
-                  padding: '8px 15px',
-                  background: '#9C27B0',
-                  border: 'none',
-                  borderRadius: '4px',
-                  color: '#fff',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                }}
-              >
-                Участники ({activeRoom.participants.length})
-              </button>
-            )}
-            <button
-              onClick={() => {
-                setShowPlayerSearch(!showPlayerSearch);
-                setShowInvitations(false);
-                setShowCreateParty(false);
-                setShowPartyMembers(false);
-                setShowBlockedUsers(false);
+                if (!showFriends) {
+                  getFriends();
+                }
               }}
               style={{
                 padding: '8px 15px',
@@ -968,58 +512,16 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
                 fontSize: '14px',
               }}
             >
-              Найти игрока
+              Мои друзья
             </button>
             <button
               onClick={() => {
-                setShowInvitations(!showInvitations);
-                setShowPlayerSearch(false);
-                setShowCreateParty(false);
-                setShowPartyMembers(false);
-                setShowBlockedUsers(false);
-                getInvitations();
-              }}
-              style={{
-                padding: '8px 15px',
-                background: '#9C27B0',
-                border: 'none',
-                borderRadius: '4px',
-                color: '#fff',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                fontSize: '14px',
-                position: 'relative',
-              }}
-            >
-              Приглашения
-              {pendingInvitationsCount > 0 && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '-5px',
-                    right: '-5px',
-                    background: '#f44336',
-                    borderRadius: '50%',
-                    width: '20px',
-                    height: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '11px',
-                  }}
-                >
-                  {pendingInvitationsCount}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => {
-                setShowBlockedUsers(!showBlockedUsers);
-                setShowInvitations(false);
-                setShowPlayerSearch(false);
-                setShowCreateParty(false);
-                setShowPartyMembers(false);
-                getBlockedUsers();
+                const next = !showBlockedUsers;
+                setShowBlockedUsers(next);
+                setShowFriends(false);
+                if (!showBlockedUsers) {
+                  getBlockedUsers();
+                }
               }}
               style={{
                 padding: '8px 15px',
@@ -1030,29 +532,9 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
                 fontWeight: 'bold',
                 cursor: 'pointer',
                 fontSize: '14px',
-                position: 'relative',
               }}
             >
               Заблокированные
-              {chatState.blockedUsers.length > 0 && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '-5px',
-                    right: '-5px',
-                    background: '#f44336',
-                    borderRadius: '50%',
-                    width: '20px',
-                    height: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '11px',
-                  }}
-                >
-                  {chatState.blockedUsers.length}
-                </span>
-              )}
             </button>
             <button
               onClick={onClose}
@@ -1073,10 +555,7 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
         </div>
 
         {/* Панели */}
-        {showInvitations && renderInvitationsPanel()}
-        {showPlayerSearch && renderPlayerSearchPanel()}
-        {showCreateParty && renderCreatePartyPanel()}
-        {showPartyMembers && renderPartyMembersPanel()}
+        {showFriends && renderFriendsPanel()}
         {showBlockedUsers && renderBlockedUsersPanel()}
 
         {/* Вкладки */}
@@ -1171,6 +650,86 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
             }}
           >
             Подключение к чату...
+          </div>
+        )}
+
+        {contextMenu && (
+          <div
+            style={{
+              position: 'fixed',
+              top: contextMenu.y,
+              left: contextMenu.x,
+              background: 'rgba(20, 20, 20, 0.95)',
+              border: '1px solid #ffd700',
+              borderRadius: '6px',
+              padding: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              zIndex: 20000,
+              minWidth: '190px',
+            }}
+          >
+            <button
+              onClick={() => {
+                addFriend(contextMenu.userId);
+                setContextMenu(null);
+              }}
+              disabled={chatState.friends.some((f) => f.id === contextMenu.userId)}
+              style={{
+                padding: '6px 10px',
+                background: '#2196F3',
+                border: 'none',
+                borderRadius: '4px',
+                color: '#fff',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                cursor: chatState.friends.some((f) => f.id === contextMenu.userId)
+                  ? 'not-allowed'
+                  : 'pointer',
+                opacity: chatState.friends.some((f) => f.id === contextMenu.userId) ? 0.6 : 1,
+              }}
+            >
+              Добавить в друзья
+            </button>
+            <button
+              onClick={() => {
+                promptPrivateMessage(contextMenu.userId, contextMenu.userName);
+                setContextMenu(null);
+              }}
+              style={{
+                padding: '6px 10px',
+                background: '#4CAF50',
+                border: 'none',
+                borderRadius: '4px',
+                color: '#fff',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+              }}
+            >
+              Приватное сообщение
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`Заблокировать пользователя ${contextMenu.userName}?`)) {
+                  blockUser(contextMenu.userId);
+                }
+                setContextMenu(null);
+              }}
+              style={{
+                padding: '6px 10px',
+                background: '#f44336',
+                border: 'none',
+                borderRadius: '4px',
+                color: '#fff',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+              }}
+            >
+              Заблокировать
+            </button>
           </div>
         )}
       </div>

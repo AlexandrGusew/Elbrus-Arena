@@ -35,9 +35,14 @@ enum SpecializationBranch {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  telegramId BigInt     @unique
-  username   String?
+  id               Int        @id @default(autoincrement())
+  telegramId       BigInt?    @unique  // Опциональный - для Telegram авторизации
+  telegramUsername String?    @unique  // Telegram username (@username)
+
+  // Поля для обычной авторизации (логин + пароль)
+  username   String?    @unique  // Уникальный логин пользователя
+  password   String?    // Хешированный bcrypt пароль
+
   firstName  String?
   createdAt  DateTime   @default(now())
   characters Character[]
@@ -79,6 +84,8 @@ model Character {
   receivedInvitations ChatInvitation[]  @relation("ReceivedInvitations")
   blockedUsers       BlockedUser[]      @relation("BlockedBy")
   blockedByUsers     BlockedUser[]      @relation("Blocked")
+  friends            Friendship[]       @relation("CharacterFriends")
+  friendOf           Friendship[]       @relation("FriendOf")
 
   @@index([userId])
   @@map("characters")
@@ -314,9 +321,20 @@ model ChatInvitation {
   createdAt    DateTime @default(now())
   sender       Character @relation("SentInvitations", fields: [senderId], references: [id])
   receiver     Character @relation("ReceivedInvitations", fields: [receiverId], references: [id])
-
   @@unique([senderId, receiverId, status])
   @@map("chat_invitations")
+}
+
+model Friendship {
+  id          Int       @id @default(autoincrement())
+  characterId Int
+  friendId    Int
+  createdAt   DateTime  @default(now())
+  character   Character @relation("CharacterFriends", fields: [characterId], references: [id], onDelete: Cascade)
+  friend      Character @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([characterId, friendId])
+  @@map("friendships")
 }
 
 // Игнор-лист для блокировки пользователей в чате

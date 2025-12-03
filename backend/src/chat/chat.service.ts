@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChatRoomType } from '@prisma/client';
 import {
@@ -8,15 +8,21 @@ import {
 } from './dto/chat.dto';
 
 @Injectable()
-export class ChatService {
+export class ChatService implements OnModuleInit {
+  private readonly logger = new Logger(ChatService.name);
   private globalChatRoomId: string | null = null;
+  private initRetryCount = 0;
+  private readonly maxRetries = 10;
 
-  constructor(private prisma: PrismaService) {
-    this.initGlobalChat();
+  constructor(private prisma: PrismaService) {}
+
+  async onModuleInit() {
+    // Инициализация происходит после подключения к БД через PrismaService
+    await this.initGlobalChat();
   }
 
   // Инициализация глобального чата при запуске
-  private async initGlobalChat() {
+  private async initGlobalChat(): Promise<void> {
     try {
       const globalRoom = await this.prisma.chatRoom.findFirst({
         where: { type: ChatRoomType.GLOBAL },
@@ -27,17 +33,39 @@ export class ChatService {
           data: { type: ChatRoomType.GLOBAL },
         });
         this.globalChatRoomId = newGlobalRoom.id;
+        this.logger.log('Global chat room created successfully');
       } else {
         this.globalChatRoomId = globalRoom.id;
+        this.logger.log('Global chat room initialized successfully');
       }
+      this.initRetryCount = 0; // Сброс счетчика при успехе
     } catch (error) {
-      console.error('Failed to initialize global chat (database unavailable):', error.message);
-      // Не блокируем запуск приложения, инициализация произойдет позже
-      setTimeout(() => {
-        this.initGlobalChat().catch(err => {
-          console.error('Retry failed to initialize global chat:', err.message);
-        });
-      }, 5000); // Повтор через 5 секунд
+      this.initRetryCount++;
+      
+      // Проверяем, является ли это ошибкой подключения к БД
+      const isConnectionError = error?.code === 'P1001' || 
+                                error?.message?.includes("Can't reach database server");
+      
+      if (isConnectionError) {
+        if (this.initRetryCount <= this.maxRetries) {
+          this.logger.warn(
+            `Database unavailable. Retrying global chat initialization (${this.initRetryCount}/${this.maxRetries})...`
+          );
+          // Повтор через 5 секунд
+          setTimeout(() => {
+            this.initGlobalChat().catch(() => {
+              // Ошибка уже обработана в следующей попытке
+            });
+          }, 5000);
+        } else {
+          this.logger.error(
+            `Failed to initialize global chat after ${this.maxRetries} attempts. Database server may be unavailable.`
+          );
+        }
+      } else {
+        // Другие ошибки логируем полностью
+        this.logger.error(`Failed to initialize global chat: ${error.message}`, error.stack);
+      }
     }
   }
 
@@ -272,17 +300,16 @@ export class ChatService {
 
   // Отправить приглашение в приватный чат
   async sendInvitation(senderId: number, receiverId: number): Promise<ChatInvitationResponse> {
-    // Проверить, нет ли уже активного приглашения
+    // Проверить, нет ли уже какого-либо приглашения между этой парой
     const existingInvitation = await this.prisma.chatInvitation.findFirst({
       where: {
         senderId,
         receiverId,
-        status: 'pending',
       },
     });
 
     if (existingInvitation) {
-      throw new BadRequestException('Invitation already sent');
+      throw new BadRequestException('Invitation between these players already exists');
     }
 
     const invitation = await this.prisma.chatInvitation.create({
@@ -445,6 +472,142 @@ export class ChatService {
         blockedId,
       },
     });
+  }
+
+  // Получить список друзей
+  async getFriends(characterId: number): Promise<
+    { id: number; name: string }[]
+  > {
+    const friendships = await this.prisma.friendship.findMany({
+      where: { characterId },
+      include: {
+        friend: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return friendships.map((friendship) => ({
+      id: friendship.friend.id,
+      name: friendship.friend.name,
+    }));
+  }
+
+  // Добавить в друзья
+  async addFriend(characterId: number, friendId: number): Promise<void> {
+    if (characterId === friendId) {
+      throw new BadRequestException('Cannot add yourself');
+    }
+
+    const friendExists = await this.prisma.character.findUnique({
+      where: { id: friendId },
+      select: { id: true },
+    });
+
+    if (!friendExists) {
+      throw new NotFoundException('Player not found');
+    }
+
+    const existing = await this.prisma.friendship.findUnique({
+      where: {
+        characterId_friendId: { characterId, friendId },
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException('Already in friends');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.friendship.create({
+        data: { characterId, friendId },
+      }),
+      this.prisma.friendship.upsert({
+        where: {
+          characterId_friendId: {
+            characterId: friendId,
+            friendId: characterId,
+          },
+        },
+        create: {
+          characterId: friendId,
+          friendId: characterId,
+        },
+        update: {},
+      }),
+    ]);
+  }
+
+  // Удалить из друзей
+  async removeFriend(characterId: number, friendId: number): Promise<void> {
+    await this.prisma.friendship.deleteMany({
+      where: {
+        OR: [
+          { characterId, friendId },
+          { characterId: friendId, friendId: characterId },
+        ],
+      },
+    });
+  }
+
+  // Отправить приватное сообщение напрямую
+  async sendPrivateMessage(
+    senderId: number,
+    receiverId: number,
+    content: string,
+  ): Promise<{ room: ChatRoomResponse; message: ChatMessageResponse }> {
+    if (senderId === receiverId) {
+      throw new BadRequestException('Cannot send message to yourself');
+    }
+
+    if (!content.trim()) {
+      throw new BadRequestException('Message content cannot be empty');
+    }
+
+    const blocked = await this.prisma.blockedUser.findFirst({
+      where: {
+        OR: [
+          { blockerId: receiverId, blockedId: senderId },
+          { blockerId: senderId, blockedId: receiverId },
+        ],
+      },
+    });
+
+    if (blocked) {
+      if (blocked.blockerId === senderId) {
+        throw new BadRequestException('You blocked this player');
+      }
+      throw new BadRequestException('You are blocked by this player');
+    }
+
+    const room = await this.createPrivateChat(senderId, receiverId);
+    const message = await this.prisma.chatMessage.create({
+      data: {
+        senderId,
+        roomId: room.id,
+        content,
+      },
+      include: {
+        sender: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    await this.incrementUnreadCount(room.id, senderId);
+
+    return {
+      room,
+      message: {
+        id: message.id,
+        roomId: message.roomId,
+        senderId: message.senderId,
+        senderName: message.sender.name,
+        content: message.content,
+        createdAt: message.createdAt,
+      },
+    };
   }
 
   // Получить список заблокированных пользователей

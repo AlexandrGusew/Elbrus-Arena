@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 export interface JwtPayload {
   userId: number;
-  telegramId: bigint | number;
+  telegramId: bigint | number | null;  // null для email авторизации
 }
 
 @Injectable()

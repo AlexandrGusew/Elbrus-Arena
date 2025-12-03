@@ -11,23 +11,10 @@ export class CharacterService {
     private inventoryService: InventoryService,
   ) {}
 
-  async create(telegramId: number, name: string, characterClass: CharacterClass): Promise<Character> {
-    let user = await this.prisma.user.findUnique({
-      where: { telegramId: BigInt(telegramId) }
-    });
-
-    if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          telegramId: BigInt(telegramId),
-          username: `user_${telegramId}`,
-        }
-      });
-    }
-
+  async create(userId: number, name: string, characterClass: CharacterClass): Promise<Character> {
     // Проверяем, сколько персонажей уже у пользователя
     const userCharacters = await this.prisma.character.findMany({
-      where: { userId: user.id },
+      where: { userId },
     });
 
     if (userCharacters.length >= 3) {
@@ -51,11 +38,11 @@ export class CharacterService {
       throw new BadRequestException(`Unknown class: ${characterClass}`);
     }
 
-    try {
+try {
       const character = await this.prisma.$transaction(async (tx) => {
         const newCharacter = await tx.character.create({
           data: {
-            userId: user.id,
+            userId,
             name,
             class: characterClass,
             ...stats,

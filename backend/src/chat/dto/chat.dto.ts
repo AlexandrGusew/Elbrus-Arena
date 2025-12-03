@@ -99,3 +99,16 @@ export class SearchOnlinePlayersDto {
 export class UpdateOnlineStatusDto {
   isOnline: boolean;
 }
+
+export class AddFriendDto {
+  friendId: number;
+}
+
+export class RemoveFriendDto {
+  friendId: number;
+}
+
+export class SendPrivateMessageDto {
+  receiverId: number;
+  content: string;
+}

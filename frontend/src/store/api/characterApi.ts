@@ -8,6 +8,11 @@ export const characterApi = baseApi.injectEndpoints({
       providesTags: (result, error, id) => [{ type: 'Character', id }],
     }),
 
+    getMyCharacter: builder.query<Character | null, void>({
+      query: () => `/character/me`,
+      providesTags: (result) => result ? [{ type: 'Character', id: result.id }] : [],
+    }),
+
     getCharacterByName: builder.query<Character | null, string>({
       query: (name) => `/character/name/${name}`,
       providesTags: (result) => result ? [{ type: 'Character', id: result.id }] : [],
@@ -166,6 +171,8 @@ export const characterApi = baseApi.injectEndpoints({
 
 export const {
   useGetCharacterQuery,
+  useGetMyCharacterQuery,
+  useLazyGetMyCharacterQuery,
   useGetCharacterByNameQuery,
   useCreateCharacterMutation,
   useEquipItemMutation,

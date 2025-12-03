@@ -1,12 +1,12 @@
-import { StrictMode, useEffect } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './store'
-import { authApi } from './store/api/authApi'
 import './index.css'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import Login from './pages/Login'
 import CreateCharacter from './pages/CreateCharacter'
 import Dashboard from './pages/Dashboard'
 import PvP from './pages/PvP'
@@ -16,69 +16,51 @@ import Inventory from './pages/Inventory'
 import LevelUp from './pages/LevelUp'
 import Specialization from './pages/Specialization'
 import ClassMentor from './pages/ClassMentor'
-
-// Автоматическая авторизация при старте
-async function initAuth() {
-  try {
-    // Получаем telegramId из Telegram WebApp или используем тестовый
-    const telegramId = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id || 123456789;
-
-    // Всегда получаем свежий токен при загрузке
-    const result = await store.dispatch(
-      authApi.endpoints.login.initiate({ telegramId })
-    );
-
-    if ('data' in result && result.data) {
-      console.log('JWT токен получен и сохранён');
-    } else {
-      console.error('Не удалось получить токен');
-    }
-  } catch (err) {
-    console.error('Ошибка авторизации:', err);
-  }
-}
-
-initAuth();
+import { registerServiceWorker, precacheCriticalAssets } from './utils/serviceWorker'
+import { getAssetUrl } from './utils/assetUrl'
 
 const router = createBrowserRouter([
   {
     path: '/',
+    element: <Login />
+  },
+  {
     element: <Layout />,
     children: [
       {
-        index: true,
+        path: '/create-character',
         element: <CreateCharacter />
       },
       {
-        path: 'dashboard',
+        path: '/dashboard',
         element: <ProtectedRoute><Dashboard /></ProtectedRoute>
       },
       {
-        path: 'pvp',
+        path: '/pvp',
         element: <ProtectedRoute><PvP /></ProtectedRoute>
       },
       {
-        path: 'dungeon',
+        path: '/dungeon',
         element: <ProtectedRoute><Dungeon /></ProtectedRoute>
       },
       {
-        path: 'blacksmith',
+        path: '/blacksmith',
         element: <ProtectedRoute><Blacksmith /></ProtectedRoute>
       },
       {
-        path: 'inventory',
+        path: '/inventory',
         element: <ProtectedRoute><Inventory /></ProtectedRoute>
       },
       {
-        path: 'levelup',
+        path: '/levelup',
         element: <ProtectedRoute><LevelUp /></ProtectedRoute>
       },
       {
-        path: 'specialization',
+        path: '/specialization',
         element: <ProtectedRoute><Specialization /></ProtectedRoute>
       },
       {
-        path: 'class-mentor',
+        path: '/class-mentor',
         element: <ProtectedRoute><ClassMentor /></ProtectedRoute>
       }
     ]
@@ -96,3 +78,57 @@ createRoot(document.getElementById('root')!).render(
     </Provider>
   </StrictMode>,
 )
+
+// Регистрация Service Worker для кэширования медиа
+registerServiceWorker({
+  onSuccess: () => {
+    console.log('[App] Service Worker active, precaching critical assets');
+
+    // Список критических ресурсов для предзагрузки
+    const criticalAssets = [
+      // Login/CreateCharacter страницы
+      getAssetUrl('createCharacter/animatedBackground.mp4'),
+      getAssetUrl('createCharacter/backgroundIntro.mp3'),
+      getAssetUrl('createCharacter/fonModal.png'),
+      getAssetUrl('createCharacter/inputName.png'),
+      getAssetUrl('createCharacter/buttonEnter.png'),
+      getAssetUrl('createCharacter/music.png'),
+
+      // Персонажи
+      getAssetUrl('createCharacter/warrior (1).png'),
+      getAssetUrl('createCharacter/mage (1).png'),
+      getAssetUrl('createCharacter/rogue (1).png'),
+
+      // Dashboard
+      getAssetUrl('dashboard/mainCity.mp3'),
+      getAssetUrl('dashboard/mainCityBackground.mp4'),
+
+      // Dungeon
+      getAssetUrl('dungeon/battle/PvE-arena.png'),
+      getAssetUrl('dungeon/battle/warrior_character.png'),
+      getAssetUrl('dungeon/battle/mage_character.png'),
+      getAssetUrl('dungeon/battle/rogue_character.png'),
+
+      // Dungeon 1 mobs
+      getAssetUrl('dungeon/mobs/mob-1-skeleton.png'),
+      getAssetUrl('dungeon/mobs/mob-2-archer.png'),
+      getAssetUrl('dungeon/mobs/mob-3-spear.png'),
+      getAssetUrl('dungeon/mobs/mob-4-mage.png'),
+      getAssetUrl('dungeon/mobs/mob-5-boss.png'),
+    ];
+
+    // Предзагружаем критические ресурсы
+    precacheCriticalAssets(criticalAssets);
+  },
+  onUpdate: (registration) => {
+    console.log('[App] New version available, please reload');
+    // Можно показать уведомление пользователю
+    if (confirm('Доступна новая версия приложения. Обновить?')) {
+      registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+      window.location.reload();
+    }
+  },
+  onError: (error) => {
+    console.error('[App] Service Worker error:', error);
+  },
+});
