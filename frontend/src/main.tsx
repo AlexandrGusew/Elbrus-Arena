@@ -6,6 +6,7 @@ import { store } from './store'
 import './index.css'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import Landing from './pages/landing'
 import Login from './pages/Login'
 import CreateCharacter from './pages/CreateCharacter'
 import Dashboard from './pages/Dashboard'
@@ -22,6 +23,10 @@ import { getAssetUrl } from './utils/assetUrl'
 const router = createBrowserRouter([
   {
     path: '/',
+    element: <Landing />
+  },
+  {
+    path: '/auth',
     element: <Login />
   },
   {
