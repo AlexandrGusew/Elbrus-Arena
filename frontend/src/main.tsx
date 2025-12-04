@@ -1,13 +1,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './store'
 import './index.css'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
-import Login from './pages/Login'
-import CreateCharacter from './pages/CreateCharacter'
+// import Login from './pages/Login' // Старый Login
+import { LoginPage } from './pages/login/LoginPage'
+import { RegisterPage } from './pages/login/RegisterPage'
+// import CreateCharacter from './pages/CreateCharacter' // Старый CreateCharacter
+import { ChooseHeroPage } from './pages/chooseHero/ChooseHeroPage'
+import { CreateCharacterPage } from './pages/createCharacter/CreateCharacterPage'
 import Dashboard from './pages/Dashboard'
 import PvP from './pages/PvP'
 import Dungeon from './pages/Dungeon'
@@ -22,15 +26,27 @@ import { getAssetUrl } from './utils/assetUrl'
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Login />
+    element: <Navigate to="/login" replace />
+  },
+  {
+    path: '/login',
+    element: <LoginPage />
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />
+  },
+  {
+    path: '/choose-hero',
+    element: <ChooseHeroPage />
+  },
+  {
+    path: '/create-character',
+    element: <CreateCharacterPage />
   },
   {
     element: <Layout />,
     children: [
-      {
-        path: '/create-character',
-        element: <CreateCharacter />
-      },
       {
         path: '/dashboard',
         element: <ProtectedRoute><Dashboard /></ProtectedRoute>
