@@ -13,7 +13,7 @@ import { getAssetUrl } from '../utils/assetUrl';
 type AuthMode = 'username' | 'telegram';
 
 // Telegram бот
-const TELEGRAM_BOT_USERNAME = 'autharenanightfall_bot';
+const TELEGRAM_BOT_USERNAME = 'login_nightfall_bot';
 
 export default function Login() {
   const navigate = useNavigate();
