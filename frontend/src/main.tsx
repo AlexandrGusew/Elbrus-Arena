@@ -12,7 +12,8 @@ import Dashboard from './pages/Dashboard'
 import PvP from './pages/PvP'
 import Dungeon from './pages/Dungeon'
 import Blacksmith from './pages/Blacksmith'
-import Inventory from './pages/Inventory'
+// import Inventory from './pages/Inventory' // Старая версия
+import InventoryNew from './pages/InventoryNew' // Новая версия
 import LevelUp from './pages/LevelUp'
 import Specialization from './pages/Specialization'
 import ClassMentor from './pages/ClassMentor'
@@ -67,7 +68,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'inventory',
-        element: <ProtectedRoute><Inventory /></ProtectedRoute>
+        element: <InventoryNew />
       },
       {
         path: 'levelup',

@@ -35,9 +35,14 @@ enum SpecializationBranch {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  telegramId BigInt     @unique
-  username   String?
+  id               Int        @id @default(autoincrement())
+  telegramId       BigInt?    @unique  // Опциональный - для Telegram авторизации
+  telegramUsername String?    @unique  // Telegram username (@username)
+
+  // Поля для обычной авторизации (логин + пароль)
+  username   String?    @unique  // Уникальный логин пользователя
+  password   String?    // Хешированный bcrypt пароль
+
   firstName  String?
   createdAt  DateTime   @default(now())
   characters Character[]
