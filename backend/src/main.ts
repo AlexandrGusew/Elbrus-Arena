@@ -15,7 +15,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // Удаляет свойства, которых нет в DTO
-      forbidNonWhitelisted: true, // Выбрасывает ошибку если есть лишние свойства
+      forbidNonWhitelisted: false, // Выбрасывает ошибку если есть лишние свойства
       transform: true, // Автоматически преобразует типы
       transformOptions: {
         enableImplicitConversion: true,
