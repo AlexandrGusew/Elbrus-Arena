@@ -1,0 +1,348 @@
+import { useState } from 'react';
+import type { Character, InventoryItem } from '../../types/api';
+
+interface InventorySectionProps {
+  character: Character;
+  onNavigateToForge?: () => void;
+  showForge?: boolean;
+  onNavigateToInventory?: () => void;
+  onBack?: () => void;
+}
+
+export function InventorySection({
+  character,
+  onNavigateToForge,
+  showForge,
+  onNavigateToInventory,
+  onBack
+}: InventorySectionProps) {
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+
+  // Получаем items из инвентаря персонажа
+  const inventoryItems = character.inventory?.items || [];
+
+  // Фильтруем только не надетые предметы
+  const unequippedItems = inventoryItems.filter(invItem => !invItem.isEquipped);
+
+  return (
+    <div className="h-full flex flex-col gap-4">
+      {/* Header with Navigation */}
+      <div className="flex items-center gap-4">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 px-6 py-4 relative transition-all group flex items-center gap-2 border-amber-700/60 hover:border-red-700/70"
+          >
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+
+            <span className="text-2xl" style={{
+              fontFamily: 'serif',
+              textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
+              background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>←</span>
+          </button>
+        )}
+
+        <button
+          onClick={onNavigateToInventory}
+          className={`border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 px-6 py-4 relative transition-all group flex items-center gap-2 ${
+            !showForge ? 'border-red-700/60' : 'border-amber-700/60 hover:border-red-700/70'
+          }`}
+        >
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+          <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+
+          <span className="text-xl uppercase tracking-[0.2em]" style={{
+            fontFamily: 'serif',
+            textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
+            background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>Inventory</span>
+        </button>
+
+        {onNavigateToForge && (
+          <button
+            onClick={onNavigateToForge}
+            className={`border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 px-8 py-4 relative transition-all group ${
+              showForge ? 'border-red-700/60' : 'border-amber-700/60 hover:border-red-700/70'
+            }`}
+          >
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+
+            <span className="text-xl uppercase tracking-[0.2em]" style={{
+              fontFamily: 'serif',
+              textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
+              background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Forge</span>
+          </button>
+        )}
+      </div>
+
+      {/* Item Details Section - в стиле референса */}
+      <div style={{
+        border: '1px solid rgba(139, 69, 19, 0.8)',
+        borderRadius: '8px',
+        background: 'rgba(20, 20, 20, 0.5)',
+        padding: '16px',
+        display: 'flex',
+        gap: '16px',
+        position: 'relative',
+      }}>
+        {/* Декоративные уголки */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '24px',
+          height: '24px',
+          borderTop: '2px solid rgba(220, 38, 38, 0.8)',
+          borderLeft: '2px solid rgba(220, 38, 38, 0.8)',
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: '24px',
+          height: '24px',
+          borderBottom: '2px solid rgba(220, 38, 38, 0.8)',
+          borderLeft: '2px solid rgba(220, 38, 38, 0.8)',
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          right: 0,
+          width: '24px',
+          height: '24px',
+          borderBottom: '2px solid rgba(220, 38, 38, 0.8)',
+          borderRight: '2px solid rgba(220, 38, 38, 0.8)',
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          width: '24px',
+          height: '24px',
+          borderTop: '2px solid rgba(139, 69, 19, 0.8)',
+          borderRight: '2px solid rgba(139, 69, 19, 0.8)',
+        }}></div>
+
+        {/* Левая панель - изображение предмета */}
+        <div style={{
+          width: '150px',
+          height: '150px',
+          minWidth: '150px',
+          border: '1px solid rgba(139, 69, 19, 0.8)',
+          borderRadius: '8px',
+          background: 'rgba(10, 10, 10, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <span style={{
+            color: '#d4af37',
+            fontSize: '11px',
+            textTransform: 'uppercase',
+            textAlign: 'center',
+            fontFamily: "'IM Fell English', serif",
+            opacity: selectedItem ? 0.6 : 0.4,
+          }}>
+            IMAGE<br/>ITEM
+          </span>
+        </div>
+
+        {/* Правая панель - информация о предмете */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}>
+          {/* NAME ITEM */}
+          <div style={{
+            border: '1px solid rgba(139, 69, 19, 0.8)',
+            borderRadius: '8px',
+            background: 'rgba(10, 10, 10, 0.5)',
+            padding: '10px 12px',
+          }}>
+            <span style={{
+              color: '#d4af37',
+              fontSize: '12px',
+              textTransform: 'uppercase',
+              fontFamily: "'IM Fell English', serif",
+              opacity: selectedItem ? 0.6 : 0.4,
+            }}>
+              NAME ITEM
+            </span>
+          </div>
+
+          {/* Название предмета */}
+          <div style={{
+            border: '1px solid rgba(139, 69, 19, 0.8)',
+            borderRadius: '8px',
+            background: 'rgba(10, 10, 10, 0.5)',
+            padding: '10px 12px',
+          }}>
+            <span style={{
+              color: '#d4af37',
+              fontSize: '13px',
+              textTransform: 'uppercase',
+              fontFamily: "'IM Fell English', serif",
+            }}>
+              {selectedItem ? (
+                <>
+                  {selectedItem.item.name}
+                  {selectedItem.enhancement > 0 && ` +${selectedItem.enhancement}`}
+                </>
+              ) : (
+                <span style={{ opacity: 0.4 }}>---</span>
+              )}
+            </span>
+          </div>
+
+          {/* ARMOR или DAMAGE */}
+          <div style={{
+            border: '1px solid rgba(139, 69, 19, 0.8)',
+            borderRadius: '8px',
+            background: 'rgba(10, 10, 10, 0.5)',
+            padding: '10px 12px',
+            minHeight: '40px',
+          }}>
+            {selectedItem && (selectedItem.item.armor > 0 || selectedItem.item.damage > 0) ? (
+              <div style={{
+                color: '#d4af37',
+                fontSize: '12px',
+                fontFamily: "'Courier New', monospace",
+                letterSpacing: '0.5px',
+                display: 'flex',
+                width: '100%',
+                alignItems: 'center',
+              }}>
+                <span style={{ whiteSpace: 'nowrap' }}>
+                  {selectedItem.item.armor > 0 ? 'ARMOR' : 'DAMAGE'}
+                </span>
+                <span style={{ 
+                  flex: 1, 
+                  overflow: 'hidden',
+                  textAlign: 'center',
+                  padding: '0 4px',
+                  opacity: 0.6,
+                  fontSize: '14px',
+                  lineHeight: '12px',
+                  whiteSpace: 'nowrap',
+                }}>{'.'.repeat(50)}</span>
+                <span style={{ whiteSpace: 'nowrap' }}>
+                  {selectedItem.item.armor > 0 ? selectedItem.item.armor : selectedItem.item.damage}
+                </span>
+              </div>
+            ) : (
+              <span style={{
+                color: '#d4af37',
+                fontSize: '12px',
+                fontFamily: "'Courier New', monospace",
+                opacity: 0.4,
+              }}>
+                ---
+              </span>
+            )}
+          </div>
+
+          {/* GOLD */}
+          <div style={{
+            border: '1px solid rgba(139, 69, 19, 0.8)',
+            borderRadius: '8px',
+            background: 'rgba(10, 10, 10, 0.5)',
+            padding: '10px 12px',
+            minHeight: '40px',
+          }}>
+            {selectedItem ? (
+              <div style={{
+                color: '#d4af37',
+                fontSize: '12px',
+                fontFamily: "'Courier New', monospace",
+                letterSpacing: '0.5px',
+                display: 'flex',
+                width: '100%',
+                alignItems: 'center',
+              }}>
+                <span style={{ whiteSpace: 'nowrap' }}>GOLD</span>
+                <span style={{ 
+                  flex: 1, 
+                  overflow: 'hidden',
+                  textAlign: 'center',
+                  padding: '0 4px',
+                  opacity: 0.6,
+                  fontSize: '14px',
+                  lineHeight: '12px',
+                  whiteSpace: 'nowrap',
+                }}>{'.'.repeat(50)}</span>
+                <span style={{ whiteSpace: 'nowrap' }}>{selectedItem.item.price}</span>
+              </div>
+            ) : (
+              <span style={{
+                color: '#d4af37',
+                fontSize: '12px',
+                fontFamily: "'Courier New', monospace",
+                opacity: 0.4,
+              }}>
+                GOLD{'.'.repeat(46)}---
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Inventory Grid */}
+      <div className="flex-1 border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 p-6 relative">
+        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/60"></div>
+        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/60"></div>
+        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/60"></div>
+        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/60"></div>
+
+        <div className="grid grid-cols-4 gap-4 h-full content-start">
+          {unequippedItems.map((invItem) => (
+            <div
+              key={invItem.id}
+              onClick={() => setSelectedItem(invItem)}
+              className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 hover:border-amber-600/60 transition-all cursor-pointer flex flex-col items-center justify-center aspect-square p-2 ${
+                selectedItem?.id === invItem.id ? 'border-red-700/80' : 'border-amber-800/40'
+              }`}
+            >
+              <span className="text-amber-300 text-xs text-center" style={{ fontFamily: 'serif' }}>
+                {invItem.item.name}
+              </span>
+              {invItem.enhancement > 0 && (
+                <span className="text-green-400 text-xs mt-1">+{invItem.enhancement}</span>
+              )}
+            </div>
+          ))}
+
+          {/* Empty slots */}
+          {Array.from({ length: Math.max(0, 12 - unequippedItems.length) }).map((_, index) => (
+            <div
+              key={`empty-${index}`}
+              className="border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 flex items-center justify-center aspect-square"
+            >
+              <span className="text-amber-300/20 text-sm">{unequippedItems.length + index + 1}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

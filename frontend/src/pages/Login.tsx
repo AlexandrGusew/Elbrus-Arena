@@ -8,6 +8,7 @@ import {
 } from '../store/api/authApi';
 import { setAccessToken } from '../store/api/baseApi';
 import { getAssetUrl } from '../utils/assetUrl';
+import { GameViewport } from '../components/GameViewport';
 
 type AuthMode = 'username' | 'telegram';
 
@@ -208,8 +209,8 @@ export default function Login() {
   };
 
   const containerStyle: React.CSSProperties = {
-    width: '100vw',
-    height: '100vh',
+    width: '100%',
+    height: '100%',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -266,25 +267,26 @@ export default function Login() {
   });
 
   return (
-    <div style={containerStyle}>
-      {/* Видео фон */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          objectFit: 'cover',
-          zIndex: 1,
-        }}
-      >
-        <source src={getAssetUrl('createCharacter/animatedBackground.mp4')} type="video/mp4" />
-      </video>
+    <GameViewport targetWidth={1440} targetHeight={1080}>
+      <div style={containerStyle}>
+        {/* Видео фон */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+          }}
+        >
+          <source src={getAssetUrl('createCharacter/animatedBackground.mp4')} type="video/mp4" />
+        </video>
 
       {/* Фоновая музыка */}
       <audio ref={audioRef} loop>
@@ -752,6 +754,7 @@ export default function Login() {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </GameViewport>
   );
 }

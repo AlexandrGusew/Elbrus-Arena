@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   useGetCharacterQuery,
   useGetStaminaInfoQuery,
@@ -9,24 +9,25 @@ import {
 } from '../store/api/characterApi';
 import { useLogoutMutation } from '../store/api/authApi';
 import { setAccessToken } from '../store/api/baseApi';
-import { styles } from './Dashboard.styles';
 import { useState, useEffect, useRef } from 'react';
 import { getAssetUrl } from '../utils/assetUrl';
 import { ChatWindow } from '../components/ChatWindow';
+import { CharacterCard } from '../components/dashboard/CharacterCard';
+import { ChatSection } from '../components/dashboard/ChatSection';
+import { InventorySection } from '../components/dashboard/InventorySection';
+import { ForgeSection } from '../components/dashboard/ForgeSection';
+import { NavigationButtons } from '../components/dashboard/NavigationButtons';
 import { CharacterSelector } from '../components/CharacterSelector';
-import type { Character } from '../types/api';
+import { Volume2, VolumeX } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const characterIdFromStorage = localStorage.getItem('characterId');
-  const [boostMessage, setBoostMessage] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  // Состояние для выбора персонажа
-  const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(
-    characterIdFromStorage ? Number(characterIdFromStorage) : null
-  );
-  const [characters, setCharacters] = useState<Character[]>([]);
+  // Состояние для управления секциями
+  const [activeSection, setActiveSection] = useState<'main' | 'inventory'>('main');
+  const [showForge, setShowForge] = useState(false);
 
   // Загружаем настройку музыки из localStorage
   const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
@@ -37,29 +38,68 @@ const Dashboard = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioRef2 = useRef<HTMLAudioElement>(null);
 
-  // Загружаем персонажей текущего пользователя через /character/me
-  const { data: myCharacters, isLoading: isLoadingCharacters, refetch: refetchMyCharacters } = useGetMyCharacterQuery();
+  // Получаем персонажа из localStorage
+  const [characterId, setCharacterId] = useState<number | null>(
+    characterIdFromStorage ? Number(characterIdFromStorage) : null
+  );
 
-  // Получаем персонажа для отображения (из выбранного)
+  // Синхронизируем characterId с localStorage при изменении
+  useEffect(() => {
+    if (characterId) {
+      localStorage.setItem('characterId', characterId.toString());
+    } else {
+      localStorage.removeItem('characterId');
+    }
+  }, [characterId]);
+
   const { data: character, isLoading, error } = useGetCharacterQuery(
-    Number(selectedCharacterId),
-    { skip: !selectedCharacterId }
+    characterId!,
+    { skip: !characterId }
   );
 
   const { data: staminaInfo } = useGetStaminaInfoQuery(
-    Number(selectedCharacterId),
+    characterId!,
     {
-      skip: !selectedCharacterId || !character || !!error,
+      skip: !characterId || !character || !!error,
       pollingInterval: 1000,
     }
   );
 
-  // Мутации для работы с персонажами
-  const [autoCreateCharacters] = useAutoCreateCharactersMutation();
+  const [logout] = useLogoutMutation();
+  const [testLevelBoost, { isLoading: isBoostLoading }] = useTestLevelBoostMutation();
+  const [boostMessage, setBoostMessage] = useState<string | null>(null);
+
+  // Получаем список персонажей пользователя
+  const { data: myCharacters = [], isLoading: isLoadingCharacters } = useGetMyCharacterQuery();
+  const [autoCreateCharacters, { isLoading: isCreatingCharacters }] = useAutoCreateCharactersMutation();
   const [updateCharacterName] = useUpdateCharacterNameMutation();
 
-  const [testLevelBoost, { isLoading: isBoostLoading }] = useTestLevelBoostMutation();
-  const [logout] = useLogoutMutation();
+  // Автоматически создаем персонажей, если их нет
+  useEffect(() => {
+    if (!isLoadingCharacters && myCharacters.length === 0) {
+      autoCreateCharacters().catch((error) => {
+        console.error('Error auto-creating characters:', error);
+      });
+    }
+  }, [isLoadingCharacters, myCharacters.length, autoCreateCharacters]);
+
+  // Автоматически выбираем первого персонажа, если есть персонажи, но не выбран
+  useEffect(() => {
+    if (myCharacters.length > 0 && !characterId) {
+      const firstCharacter = myCharacters[0];
+      setCharacterId(firstCharacter.id);
+    }
+  }, [myCharacters, characterId]);
+
+  // Обработчик выбора персонажа
+  const handleSelectCharacter = (newCharacterId: number) => {
+    setCharacterId(newCharacterId);
+  };
+
+  // Обработчик обновления имени персонажа
+  const handleUpdateName = async (characterId: number, newName: string) => {
+    await updateCharacterName({ characterId, name: newName }).unwrap();
+  };
 
   // Обработчик выхода
   const handleLogout = async () => {
@@ -71,6 +111,8 @@ const Dashboard = () => {
     } finally {
       // Очищаем access token из памяти
       setAccessToken(null);
+      // Очищаем состояние персонажа
+      setCharacterId(null);
       // Очищаем localStorage
       localStorage.removeItem('characterId');
       localStorage.removeItem('isAuthenticated');
@@ -79,69 +121,8 @@ const Dashboard = () => {
     }
   };
 
-  // Загружаем персонажей пользователя и автосоздаем, если их нет
-  useEffect(() => {
-    console.log('[Dashboard] myCharacters changed:', myCharacters);
-
-    if (myCharacters !== undefined) {
-      // Убеждаемся, что это массив
-      const charactersArray = Array.isArray(myCharacters) ? myCharacters : [];
-      console.log('[Dashboard] Setting characters array:', charactersArray);
-      setCharacters(charactersArray);
-
-      // Если персонажей меньше 3 - создаем автоматически недостающих
-      if (charactersArray.length < 3) {
-        console.log(`[Dashboard] Found ${charactersArray.length} characters, need 3. Attempting auto-create`);
-        autoCreateCharacters()
-          .unwrap()
-          .then((created) => {
-            const createdArray = Array.isArray(created) ? created : [];
-            console.log('[Dashboard] Auto-created characters:', createdArray);
-            console.log('[Dashboard] Created characters details:', createdArray.map(c => ({ id: c.id, name: c.name, class: c.class })));
-            // Обновляем список персонажей через рефетч
-            refetchMyCharacters().then((result) => {
-              const freshCharacters = Array.isArray(result.data) ? result.data : [];
-              console.log('[Dashboard] Refetched characters after auto-create:', freshCharacters);
-              setCharacters(freshCharacters);
-              // Выбираем первого персонажа, если не выбран
-              if (freshCharacters.length > 0 && !selectedCharacterId) {
-                setSelectedCharacterId(freshCharacters[0].id);
-                localStorage.setItem('characterId', freshCharacters[0].id.toString());
-              }
-            });
-          })
-          .catch((error) => {
-            console.error('[Dashboard] Failed to auto-create characters:', error);
-            console.error('[Dashboard] Error details:', error.status, error.data);
-          });
-      } else if (charactersArray.length > 0 && !selectedCharacterId) {
-        // Если есть персонажи, но не выбран - выбираем первого
-        console.log('[Dashboard] Selecting first character:', charactersArray[0].id);
-        setSelectedCharacterId(charactersArray[0].id);
-        localStorage.setItem('characterId', charactersArray[0].id.toString());
-      }
-    }
-  }, [myCharacters, selectedCharacterId, autoCreateCharacters, refetchMyCharacters]);
-
-  // Обработчики для выбора персонажа
-  const handleSelectCharacter = (characterId: number) => {
-    setSelectedCharacterId(characterId);
-    localStorage.setItem('characterId', characterId.toString());
-  };
-
-  const handleUpdateName = async (characterId: number, newName: string) => {
-    try {
-      await updateCharacterName({ characterId, name: newName }).unwrap();
-      // Обновляем список персонажей
-      const updatedCharacters = characters.map((c) =>
-        c.id === characterId ? { ...c, name: newName } : c
-      );
-      setCharacters(updatedCharacters);
-    } catch (error) {
-      console.error('Failed to update character name:', error);
-      throw error;
-    }
-  };
+  // Если нет персонажа, просто не показываем контент
+  // CharacterSelector или логика выбора персонажа может быть добавлена позже
 
   // Управление музыкой с crossfade
   useEffect(() => {
@@ -226,10 +207,21 @@ const Dashboard = () => {
     localStorage.setItem('musicPlaying', String(newState));
   };
 
+  // Обработчик навигации назад
+  const handleBack = () => {
+    if (showForge) {
+      // Если открыт forge - сначала закрываем его
+      setShowForge(false);
+    } else if (activeSection === 'inventory') {
+      // Если открыт инвентарь - возвращаемся на главную секцию
+      setActiveSection('main');
+    }
+  };
+
   const handleLevelBoost = async () => {
-    if (!selectedCharacterId) return;
+    if (!characterId) return;
     try {
-      const result = await testLevelBoost(Number(selectedCharacterId)).unwrap();
+      const result = await testLevelBoost(characterId).unwrap();
       setBoostMessage(result.message);
       setTimeout(() => setBoostMessage(null), 5000);
     } catch (error: any) {
@@ -241,7 +233,7 @@ const Dashboard = () => {
 
   // Выбор видео героя по классу
   return (
-    <div style={{ position: 'relative', width: '1366px', height: '768px', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '1440px', height: '1080px', overflow: 'hidden' }}>
       {/* Видео фон */}
       <video
         autoPlay
@@ -281,123 +273,81 @@ const Dashboard = () => {
         <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
 
-      {/* Кнопки управления - верх страницы по центру */}
+      {/* Кнопки управления - верхний правый угол */}
       <div style={{
         position: 'absolute',
-        top: '10px',
-        left: '50%',
-        transform: 'translateX(-50%)',
+        top: '15px',
+        right: '15px',
         display: 'flex',
-        gap: '2.5px',
+        gap: '8px',
         zIndex: 1000,
+        alignItems: 'flex-start',
       }}>
         {/* Кнопка музыки */}
         <button
           onClick={toggleMusic}
           style={{
-            padding: '0',
-            border: 'none',
-            background: 'transparent',
+            padding: '8px 16px',
+            border: '1px solid #d4af37',
+            background: 'rgba(20, 20, 20, 0.9)',
+            color: '#d4af37',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            width: '100px',
-            height: '100px',
+            borderRadius: '4px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            fontFamily: "'IM Fell English', serif",
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: '6px',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.filter = 'brightness(1.2)';
+            e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.filter = 'brightness(1)';
+            e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}
         >
-          <img
-            src={getAssetUrl('dashboard/music.png')}
-            alt="Music"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: '4px',
-            }}
-          />
+          {isMusicPlaying ? (
+            <Volume2 size={14} color="#d4af37" />
+          ) : (
+            <VolumeX size={14} color="#d4af37" />
+          )}
+          <span>MUSIC</span>
         </button>
 
-        {/* Кнопка чата */}
-        <button
-          onClick={() => setIsChatOpen(true)}
-          style={{
-            padding: '0',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            width: '100px',
-            height: '100px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.filter = 'brightness(1.2)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.filter = 'brightness(1)';
-          }}
-        >
-          <img
-            src={getAssetUrl('dashboard/buttonChat.png')}
-            alt="Chat"
+        {/* Кнопка назад - показываем только если не на главной секции */}
+        {(activeSection === 'inventory' || showForge) && (
+          <button
+            onClick={handleBack}
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
+              padding: '8px 16px',
+              border: '1px solid #d4af37',
+              background: 'rgba(20, 20, 20, 0.9)',
+              color: '#d4af37',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
               borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              fontFamily: "'IM Fell English', serif",
             }}
-          />
-        </button>
-
-        {/* Кнопка выхода */}
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: '0',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            width: '100px',
-            height: '100px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.filter = 'brightness(1.2)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.filter = 'brightness(1)';
-          }}
-        >
-          <img
-            src={getAssetUrl('dashboard/exit.png')}
-            alt="Exit"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: '4px',
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
             }}
-          />
-        </button>
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            BACK
+          </button>
+        )}
       </div>
 
       <div style={{
@@ -428,248 +378,92 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Навигационные кнопки - сетка 2x3 слева */}
-      {selectedCharacterId && (
-        <div style={{
-          position: 'absolute',
-          left: '10px',
-          top: '120px', // Начинаются ниже кнопок музыки/чата/выхода
-          bottom: '10px', // Растягиваем до низа
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gridTemplateRows: 'repeat(3, 1fr)', // Равномерно распределяем по высоте
-          gap: '8px', // Уменьшили расстояние между кнопками
-          alignItems: 'stretch',
-          justifyItems: 'stretch',
-          zIndex: 1000,
-        }}>
-          <Link to="/dungeon" style={{ display: 'block' }}>
-            <img
-              src={getAssetUrl('dashboard/dungeons.png')}
-              alt="Подземелье"
-              style={{
-                width: '216px',
-                height: '126px',
-                objectFit: 'cover',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                background: 'transparent',
-                borderRadius: '4px',
-              }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/inventory" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/inventory.png')}
-            alt="Инвентарь"
-            style={{
-              width: '216px',
-              height: '126px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '4px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/blacksmith" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/blacksmith.png')}
-            alt="Кузница"
-            style={{
-              width: '216px',
-              height: '126px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '4px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/pvp" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/pvp.png')}
-            alt="PvP"
-            style={{
-              width: '216px',
-              height: '126px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '4px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/specialization" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/specialization.png')}
-            alt="Специализация"
-            style={{
-              width: '216px',
-              height: '126px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '4px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/class-mentor" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/mentor.png')}
-            alt="Наставник"
-            style={{
-              width: '216px',
-              height: '126px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '4px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
+      {/* Если персонаж выбран - показываем контент Dashboard */}
+      {character ? (
+        <div className="absolute top-4 left-4 right-4 bottom-4 z-[2]">
+          <div className="w-full h-full border-4 border-amber-700/60 rounded-2xl bg-gradient-to-b from-stone-950/95 to-black/95 backdrop-blur-md shadow-2xl shadow-black/80 p-6 relative">
+            {/* Corner ornaments */}
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-red-700/60"></div>
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-red-700/60"></div>
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-red-700/60"></div>
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-red-700/60"></div>
+
+            <div className="grid grid-cols-[45%_55%] gap-6 h-full">
+              {/* LEFT COLUMN */}
+              <div className="flex flex-col gap-4 h-full">
+                {/* Character Info Card OR Forge Section - 2/3 of height */}
+                <div className="h-[66%]">
+                  {showForge ? (
+                    <ForgeSection character={character} onClose={() => setShowForge(false)} />
+                  ) : (
+                    <CharacterCard character={character} />
+                  )}
+                </div>
+
+                {/* Chat Section - 1/3 of height */}
+                <div className="h-[33%]">
+                  <ChatSection characterId={character.id} characterName={character.name} />
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN */}
+              {activeSection === 'main' ? (
+                <NavigationButtons
+                  onInventoryClick={() => {
+                    setActiveSection('inventory');
+                    setShowForge(false);
+                  }}
+                  onForgeClick={() => {
+                    setShowForge(true);
+                    setActiveSection('main');
+                  }}
+                />
+              ) : activeSection === 'inventory' ? (
+                <InventorySection
+                  character={character}
+                  onNavigateToForge={() => {
+                    setShowForge(true);
+                    setActiveSection('main');
+                  }}
+                  showForge={showForge}
+                  onNavigateToInventory={() => setShowForge(false)}
+                  onBack={() => setActiveSection('main')}
+                />
+              ) : null}
+            </div>
+          </div>
         </div>
-      )}
-
-      {/* Основной контент - показывается только если выбран персонаж */}
-      {selectedCharacterId && character ? (
-        <>
-      {/* Кнопка Level Up - появляется только когда есть свободные очки */}
-      {character.freePoints > 0 && (
-        <Link to="/inventory" style={{
-          position: 'absolute',
-          top: '142.5px', // Сразу под портретом
-          left: '20px',
-          width: '75px',
-          height: '30px',
-          zIndex: 1000,
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          display: 'none', // Скрыто
-        }}>
-          <img
-            src={getAssetUrl('dashboard/lvlup.png')}
-            alt="Level Up"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: '4px',
-              boxShadow: '0 4px 15px rgba(255, 215, 0, 0.6)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-      )}
-
-
-      <div style={{ ...styles.container, position: 'relative', zIndex: 2, height: '768px', overflowY: 'auto' }}>
-      {boostMessage && (
-        <div style={{
-          marginTop: '5px',
-          marginBottom: '10px',
-          padding: '5px',
-          background: '#4caf50',
-          borderRadius: '2px',
-          fontSize: '7px',
-          textAlign: 'center',
-        }}>
-          {boostMessage}
-        </div>
-      )}
-
-
-      </div>
-        </>
-      ) : (
-        /* Сообщение о выборе персонажа */
+      ) : isLoadingCharacters || isCreatingCharacters ? (
+        /* Показываем загрузку при создании персонажей */
         <div style={{
           position: 'absolute',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          textAlign: 'center',
-          color: '#ffd700',
+          zIndex: 1000,
+          color: '#fff',
           fontSize: '24px',
           fontFamily: "'IM Fell English', serif",
-          textShadow: '0 0 10px rgba(255, 215, 0, 0.8)',
+        }}>
+          {isCreatingCharacters ? 'Создание персонажей...' : 'Загрузка...'}
+        </div>
+      ) : myCharacters.length > 0 ? (
+        /* Показываем выбор персонажа, если персонажи есть, но не выбран */
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           zIndex: 1000,
         }}>
-          {isLoadingCharacters ? (
-            'Загрузка персонажей...'
-          ) : (
-            'Выберите персонажа'
-          )}
+          <CharacterSelector
+            characters={myCharacters}
+            selectedCharacterId={characterId}
+            onSelectCharacter={handleSelectCharacter}
+            onUpdateName={handleUpdateName}
+          />
         </div>
-      )}
-
-      {/* CharacterSelector - всегда видим справа */}
-      <CharacterSelector
-        characters={characters || []}
-        selectedCharacterId={selectedCharacterId}
-        onSelectCharacter={handleSelectCharacter}
-        onUpdateName={handleUpdateName}
-      />
+      ) : null}
 
       {/* Окно чата */}
       {character && (

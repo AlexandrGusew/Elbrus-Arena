@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 
 interface GameViewportProps {
   children: ReactNode;
@@ -8,81 +8,42 @@ interface GameViewportProps {
 }
 
 /**
- * Компонент для фиксированного разрешения игры с черными полями (letterboxing).
+ * Компонент для фиксированного разрешения игры.
  * 
  * Принцип работы:
- * - Фиксирует внутреннее разрешение (например, 1366x768)
- * - Автоматически масштабирует под размер окна браузера
- * - Центрирует контент
- * - Остальное пространство заполняет черным фоном
+ * - Фиксирует внутреннее разрешение (например, 1440x1080)
+ * - Если экран меньше - показывается прокрутка
+ * - Если экран больше - контент центрируется с черными полями
  */
 export const GameViewport = ({ 
   children, 
-  targetWidth = 1366, 
-  targetHeight = 768 
+  targetWidth = 1440, 
+  targetHeight = 1080 
 }: GameViewportProps) => {
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const updateViewport = () => {
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-      
-      // Вычисляем масштаб для вписывания в окно с сохранением пропорций
-      const scaleX = windowWidth / targetWidth;
-      const scaleY = windowHeight / targetHeight;
-      const newScale = Math.min(scaleX, scaleY);
-      
-      // Вычисляем размеры масштабированного viewport
-      const scaledWidth = targetWidth * newScale;
-      const scaledHeight = targetHeight * newScale;
-      
-      // Центрируем viewport
-      const offsetX = (windowWidth - scaledWidth) / 2;
-      const offsetY = (windowHeight - scaledHeight) / 2;
-      
-      setScale(newScale);
-      setOffset({ x: offsetX, y: offsetY });
-    };
-
-    // Обновляем при монтировании
-    updateViewport();
-    
-    // Обновляем при изменении размера окна
-    window.addEventListener('resize', updateViewport);
-    window.addEventListener('orientationchange', updateViewport);
-
-    return () => {
-      window.removeEventListener('resize', updateViewport);
-      window.removeEventListener('orientationchange', updateViewport);
-    };
-  }, [targetWidth, targetHeight]);
-
   return (
     <div
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
+        position: 'relative',
         width: '100vw',
         height: '100vh',
-        backgroundColor: '#000000', // Черный фон вокруг
-        overflow: 'hidden',
+        backgroundColor: '#000000',
+        overflow: 'auto', // Прокрутка, если контент больше экрана
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
       {/* Игровая область с фиксированным разрешением */}
       <div
         style={{
-          position: 'absolute',
-          left: `${offset.x}px`,
-          top: `${offset.y}px`,
           width: `${targetWidth}px`,
           height: `${targetHeight}px`,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          backgroundColor: '#1a1a1a', // Фон игровой области
+          minWidth: `${targetWidth}px`, // Минимальный размер - не уменьшается
+          minHeight: `${targetHeight}px`, // Минимальный размер - не уменьшается
+          backgroundColor: '#1a1a1a',
+          position: 'relative',
           overflow: 'hidden',
+          margin: 'auto', // Центрирование
         }}
       >
         {children}
