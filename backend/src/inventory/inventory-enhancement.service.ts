@@ -97,6 +97,118 @@ export class InventoryEnhancementService {
   }
 
   /**
+   * Улучшить предмет с помощью свитка заточки
+   * Стоимость: 1 свиток (удаляется из инвентаря)
+   * Шанс успеха: 100% (гарантированно)
+   * При успехе: enhancement +1
+   */
+  async enhanceItemWithScroll(
+    characterId: number,
+    inventoryItemId: number,
+    scrollItemId: number,
+  ): Promise<{
+    success: boolean;
+    newEnhancementLevel: number;
+    itemName: string;
+    scrollName: string;
+  }> {
+    // Получаем персонажа с инвентарем
+    const character = await this.prisma.character.findUnique({
+      where: { id: characterId },
+      include: {
+        inventory: {
+          include: {
+            items: {
+              include: { item: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!character) {
+      throw new NotFoundException('Character not found');
+    }
+
+    if (!character.inventory) {
+      throw new NotFoundException('Inventory not found');
+    }
+
+    // Находим предмет для улучшения
+    const targetInventoryItem = character.inventory.items.find((i) => i.id === inventoryItemId);
+    if (!targetInventoryItem) {
+      throw new NotFoundException('Target item not found in inventory');
+    }
+
+    // Находим свиток
+    const scrollInventoryItem = character.inventory.items.find((i) => i.id === scrollItemId);
+    if (!scrollInventoryItem) {
+      throw new NotFoundException('Scroll not found in inventory');
+    }
+
+    // Проверяем что это действительно свиток
+    if (scrollInventoryItem.item.type !== 'scroll') {
+      throw new BadRequestException('Selected item is not a scroll');
+    }
+
+    // Проверка что это не зелье
+    if (targetInventoryItem.item.type === 'potion' || targetInventoryItem.item.type === 'scroll') {
+      throw new BadRequestException('Cannot enhance potions or scrolls');
+    }
+
+    // Валидация соответствия свитка и типа предмета
+    const scrollName = scrollInventoryItem.item.name.toLowerCase();
+    const itemType = targetInventoryItem.item.type.toLowerCase();
+
+    // Свиток заточки оружия - только для weapon
+    if (scrollName.includes('оружия')) {
+      if (itemType !== 'weapon') {
+        throw new BadRequestException('Свиток заточки оружия можно использовать только на оружие');
+      }
+    }
+    // Свиток заточки брони - для helmet, armor, legs
+    else if (scrollName.includes('брони')) {
+      if (!['helmet', 'armor', 'legs'].includes(itemType)) {
+        throw new BadRequestException(
+          'Свиток заточки брони можно использовать только на шлем, доспех или сапоги',
+        );
+      }
+    }
+    // Свиток заточки аксессуаров - для belt, accessory
+    else if (scrollName.includes('аксессуаров')) {
+      if (!['belt', 'accessory'].includes(itemType)) {
+        throw new BadRequestException(
+          'Свиток заточки аксессуаров можно использовать только на пояс или кольцо',
+        );
+      }
+    } else {
+      throw new BadRequestException('Unknown scroll type');
+    }
+
+    // Выполняем улучшение и удаление свитка в транзакции
+    const newEnhancementLevel = targetInventoryItem.enhancement + 1;
+
+    await this.prisma.$transaction([
+      // Увеличиваем enhancement предмета
+      this.prisma.inventoryItem.update({
+        where: { id: inventoryItemId },
+        data: { enhancement: newEnhancementLevel },
+      }),
+      // Удаляем свиток из инвентаря
+      this.prisma.inventoryItem.delete({
+        where: { id: scrollItemId },
+      }),
+    ]);
+
+    return {
+      success: true,
+      newEnhancementLevel,
+      itemName: targetInventoryItem.item.name,
+      scrollName: scrollInventoryItem.item.name,
+    };
+  }
+
+  /**
    * Получить информацию о заточке предмета
    */
   async getEnhancementInfo(inventoryItemId: number): Promise<{

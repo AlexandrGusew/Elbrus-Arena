@@ -17,6 +17,7 @@ enum ItemType {
   potion
   shield
   offhand
+  scroll
 }
 
 enum CharacterClass {

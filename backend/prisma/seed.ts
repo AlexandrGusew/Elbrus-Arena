@@ -234,6 +234,37 @@ async function main() {
     },
   });
 
+  // Свитки заточки
+  const weaponScroll = await prisma.item.create({
+    data: {
+      name: 'Свиток заточки оружия',
+      type: 'scroll',
+      description: 'Гарантированно улучшает оружие на +1 уровень заточки',
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  const armorScroll = await prisma.item.create({
+    data: {
+      name: 'Свиток заточки брони',
+      type: 'scroll',
+      description: 'Гарантированно улучшает шлем, доспех или сапоги на +1 уровень заточки',
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  const accessoryScroll = await prisma.item.create({
+    data: {
+      name: 'Свиток заточки аксессуаров',
+      type: 'scroll',
+      description: 'Гарантированно улучшает пояс или кольцо на +1 уровень заточки',
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
   // Проверяем существуют ли подземелья
   let easyDungeon = await prisma.dungeon.findFirst({ where: { difficulty: 'easy' } });
   if (!easyDungeon) {
@@ -341,12 +372,27 @@ async function main() {
       { monsterId: demon.id, itemId: helmet.id, dropChance: 0.7, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: belt.id, dropChance: 0.6, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: potion.id, dropChance: 0.9, minCount: 3, maxCount: 5 },
+
+      // Свитки заточки - редкий дроп
+      // Скелет - дропает свиток оружия с малым шансом
+      { monsterId: skeleton.id, itemId: weaponScroll.id, dropChance: 0.1, minCount: 1, maxCount: 1 },
+
+      // Орк - дропает свитки брони и аксессуаров с малым шансом
+      { monsterId: orc.id, itemId: weaponScroll.id, dropChance: 0.12, minCount: 1, maxCount: 1 },
+      { monsterId: orc.id, itemId: armorScroll.id, dropChance: 0.15, minCount: 1, maxCount: 1 },
+      { monsterId: orc.id, itemId: accessoryScroll.id, dropChance: 0.12, minCount: 1, maxCount: 1 },
+
+      // Демон (босс) - дропает все свитки с хорошим шансом
+      { monsterId: demon.id, itemId: weaponScroll.id, dropChance: 0.4, minCount: 1, maxCount: 2 },
+      { monsterId: demon.id, itemId: armorScroll.id, dropChance: 0.45, minCount: 1, maxCount: 2 },
+      { monsterId: demon.id, itemId: accessoryScroll.id, dropChance: 0.4, minCount: 1, maxCount: 2 },
     ],
   });
 
   // СПЕЦИАЛИЗАЦИИ - 18 способностей (6 веток × 3 тира)
-  await prisma.specializationAbility.createMany({
-    data: [
+  try {
+    await prisma.specializationAbility.createMany({
+      data: [
       // WARRIOR - PALADIN
       {
         branch: 'PALADIN',
@@ -503,7 +549,11 @@ async function main() {
         effects: { type: 'ultimate', transform: 'demon', allStatsBonus: 100, duration: 3 },
       },
     ],
+    skipDuplicates: true,
   });
+  } catch (e) {
+    console.log('⚠️  Способности специализаций уже существуют, пропускаем...');
+  }
 
   console.log('✅ Сиды успешно загружены!');
 }

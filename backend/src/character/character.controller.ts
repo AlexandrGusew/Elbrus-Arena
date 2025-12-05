@@ -133,6 +133,18 @@ export class CharacterController {
     return this.enhancementService.enhanceItem(Number(characterId), Number(inventoryItemId));
   }
 
+  @Post(':characterId/enhance-with-scroll')
+  async enhanceItemWithScroll(
+    @Param('characterId') characterId: string,
+    @Body() body: { inventoryItemId: number; scrollItemId: number },
+  ) {
+    return this.enhancementService.enhanceItemWithScroll(
+      Number(characterId),
+      body.inventoryItemId,
+      body.scrollItemId,
+    );
+  }
+
   @Get('enhancement-info/:inventoryItemId')
   async getEnhancementInfo(@Param('inventoryItemId') inventoryItemId: string) {
     return this.enhancementService.getEnhancementInfo(Number(inventoryItemId));

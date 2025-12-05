@@ -18,7 +18,8 @@ import { InventorySection } from '../components/dashboard/InventorySection';
 import { ForgeSection } from '../components/dashboard/ForgeSection';
 import { NavigationButtons } from '../components/dashboard/NavigationButtons';
 import { CharacterSelector } from '../components/CharacterSelector';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, LogOut } from 'lucide-react';
+import type { InventoryItem } from '../types/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -31,6 +32,9 @@ const Dashboard = () => {
 
   // Состояние для слотов кузницы
   const [forgeItemSlot, setForgeItemSlot] = useState<any | null>(null); // TODO: типизировать
+
+  // Состояние для выбранного предмета (для Item Details Section)
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   // Загружаем настройку музыки из localStorage
   const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
@@ -322,6 +326,40 @@ const Dashboard = () => {
           <span>MUSIC</span>
         </button>
 
+        {/* Кнопка выхода - показываем только на главной секции */}
+        {activeSection === 'main' && (
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '8px 16px',
+              border: '1px solid #d4af37',
+              background: 'rgba(20, 20, 20, 0.9)',
+              color: '#d4af37',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              fontFamily: "'IM Fell English', serif",
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <LogOut size={14} color="#d4af37" />
+            <span>EXIT</span>
+          </button>
+        )}
+
         {/* Кнопка назад - показываем только если не на главной секции */}
         {(activeSection === 'inventory' || showForge) && (
           <button
@@ -404,7 +442,11 @@ const Dashboard = () => {
                       onItemChange={setForgeItemSlot}
                     />
                   ) : (
-                    <CharacterCard character={character} />
+                    <CharacterCard 
+                      character={character}
+                      selectedItem={selectedItem}
+                      onItemSelect={setSelectedItem}
+                    />
                   )}
                 </div>
 
@@ -442,6 +484,8 @@ const Dashboard = () => {
                   }}
                   forgeItemSlot={forgeItemSlot}
                   onForgeItemSelect={setForgeItemSlot}
+                  selectedItem={selectedItem}
+                  onItemSelect={setSelectedItem}
                 />
               ) : null}
             </div>

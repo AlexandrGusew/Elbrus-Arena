@@ -63,6 +63,20 @@ export const characterApi = baseApi.injectEndpoints({
       ],
     }),
 
+    enhanceItemWithScroll: builder.mutation<
+      { success: boolean; newEnhancementLevel: number; itemName: string; scrollName: string },
+      { characterId: number; inventoryItemId: number; scrollItemId: number }
+    >({
+      query: ({ characterId, inventoryItemId, scrollItemId }) => ({
+        url: `/character/${characterId}/enhance-with-scroll`,
+        method: 'POST',
+        body: { inventoryItemId, scrollItemId },
+      }),
+      invalidatesTags: (result, error, { characterId }) => [
+        { type: 'Character', id: characterId },
+      ],
+    }),
+
     sellItem: builder.mutation<
       { goldReceived: number; itemName: string },
       { characterId: number; itemId: number }
@@ -188,6 +202,7 @@ export const {
   useEquipItemMutation,
   useUnequipItemMutation,
   useEnhanceItemMutation,
+  useEnhanceItemWithScrollMutation,
   useSellItemMutation,
   useGetLevelProgressQuery,
   useDistributeStatsMutation,
