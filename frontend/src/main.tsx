@@ -92,7 +92,7 @@ registerServiceWorker({
     // Список критических ресурсов для предзагрузки
     const criticalAssets = [
       // Landing страница
-      getAssetUrl('Landing/Landing_Bacground.png'),
+      getAssetUrl('Landing/Landing_background.png'),
 
       // Login/CreateCharacter страницы
       getAssetUrl('createCharacter/animatedBackground.mp4'),

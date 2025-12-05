@@ -4,7 +4,7 @@ import './Landing.css';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const backgroundUrl = getAssetUrl('Landing/Landing_Bacground.png');
+  const backgroundUrl = getAssetUrl('Landing/Landing_background.png');
 
   const handleLoginClick = () => {
     navigate('/auth');
