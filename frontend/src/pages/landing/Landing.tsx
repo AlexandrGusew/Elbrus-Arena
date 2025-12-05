@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { getAssetUrl } from '../../utils/assetUrl';
 import './Landing.css';
 
@@ -14,6 +15,32 @@ export default function Landing() {
     const element = document.getElementById(sectionId);
     element?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Intersection Observer для анимаций при прокрутке
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          // Можно отключить observer после первого показа
+          // observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    // Находим все элементы с классом scroll-reveal
+    const revealElements = document.querySelectorAll('.scroll-reveal');
+    revealElements.forEach(el => observer.observe(el));
+
+    return () => {
+      revealElements.forEach(el => observer.unobserve(el));
+    };
+  }, []);
 
   return (
     <div className="landing">
@@ -58,14 +85,14 @@ export default function Landing() {
 
       {/* Classes Section */}
       <section id="classes" className="classes-section">
-        <div className="section-header">
+        <div className="section-header scroll-reveal fade-up">
           <span className="section-icon">⚔</span>
           <h2 className="section-title">Выберите свой путь</h2>
           <span className="section-icon">⚔</span>
         </div>
 
         <div className="classes-grid">
-          <div className="class-card">
+          <div className="class-card scroll-reveal scale-in delay-1">
             <div className="class-icon">🗡️</div>
             <h3 className="class-title">Воин Призраков</h3>
             <p className="class-description">
@@ -74,7 +101,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="class-card featured">
+          <div className="class-card featured scroll-reveal scale-in delay-2">
             <div className="class-icon">🔮</div>
             <h3 className="class-title">Маг Бездны</h3>
             <p className="class-description">
@@ -84,7 +111,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="class-card">
+          <div className="class-card scroll-reveal scale-in delay-3">
             <div className="class-icon">🗡️</div>
             <h3 className="class-title">Воин Рассекающего Щита</h3>
             <p className="class-description">
@@ -97,9 +124,9 @@ export default function Landing() {
 
       {/* Features Section */}
       <section id="features" className="features-section">
-        <div className="section-title-alt">World Worthy of Falling</div>
+        <div className="section-title-alt scroll-reveal fade-up">World Worthy of Falling</div>
 
-        <div className="feature-block">
+        <div className="feature-block scroll-reveal slide-left">
           <div className="feature-content">
             <h3>Arena Battles</h3>
             <p>
@@ -114,7 +141,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="feature-block reverse">
+        <div className="feature-block reverse scroll-reveal slide-right">
           <div className="feature-image">
             <div className="dungeon-placeholder">🌑 ABYSS</div>
           </div>
@@ -129,7 +156,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="feature-block">
+        <div className="feature-block scroll-reveal slide-left">
           <div className="feature-content">
             <h3>Fate and Characteristics</h3>
             <p>
@@ -144,7 +171,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="feature-block reverse">
+        <div className="feature-block reverse scroll-reveal slide-right">
           <div className="feature-image">
             <div className="items-placeholder">⚔️ ITEMS</div>
           </div>
@@ -162,21 +189,21 @@ export default function Landing() {
 
       {/* Gallery Section */}
       <section id="gallery" className="gallery-section">
-        <div className="section-title-alt">Breath of Darkness</div>
+        <div className="section-title-alt scroll-reveal fade-up">Breath of Darkness</div>
 
         <div className="gallery-grid">
-          <div className="gallery-item">
+          <div className="gallery-item scroll-reveal scale-in delay-1">
             <div className="gallery-placeholder">🏰 Темные земли</div>
           </div>
-          <div className="gallery-item">
+          <div className="gallery-item scroll-reveal scale-in delay-2">
             <div className="gallery-placeholder">⚔️ Эпичные битвы</div>
           </div>
-          <div className="gallery-item">
+          <div className="gallery-item scroll-reveal scale-in delay-3">
             <div className="gallery-placeholder">✨ Магия бездны</div>
           </div>
         </div>
 
-        <div className="social-links">
+        <div className="social-links scroll-reveal fade-up delay-4">
           <a href="#" className="social-icon">Discord</a>
           <a href="#" className="social-icon">VK</a>
         </div>
@@ -184,7 +211,7 @@ export default function Landing() {
 
       {/* Parchment Section */}
       <section className="parchment-section">
-        <div className="parchment">
+        <div className="parchment scroll-reveal scale-in">
           <div className="parchment-content">
             <h2 className="parchment-title">📜 Легенда гласит...</h2>
             <p className="parchment-text">
