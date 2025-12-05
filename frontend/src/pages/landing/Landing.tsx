@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { getAssetUrl } from '../../utils/assetUrl';
 import './Landing.css';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const backgroundUrl = getAssetUrl('Landing/Landing_Bacground.png');
 
   const handleLoginClick = () => {
     navigate('/auth');
@@ -15,6 +17,11 @@ export default function Landing() {
 
   return (
     <div className="landing">
+      {/* Фиксированный фон на весь экран */}
+      <div
+        className="landing-background"
+        style={{ backgroundImage: `url(${backgroundUrl})` }}
+      />
       {/* Header */}
       <header className="landing-header">
         <div className="header-container">
