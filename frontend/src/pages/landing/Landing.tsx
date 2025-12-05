@@ -5,10 +5,10 @@ import './Landing.css';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const backgroundUrl = getAssetUrl('Landing/Landing_background.png');
+  const backgroundVideoUrl = getAssetUrl('Landing/Landing_background.mp4');
 
-  // Debug: проверяем URL фона
-  console.log('[Landing] Background URL:', backgroundUrl);
+  // Debug: проверяем URL фонового видео
+  console.log('[Landing] Background Video URL:', backgroundVideoUrl);
 
   const handleLoginClick = () => {
     navigate('/auth');
@@ -47,10 +47,14 @@ export default function Landing() {
 
   return (
     <div className="landing">
-      {/* Фиксированный фон на весь экран */}
-      <div
+      {/* Фиксированное видео на весь экран */}
+      <video
         className="landing-background"
-        style={{ backgroundImage: `url(${backgroundUrl})` }}
+        autoPlay
+        loop
+        muted
+        playsInline
+        src={backgroundVideoUrl}
       />
       {/* Header */}
       <header className="landing-header">

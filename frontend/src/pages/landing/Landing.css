@@ -10,17 +10,14 @@
   isolation: isolate; /* Создает новый stacking context */
 }
 
-/* Фиксированный фон на весь экран */
+/* Фиксированное видео на весь экран */
 .landing-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  object-fit: cover;
   z-index: 0;
 }
 
