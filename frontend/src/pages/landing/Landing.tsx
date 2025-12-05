@@ -12,6 +12,12 @@ export default function Landing() {
   const roguePortrait = getAssetUrl('Landing/portrait-chars/Rog_port.png');
   const magePortrait = getAssetUrl('Landing/portrait-chars/Mag_port.png');
 
+  // Feature images - World Worthy of Falling
+  const arenaImage = getAssetUrl('Landing/World Worthy of Falling/PvP.png');
+  const abyssImage = getAssetUrl('Landing/World Worthy of Falling/PvE.png');
+  const fateImage = getAssetUrl('Landing/World Worthy of Falling/Wood.png');
+  const itemsImage = getAssetUrl('Landing/World Worthy of Falling/Item.png');
+
   // Debug: проверяем URL фонового видео
   console.log('[Landing] Background Video URL:', backgroundVideoUrl);
 
@@ -149,13 +155,13 @@ export default function Landing() {
             <button className="btn btn-outline">Узнать Больше</button>
           </div>
           <div className="feature-image">
-            <div className="arena-placeholder">🏛️ ARENA</div>
+            <img src={arenaImage} alt="Arena Battles" className="feature-img" />
           </div>
         </div>
 
         <div className="feature-block reverse scroll-reveal slide-right">
           <div className="feature-image">
-            <div className="dungeon-placeholder">🌑 ABYSS</div>
+            <img src={abyssImage} alt="Abyss Dungeons" className="feature-img" />
           </div>
           <div className="feature-content">
             <h3>Abyss Dungeons</h3>
@@ -179,13 +185,13 @@ export default function Landing() {
             <button className="btn btn-outline">Узнать Больше</button>
           </div>
           <div className="feature-image">
-            <div className="fate-placeholder">🌳 FATE</div>
+            <img src={fateImage} alt="Fate and Characteristics" className="feature-img" />
           </div>
         </div>
 
         <div className="feature-block reverse scroll-reveal slide-right">
           <div className="feature-image">
-            <div className="items-placeholder">⚔️ ITEMS</div>
+            <img src={itemsImage} alt="Drop and Improvement" className="feature-img" />
           </div>
           <div className="feature-content">
             <h3>Drop and Improvement</h3>
