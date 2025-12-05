@@ -35,43 +35,59 @@ enum SpecializationBranch {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  telegramId BigInt     @unique
-  username   String?
+  id               Int        @id @default(autoincrement())
+  telegramId       BigInt?    @unique  // Опциональный - для Telegram авторизации
+  telegramUsername String?    @unique  // Telegram username (@username)
+
+  // Поля для обычной авторизации (логин + пароль)
+  username   String?    @unique  // Уникальный логин пользователя
+  password   String?    // Хешированный bcrypt пароль
+
   firstName  String?
   createdAt  DateTime   @default(now())
-  character  Character?
+  characters Character[]
 
   @@map("users")
 }
 
 model Character {
-  id                Int              @id @default(autoincrement())
-  userId            Int              @unique
-  name              String           @unique
-  class             String
-  level             Int              @default(1)
-  experience        Int              @default(0)
-  strength          Int              @default(0)
-  agility           Int              @default(0)
-  intelligence      Int              @default(0)
-  freePoints        Int              @default(0)
-  maxHp             Int              @default(100)
-  currentHp         Int              @default(100)
-  armor             Int              @default(10)
-  gold              Int              @default(100)
-  stamina           Int              @default(100)
-  lastStaminaUpdate DateTime         @default(now())
-  rating            Int              @default(0)
-  superPoints       Int              @default(0)
-  createdAt         DateTime         @default(now())
-  user              User             @relation(fields: [userId], references: [id])
-  inventory         Inventory?
-  pveBattles        PveBattle[]
-  pvpBattles1       PvpBattle[]      @relation("Player1")
-  pvpBattles2       PvpBattle[]      @relation("Player2")
-  specialization    Specialization?
+  id                 Int                @id @default(autoincrement())
+  userId             Int
+  name               String             @unique
+  class              String
+  level              Int                @default(1)
+  experience         Int                @default(0)
+  strength           Int                @default(0)
+  agility            Int                @default(0)
+  intelligence       Int                @default(0)
+  freePoints         Int                @default(0)
+  maxHp              Int                @default(100)
+  currentHp          Int                @default(100)
+  armor              Int                @default(10)
+  gold               Int                @default(100)
+  stamina            Int                @default(100)
+  lastStaminaUpdate  DateTime           @default(now())
+  rating             Int                @default(0)
+  superPoints        Int                @default(0)
+  isOnline           Boolean            @default(false)
+  lastSeenAt         DateTime           @default(now())
+  createdAt          DateTime           @default(now())
+  user               User               @relation(fields: [userId], references: [id])
+  inventory          Inventory?
+  pveBattles         PveBattle[]
+  pvpBattles1        PvpBattle[]        @relation("Player1")
+  pvpBattles2        PvpBattle[]        @relation("Player2")
+  specialization     Specialization?
+  chatMessages       ChatMessage[]
+  chatParticipants   ChatParticipant[]
+  sentInvitations    ChatInvitation[]   @relation("SentInvitations")
+  receivedInvitations ChatInvitation[]  @relation("ReceivedInvitations")
+  blockedUsers       BlockedUser[]      @relation("BlockedBy")
+  blockedByUsers     BlockedUser[]      @relation("Blocked")
+  friends            Friendship[]       @relation("CharacterFriends")
+  friendOf           Friendship[]       @relation("FriendOf")
 
+  @@index([userId])
   @@map("characters")
 }
 
@@ -241,4 +257,110 @@ model AbilityCooldown {
 
   @@unique([battleId, abilityId])
   @@map("ability_cooldowns")
+}
+
+enum ChatRoomType {
+  GLOBAL    // Общий чат для всех
+  PRIVATE   // Приватный чат между двумя игроками
+  BATTLE    // Чат боя (PvP)
+  PARTY     // Командный/групповой чат
+}
+
+model ChatRoom {
+  id           String            @id @default(uuid())
+  type         ChatRoomType
+  name         String?                   // Название для командных чатов
+  battleId     String?           @unique // Для чата боя - связь с PvpBattle
+  partyId      String?                   // Для командного чата
+  isActive     Boolean           @default(true)
+  expiresAt    DateTime?                 // Для временных чатов (PvP)
+  createdAt    DateTime          @default(now())
+  messages     ChatMessage[]
+  participants ChatParticipant[]
+
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id           Int      @id @default(autoincrement())
+  roomId       String
+  senderId     Int
+  content      String
+  mentionedIds Json?              // Массив ID упомянутых игроков
+  isCommand    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime?          // Для автоудаления (24-48ч)
+  room         ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender       Character @relation(fields: [senderId], references: [id])
+
+  @@index([roomId, createdAt])
+  @@index([expiresAt])
+  @@map("chat_messages")
+}
+
+model ChatParticipant {
+  id                Int      @id @default(autoincrement())
+  roomId            String
+  characterId       Int
+  unreadCount       Int      @default(0)
+  lastReadAt        DateTime @default(now())
+  isMuted           Boolean  @default(false)
+  joinedAt          DateTime @default(now())
+  room              ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  character         Character @relation(fields: [characterId], references: [id])
+
+  @@unique([roomId, characterId])
+  @@map("chat_participants")
+}
+
+model ChatInvitation {
+  id           Int      @id @default(autoincrement())
+  senderId     Int
+  receiverId   Int
+  status       String   // pending, accepted, rejected
+  createdAt    DateTime @default(now())
+  sender       Character @relation("SentInvitations", fields: [senderId], references: [id])
+  receiver     Character @relation("ReceivedInvitations", fields: [receiverId], references: [id])
+  @@unique([senderId, receiverId, status])
+  @@map("chat_invitations")
+}
+
+model Friendship {
+  id          Int       @id @default(autoincrement())
+  characterId Int
+  friendId    Int
+  createdAt   DateTime  @default(now())
+  character   Character @relation("CharacterFriends", fields: [characterId], references: [id], onDelete: Cascade)
+  friend      Character @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([characterId, friendId])
+  @@map("friendships")
+}
+
+// Игнор-лист для блокировки пользователей в чате
+model BlockedUser {
+  id           Int       @id @default(autoincrement())
+  blockerId    Int
+  blockedId    Int
+  reason       String?
+  createdAt    DateTime  @default(now())
+  blocker      Character @relation("BlockedBy", fields: [blockerId], references: [id])
+  blocked      Character @relation("Blocked", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
+  @@map("blocked_users")
+}
+
+// Лог отправки сообщений для спам-защиты
+model ChatMessageLog {
+  id          Int      @id @default(autoincrement())
+  characterId Int
+  roomId      String
+  messageCount Int     @default(1)
+  lastMessageAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@unique([characterId, roomId])
+  @@index([characterId, lastMessageAt])
+  @@map("chat_message_logs")
 }

@@ -1,7 +1,12 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+
+// Предупреждение если в production не задан API URL
+if (import.meta.env.PROD && !import.meta.env.VITE_API_BASE_URL) {
+  console.warn('[baseApi] VITE_API_BASE_URL not set in production, using relative path /api')
+}
 
 // Хранилище access token в памяти (не в localStorage!)
 let accessToken: string | null = null
@@ -66,6 +71,10 @@ export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
   tagTypes: ['Character', 'Battle', 'Inventory', 'Item', 'Specialization'],
+  // Увеличиваем время кэширования для улучшения производительности
+  keepUnusedDataFor: 300, // 5 минут (по умолчанию 60 секунд)
+  // Количество повторных попыток при ошибке
+  refetchOnMountOrArgChange: 60, // Повторный запрос если данные старше 60 секунд
   endpoints: () => ({}),
 })
 

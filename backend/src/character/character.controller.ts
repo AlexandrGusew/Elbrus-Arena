@@ -1,15 +1,20 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Logger } from '@nestjs/common';
 import { CharacterService } from './character.service';
 import { CharacterLevelUpService } from './character-levelup.service';
 import { CharacterStaminaService } from './character-stamina.service';
 import { InventoryEnhancementService } from '../inventory/inventory-enhancement.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { Public } from '../auth/public.decorator';
-import type { CreateCharacterDto, Character } from '../../../shared/types';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { CreateCharacterDto } from './dto/create-character.dto';
+import { UpdateCharacterNameDto } from './dto/update-character-name.dto';
+import type { Character } from '../../../shared/types';
+import type { JwtPayload } from '../auth/jwt.strategy';
 
-@Public()
 @Controller('character')
 export class CharacterController {
+  private readonly logger = new Logger(CharacterController.name);
+
   constructor(
     private characterService: CharacterService,
     private levelUpService: CharacterLevelUpService,
@@ -18,27 +23,67 @@ export class CharacterController {
     private inventoryService: InventoryService,
   ) {}
 
-  @Public()
   @Post()
-  async create(@Body() body: CreateCharacterDto): Promise<Character> {
-    return this.characterService.create(body.telegramId, body.name, body.class);
+  async create(@CurrentUser() user: JwtPayload, @Body() body: CreateCharacterDto): Promise<Character> {
+    try {
+      this.logger.log(`Creating character for user ${user.userId}: ${JSON.stringify(body)}`);
+      const result = await this.characterService.create(user.userId, body.name, body.class);
+      this.logger.log(`Character created successfully: ${result.id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Error creating character: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  @Get('me')
+  async getMyCharacter(@CurrentUser() user: JwtPayload): Promise<Character[]> {
+    return this.characterService.findByUserId(user.userId);
   }
 
   @Public()
   @Get('name/:name')
   async findByName(@Param('name') name: string): Promise<Character | null> {
-    return this.characterService.findByName(name);
+    try {
+      return await this.characterService.findByName(name);
+    } catch (error) {
+      this.logger.error(`Error finding character by name ${name}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Public()
   @Get('user/:userId')
-  async findByUserId(@Param('userId') userId: string): Promise<Character | null> {
-    return this.characterService.findByUserId(Number(userId));
+  async findByUserId(@Param('userId') userId: string): Promise<Character[]> {
+    try {
+      return await this.characterService.findByUserId(Number(userId));
+    } catch (error) {
+      this.logger.error(`Error finding characters by userId ${userId}: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  @Post('auto-create')
+  async autoCreateCharacters(@CurrentUser() user: JwtPayload): Promise<Character[]> {
+    try {
+      this.logger.log(`Auto-creating characters for userId: ${user.userId}`);
+      const result = await this.characterService.autoCreateCharactersForUser(user.userId);
+      this.logger.log(`Auto-created ${result.length} characters for userId: ${user.userId}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Error auto-creating characters for userId ${user.userId}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<Character | null> {
-    return this.characterService.findById(Number(id));
+    try {
+      return await this.characterService.findById(Number(id));
+    } catch (error) {
+      this.logger.error(`Error finding character by id ${id}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Put(':characterId/equip/:inventoryItemId')
@@ -109,5 +154,19 @@ export class CharacterController {
   @Post(':id/enhance-offhand')
   async enhanceOffhand(@Param('id') id: string) {
     return this.enhancementService.enhanceOffhandWithSuperPoint(Number(id));
+  }
+
+  @Public()
+  @Put(':id/name')
+  async updateName(
+    @Param('id') id: string,
+    @Body() dto: UpdateCharacterNameDto
+  ): Promise<Character> {
+    try {
+      return await this.characterService.updateName(Number(id), dto.name);
+    } catch (error) {
+      this.logger.error(`Error updating character name ${id}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 }

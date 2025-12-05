@@ -4,26 +4,31 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-
-  await prisma.user.createMany({
-    data: [
-      {
-        telegramId: BigInt(123456789),
-        username: 'testuser1',
-        firstName: 'Тестовый Пользователь 1',
-      },
-      {
-        telegramId: BigInt(987654321),
-        username: 'testuser2',
-        firstName: 'Тестовый Пользователь 2',
-      },
-      {
-        telegramId: BigInt(555555555),
-        username: 'testuser3',
-        firstName: 'Тестовый Пользователь 3',
-      },
-    ],
-  });
+  // Пропускаем ошибки если пользователи уже созданы
+  try {
+    await prisma.user.createMany({
+      data: [
+        {
+          telegramId: BigInt(123456789),
+          username: 'testuser1',
+          firstName: 'Тестовый Пользователь 1',
+        },
+        {
+          telegramId: BigInt(987654321),
+          username: 'testuser2',
+          firstName: 'Тестовый Пользователь 2',
+        },
+        {
+          telegramId: BigInt(555555555),
+          username: 'testuser3',
+          firstName: 'Тестовый Пользователь 3',
+        },
+      ],
+      skipDuplicates: true,
+    });
+  } catch (e) {
+    console.log('⚠️  Пользователи уже существуют, пропускаем...');
+  }
 
   const rat = await prisma.monster.create({
     data: {
@@ -229,35 +234,45 @@ async function main() {
     },
   });
 
-  const easyDungeon = await prisma.dungeon.create({
-    data: {
-      name: 'Подземелье',
-      difficulty: 'easy',
-      staminaCost: 20,
-      expReward: 50,
-      goldReward: 30,
-    },
-  });
+  // Проверяем существуют ли подземелья
+  let easyDungeon = await prisma.dungeon.findFirst({ where: { difficulty: 'easy' } });
+  if (!easyDungeon) {
+    easyDungeon = await prisma.dungeon.create({
+      data: {
+        name: 'Подземелье',
+        difficulty: 'easy',
+        staminaCost: 20,
+        expReward: 50,
+        goldReward: 30,
+      },
+    });
+  }
 
-  const mediumDungeon = await prisma.dungeon.create({
-    data: {
-      name: 'Подземелье',
-      difficulty: 'medium',
-      staminaCost: 20,
-      expReward: 75,
-      goldReward: 45,
-    },
-  });
+  let mediumDungeon = await prisma.dungeon.findFirst({ where: { difficulty: 'medium' } });
+  if (!mediumDungeon) {
+    mediumDungeon = await prisma.dungeon.create({
+      data: {
+        name: 'Подземелье',
+        difficulty: 'medium',
+        staminaCost: 20,
+        expReward: 75,
+        goldReward: 45,
+      },
+    });
+  }
 
-  const hardDungeon = await prisma.dungeon.create({
-    data: {
-      name: 'Подземелье',
-      difficulty: 'hard',
-      staminaCost: 20,
-      expReward: 100,
-      goldReward: 60,
-    },
-  });
+  let hardDungeon = await prisma.dungeon.findFirst({ where: { difficulty: 'hard' } });
+  if (!hardDungeon) {
+    hardDungeon = await prisma.dungeon.create({
+      data: {
+        name: 'Подземелье',
+        difficulty: 'hard',
+        staminaCost: 20,
+        expReward: 100,
+        goldReward: 60,
+      },
+    });
+  }
 
 
   // ЛОГИКАЯ СЛЕДУЮЩАЯ Крыса → Гоблин → Крыса → Гоблин → Демон ЭТО ЛЕГКИЙ

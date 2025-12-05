@@ -177,3 +177,21 @@ BUGS AND ISSUES*
 
 # OS files
 Thumbs.db
+nul
+NUL
+
+# Media assets (served from MinIO only - no media files in repo!)
+**/*.mp4
+**/*.mp3
+**/*.wav
+**/*.ogg
+**/*.avi
+**/*.mov
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.webp
+**/*.svg
+!**/.gitkeep
+temp_assets/

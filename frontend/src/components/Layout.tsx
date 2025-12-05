@@ -1,10 +1,11 @@
 import { Outlet } from 'react-router-dom';
+import { GameViewport } from './GameViewport';
 
 const Layout = () => {
   return (
-    <div>
+    <GameViewport targetWidth={1440} targetHeight={1080}>
       <Outlet />
-    </div>
+    </GameViewport>
   );
 };
 

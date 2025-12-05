@@ -8,6 +8,14 @@ export const characterApi = baseApi.injectEndpoints({
       providesTags: (result, error, id) => [{ type: 'Character', id }],
     }),
 
+    getMyCharacter: builder.query<Character[], void>({
+      query: () => `/character/me`,
+      providesTags: (result) =>
+        result && Array.isArray(result)
+          ? result.map(({ id }) => ({ type: 'Character', id }))
+          : [],
+    }),
+
     getCharacterByName: builder.query<Character | null, string>({
       query: (name) => `/character/name/${name}`,
       providesTags: (result) => result ? [{ type: 'Character', id: result.id }] : [],
@@ -69,10 +77,17 @@ export const characterApi = baseApi.injectEndpoints({
     }),
 
     getLevelProgress: builder.query<
-      { currentLevel: number; currentExp: number; expForNextLevel: number; freePoints: number },
+      { currentLevel: number; currentExp: number; expForNextLevel: number; freePoints: number; progress: number },
       number
     >({
       query: (characterId) => `/character/${characterId}/level-progress`,
+      transformResponse: (response: { currentLevel: number; currentExp: number; requiredExp: number; freePoints: number; progress: number }) => ({
+        currentLevel: response.currentLevel,
+        currentExp: response.currentExp,
+        expForNextLevel: response.requiredExp, // Преобразуем requiredExp в expForNextLevel для совместимости
+        freePoints: response.freePoints,
+        progress: response.progress,
+      }),
     }),
 
     distributeStats: builder.mutation<
@@ -126,11 +141,48 @@ export const characterApi = baseApi.injectEndpoints({
         { type: 'Character', id: characterId },
       ],
     }),
+
+    getCharactersByUserId: builder.query<Character[], number>({
+      query: (userId) => `/character/user/${userId}`,
+      providesTags: (result) =>
+        result && Array.isArray(result)
+          ? result.map(({ id }) => ({ type: 'Character', id }))
+          : [],
+      transformResponse: (response: Character[] | unknown) => {
+        // Убеждаемся, что возвращаем массив
+        if (Array.isArray(response)) {
+          return response;
+        }
+        console.error('getCharactersByUserId: Expected array, got:', response);
+        return [];
+      },
+    }),
+
+    autoCreateCharacters: builder.mutation<Character[], void>({
+      query: () => ({
+        url: `/character/auto-create`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Character'],
+    }),
+
+    updateCharacterName: builder.mutation<Character, { characterId: number; name: string }>({
+      query: ({ characterId, name }) => ({
+        url: `/character/${characterId}/name`,
+        method: 'PUT',
+        body: { name },
+      }),
+      invalidatesTags: (result, error, { characterId }) => [
+        { type: 'Character', id: characterId },
+      ],
+    }),
   }),
 })
 
 export const {
   useGetCharacterQuery,
+  useGetMyCharacterQuery,
+  useLazyGetMyCharacterQuery,
   useGetCharacterByNameQuery,
   useCreateCharacterMutation,
   useEquipItemMutation,
@@ -142,4 +194,7 @@ export const {
   useGetStaminaInfoQuery,
   useTestLevelBoostMutation,
   useEnhanceOffhandMutation,
+  useGetCharactersByUserIdQuery,
+  useAutoCreateCharactersMutation,
+  useUpdateCharacterNameMutation,
 } = characterApi

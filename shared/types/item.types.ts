@@ -15,6 +15,7 @@ export interface Item {
   minAgility: number;
   minIntelligence: number;
   minLevel: number;
+  imageUrl?: string; // URL изображения предмета
 }
 
 export interface InventoryItem {

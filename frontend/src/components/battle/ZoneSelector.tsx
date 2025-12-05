@@ -1,11 +1,6 @@
 import type { Zone } from '../../hooks/useBattle';
 import { styles } from '../../pages/Dungeon.styles';
-
-// Импортируем изображения из папки fight
-import headImg from '../../assets/fight/head (1).png';
-import chestImg from '../../assets/fight/chest (1).png';
-import legsImg from '../../assets/fight/legs (1).png';
-import armsImg from '../../assets/fight/arms (1).png';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 const ZONE_NAMES: Record<Zone, string> = {
   head: 'Голова',
@@ -15,10 +10,10 @@ const ZONE_NAMES: Record<Zone, string> = {
 };
 
 const ZONE_IMAGES: Record<Zone, string> = {
-  head: headImg,
-  body: chestImg,
-  legs: legsImg,
-  arms: armsImg,
+  head: getAssetUrl('dungeon/battle/head (1).png'),
+  body: getAssetUrl('dungeon/battle/chest (1).png'),
+  legs: getAssetUrl('dungeon/battle/legs (1).png'),
+  arms: getAssetUrl('dungeon/battle/arms (1).png'),
 };
 
 type ZoneSelectorProps = {
@@ -72,25 +67,30 @@ export const ZoneSelector = ({
   const title = type === 'attack' ? 'ATTACK' : 'DEFENCE';
 
   return (
-    <div style={styles.statsBlock}>
-      <h4 style={{ fontSize: '24px', fontWeight: 'bold', color: selectedColor, marginBottom: '15px' }}>
+    <div style={{
+      background: 'rgba(0, 0, 0, 0.6)',
+      borderRadius: '12px',
+      padding: '12px 15px',
+      border: `3px solid ${selectedColor}33`,
+    }}>
+      <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: selectedColor, marginBottom: '8px', textAlign: 'center' }}>
         {title} - {selectedZones.length}/{maxSelections}
       </h4>
-      <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '10px' }}>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
         {zones.map(zone => (
           <div
             key={zone}
             onClick={() => onToggle(zone)}
             style={{
-              width: '180px',
-              height: '180px',
+              width: '90px',
+              height: '90px',
               position: 'relative',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               border: 'solid',
               borderWidth: getZoneBorderWidth(zone),
               borderColor: getZoneBorderColor(zone),
-              borderRadius: '10px',
+              borderRadius: '8px',
               overflow: 'hidden',
               background: selectedZones.includes(zone) ? `${selectedColor}33` : 'transparent',
               opacity: selectedZones.includes(zone) ? 1 : 0.7,
@@ -121,13 +121,13 @@ export const ZoneSelector = ({
             {/* Подпись под картинкой */}
             <div style={{
               position: 'absolute',
-              bottom: '5px',
+              bottom: '6px',
               left: '50%',
               transform: 'translateX(-50%)',
-              background: 'rgba(0, 0, 0, 0.7)',
+              background: 'rgba(0, 0, 0, 0.8)',
               color: 'white',
               padding: '3px 8px',
-              borderRadius: '5px',
+              borderRadius: '6px',
               fontSize: '12px',
               fontWeight: 'bold',
               whiteSpace: 'nowrap',

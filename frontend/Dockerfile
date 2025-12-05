@@ -3,6 +3,9 @@ FROM node:20-alpine AS builder
 # Принимаем build arguments
 ARG VITE_API_BASE_URL
 ARG VITE_WS_URL
+ARG VITE_MINIO_URL
+ARG VITE_MINIO_BUCKET
+ARG VITE_USE_MINIO
 
 WORKDIR /app
 
@@ -75,6 +78,9 @@ RUN echo "=== All files copied successfully ===" && \
 # Устанавливаем переменные окружения для Vite
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_WS_URL=$VITE_WS_URL
+ENV VITE_MINIO_URL=$VITE_MINIO_URL
+ENV VITE_MINIO_BUCKET=$VITE_MINIO_BUCKET
+ENV VITE_USE_MINIO=$VITE_USE_MINIO
 
 # Собираем production build с улучшенным логированием
 RUN echo "=== Starting Vite build ===" && \

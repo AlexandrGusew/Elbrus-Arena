@@ -184,7 +184,192 @@ export class BattleService {
 
     const equippedItems = character.inventory?.items || [];
 
-    const monsterActions = MonsterAI.generateActions();
+    let monsterActions = MonsterAI.generateActions();
+    
+    // ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: Фильтруем 'back' и дубликаты на всякий случай
+    // (на случай если где-то используется старая версия кода)
+    const validZones: Zone[] = ['head', 'body', 'legs', 'arms'];
+    
+    // Функция для получения уникальных зон без дубликатов
+    // ГАРАНТИРУЕТ отсутствие дубликатов
+    const getUniqueZones = (zones: Zone[], count: number): Zone[] => {
+      console.log('🔍 getUniqueZones вызвана:', { input: zones, count });
+      
+      // ШАГ 1: ЖЕСТКО убираем 'back' и фильтруем только валидные зоны
+      // 'back' НЕ ДОЛЖЕН существовать для мобов НИКОГДА
+      const filtered = zones.filter(zone => {
+        if (zone === 'back') {
+          console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Обнаружен "back" в getUniqueZones!', zones);
+          return false; // Жестко исключаем 'back'
+        }
+        return validZones.includes(zone);
+      });
+      console.log('🔍 После фильтрации:', filtered);
+      
+      // ШАГ 2: Убираем дубликаты используя Set (гарантирует уникальность)
+      const uniqueSet = new Set(filtered);
+      const unique = Array.from(uniqueSet);
+      console.log('🔍 После удаления дубликатов:', unique);
+      
+      // ШАГ 3: Если уникальных зон недостаточно, добавляем недостающие из валидных
+      const availableZones = [...validZones]; // Копируем массив
+      
+      // Перемешиваем доступные зоны для случайности (Fisher-Yates)
+      for (let i = availableZones.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [availableZones[i], availableZones[j]] = [availableZones[j], availableZones[i]];
+      }
+      
+      // Добавляем недостающие уникальные зоны (проверяем через Set для гарантии)
+      const usedSet = new Set(unique);
+      for (const zone of availableZones) {
+        if (unique.length >= count) break;
+        if (!usedSet.has(zone)) {
+          unique.push(zone);
+          usedSet.add(zone); // Добавляем в Set для проверки
+        }
+      }
+      console.log('🔍 После добавления недостающих:', unique);
+      
+      // ШАГ 4: Возвращаем ровно count зон
+      const result = unique.slice(0, count);
+      
+      // ШАГ 5: ФИНАЛЬНАЯ СТРОГАЯ проверка: убеждаемся, что нет дубликатов
+      const resultSet = new Set(result);
+      if (resultSet.size !== result.length) {
+        console.error('❌ КРИТИЧЕСКАЯ ОШИБКА в getUniqueZones: обнаружены дубликаты!', {
+          input: zones,
+          result,
+          uniqueCount: resultSet.size,
+          actualCount: result.length,
+          expected: count
+        });
+        // Если все же есть дубликаты, пересоздаем массив ТОЛЬКО из уникальных значений
+        const fixed = Array.from(resultSet);
+        // Добавляем недостающие зоны (гарантируя уникальность через Set)
+        const fixedSet = new Set(fixed);
+        for (const zone of availableZones) {
+          if (fixed.length >= count) break;
+          if (!fixedSet.has(zone)) {
+            fixed.push(zone);
+            fixedSet.add(zone);
+          }
+        }
+        const final = fixed.slice(0, count);
+        console.log('🔧 Исправленный результат:', final);
+        return final;
+      }
+      
+      // ШАГ 6: Проверяем, что результат имеет правильную длину
+      if (result.length !== count) {
+        console.error('❌ ОШИБКА: Неправильное количество зон!', {
+          expected: count,
+          actual: result.length,
+          result
+        });
+        throw new Error(`Не удалось получить ${count} уникальных зон. Получено: ${result.length}`);
+      }
+      
+      console.log('✅ getUniqueZones успешно вернула:', result);
+      return result;
+    };
+    
+    // Получаем уникальные атаки (ровно 2)
+    console.log('🎯 Начинаем обработку действий моба:', {
+      originalAttacks: monsterActions.attacks,
+      originalDefenses: monsterActions.defenses
+    });
+    
+    const uniqueAttacks = getUniqueZones(monsterActions.attacks, 2);
+    const uniqueDefenses = getUniqueZones(monsterActions.defenses, 3);
+    
+    // ДОПОЛНИТЕЛЬНАЯ проверка перед созданием объекта
+    const attacksSet = new Set(uniqueAttacks);
+    const defensesSet = new Set(uniqueDefenses);
+    
+    if (attacksSet.size !== uniqueAttacks.length) {
+      console.error('❌ ДУБЛИКАТЫ В АТАКАХ после getUniqueZones!', uniqueAttacks);
+      // Исправляем вручную
+      const fixedAttacks: Zone[] = [];
+      const fixedAttacksSet = new Set<Zone>();
+      for (const zone of uniqueAttacks) {
+        if (!fixedAttacksSet.has(zone) && validZones.includes(zone)) {
+          fixedAttacks.push(zone);
+          fixedAttacksSet.add(zone);
+        }
+      }
+      // Добавляем недостающие
+      for (const zone of validZones) {
+        if (fixedAttacks.length >= 2) break;
+        if (!fixedAttacksSet.has(zone)) {
+          fixedAttacks.push(zone);
+          fixedAttacksSet.add(zone);
+        }
+      }
+      uniqueAttacks.splice(0, uniqueAttacks.length, ...fixedAttacks.slice(0, 2));
+    }
+    
+    if (defensesSet.size !== uniqueDefenses.length) {
+      console.error('❌ ДУБЛИКАТЫ В ЗАЩИТАХ после getUniqueZones!', uniqueDefenses);
+      // Исправляем вручную
+      const fixedDefenses: Zone[] = [];
+      const fixedDefensesSet = new Set<Zone>();
+      for (const zone of uniqueDefenses) {
+        if (!fixedDefensesSet.has(zone) && validZones.includes(zone)) {
+          fixedDefenses.push(zone);
+          fixedDefensesSet.add(zone);
+        }
+      }
+      // Добавляем недостающие
+      for (const zone of validZones) {
+        if (fixedDefenses.length >= 3) break;
+        if (!fixedDefensesSet.has(zone)) {
+          fixedDefenses.push(zone);
+          fixedDefensesSet.add(zone);
+        }
+      }
+      uniqueDefenses.splice(0, uniqueDefenses.length, ...fixedDefenses.slice(0, 3));
+    }
+    
+    // Пересоздаем monsterActions с гарантированно правильными данными
+    monsterActions = {
+      attacks: [uniqueAttacks[0], uniqueAttacks[1]] as [Zone, Zone],
+      defenses: [uniqueDefenses[0], uniqueDefenses[1], uniqueDefenses[2]] as [Zone, Zone, Zone],
+    };
+    
+    // СТРОГАЯ финальная проверка и логирование
+    if (monsterActions.attacks.includes('back') || monsterActions.defenses.includes('back')) {
+      console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: После фильтрации все еще есть "back"!', monsterActions);
+      throw new Error('Моб не может выбирать зону "back"');
+    }
+    
+    const attackSet = new Set(monsterActions.attacks);
+    const defenseSet = new Set(monsterActions.defenses);
+    
+    if (attackSet.size !== 2) {
+      console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Дубликаты в атаках после фильтрации!', {
+        attacks: monsterActions.attacks,
+        uniqueCount: attackSet.size,
+        expected: 2
+      });
+      throw new Error(`Обнаружены дубликаты в атаках моба: ${monsterActions.attacks.join(', ')}`);
+    }
+    
+    if (defenseSet.size !== 3) {
+      console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Дубликаты в защитах после фильтрации!', {
+        defenses: monsterActions.defenses,
+        uniqueCount: defenseSet.size,
+        expected: 3
+      });
+      throw new Error(`Обнаружены дубликаты в защитах моба: ${monsterActions.defenses.join(', ')}`);
+    }
+    
+    console.log('✅ Моб действия после фильтрации (гарантированно уникальные):', {
+      attacks: monsterActions.attacks,
+      defenses: monsterActions.defenses,
+      attackUnique: attackSet.size === 2,
+      defenseUnique: defenseSet.size === 3
+    });
 
     const effectiveArmor = StatsCalculator.calculateEffectiveArmor(character, equippedItems);
     const playerBaseDamage = StatsCalculator.calculatePlayerDamage(character, equippedItems);
@@ -224,6 +409,34 @@ export class BattleService {
     }
 
     const currentRounds = Array.isArray(fullBattle.rounds) ? (fullBattle.rounds as unknown as RoundResult[]) : [];
+
+    // ФИНАЛЬНАЯ КРИТИЧЕСКАЯ ПРОВЕРКА перед сохранением в базу данных
+    // Убеждаемся, что 'back' НИКОГДА не попадет в результат
+    if (monsterActions.attacks.some(z => z === 'back') || monsterActions.defenses.some(z => z === 'back')) {
+      console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: "back" обнаружен перед сохранением в БД!', {
+        monsterActions,
+        attacks: monsterActions.attacks,
+        defenses: monsterActions.defenses
+      });
+      // Принудительно исправляем
+      monsterActions = {
+        attacks: monsterActions.attacks.filter(z => z !== 'back').slice(0, 2) as [Zone, Zone],
+        defenses: monsterActions.defenses.filter(z => z !== 'back').slice(0, 3) as [Zone, Zone, Zone],
+      };
+      // Если после фильтрации недостаточно зон, добавляем недостающие
+      const validZonesForFix: Zone[] = ['head', 'body', 'legs', 'arms'];
+      while (monsterActions.attacks.length < 2) {
+        const available = validZonesForFix.find(z => !monsterActions.attacks.includes(z));
+        if (available) monsterActions.attacks.push(available);
+        else break;
+      }
+      while (monsterActions.defenses.length < 3) {
+        const available = validZonesForFix.find(z => !monsterActions.defenses.includes(z));
+        if (available) monsterActions.defenses.push(available);
+        else break;
+      }
+      console.log('🔧 Исправленные действия моба:', monsterActions);
+    }
 
     const roundResult: RoundResult = {
       roundNumber: currentRounds.length + 1,

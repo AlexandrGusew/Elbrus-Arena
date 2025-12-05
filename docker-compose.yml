@@ -18,11 +18,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/api', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\""]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/api', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\""]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 90s
 
   frontend:
     build:
@@ -31,6 +31,9 @@ services:
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL:-/api}
         - VITE_WS_URL=${VITE_WS_URL}
+        - VITE_MINIO_URL=${VITE_MINIO_URL}
+        - VITE_MINIO_BUCKET=${VITE_MINIO_BUCKET:-elbrus-arena-assets}
+        - VITE_USE_MINIO=${VITE_USE_MINIO:-true}
     container_name: elbrusgame-frontend
     restart: unless-stopped
     ports:

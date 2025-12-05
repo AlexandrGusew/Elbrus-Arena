@@ -1,15 +1,10 @@
 import { DUNGEON_DIFFICULTIES, type DungeonDifficulty } from '../../types/api';
-import { styles } from '../../pages/Dungeon.styles';
-
-// Импортируем badge изображения
-import easyBadge from '../../assets/enterDungeon/dungeons/easy/easy_level_badge.png';
-import mediumBadge from '../../assets/enterDungeon/dungeons/medium/medium_level_badge.png';
-import hardBadge from '../../assets/enterDungeon/dungeons/hard/hard_level_badge.png';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 const DIFFICULTY_INFO = {
-  easy: { name: 'Легкий', desc: 'Для новичков', reward: '10-20 золота', badge: easyBadge },
-  medium: { name: 'Средний', desc: 'Для опытных воинов', reward: '25-40 золота', badge: mediumBadge },
-  hard: { name: 'Сложный', desc: 'Для мастеров боя', reward: '50-100 золота', badge: hardBadge },
+  easy: { name: 'Легкий', desc: 'Для новичков', reward: '10-20 золота', badge: getAssetUrl('dungeon/selection/dungeons/easy/easy-level.png') },
+  medium: { name: 'Средний', desc: 'Для опытных воинов', reward: '25-40 золота', badge: getAssetUrl('dungeon/selection/dungeons/medium/medium-level.png') },
+  hard: { name: 'Сложный', desc: 'Для мастеров боя', reward: '50-100 золота', badge: getAssetUrl('dungeon/selection/dungeons/hard/hard-level.png') },
 };
 
 type DifficultySelectorProps = {
@@ -25,50 +20,80 @@ export const DifficultySelector = ({ selectedDifficulty, onSelect }: DifficultyS
       gap: '20px',
       alignItems: 'center',
       marginTop: '20px',
-      marginBottom: '20px'
+      marginBottom: '20px',
+      width: '100%',
+      maxWidth: '700px',
+      padding: '0 20px',
     }}>
-      {DUNGEON_DIFFICULTIES.map((diff) => (
-        <div
-          key={diff}
-          onClick={() => onSelect(diff)}
-          style={{
-            width: '700px',
-            height: '150px',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            border: selectedDifficulty === diff ? '4px solid #ffd700' : '2px solid transparent',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            opacity: selectedDifficulty === diff ? 1 : 0.6,
-            transform: selectedDifficulty === diff ? 'scale(1.05)' : 'scale(1)',
-            boxShadow: selectedDifficulty === diff ? '0 0 30px rgba(255, 215, 0, 0.6)' : 'none',
-            position: 'relative',
-          }}
-          onMouseEnter={(e) => {
-            if (selectedDifficulty !== diff) {
-              e.currentTarget.style.opacity = '0.8';
-              e.currentTarget.style.transform = 'scale(1.02)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (selectedDifficulty !== diff) {
-              e.currentTarget.style.opacity = '0.6';
-              e.currentTarget.style.transform = 'scale(1)';
-            }
-          }}
-        >
-          <img
-            src={DIFFICULTY_INFO[diff].badge}
-            alt={DIFFICULTY_INFO[diff].name}
+      <h1 style={{
+        fontSize: '48px',
+        fontWeight: 'bold',
+        color: '#d4af37',
+        letterSpacing: '3px',
+        textTransform: 'uppercase',
+        margin: '0 0 30px 0',
+        fontFamily: 'serif',
+        background: 'linear-gradient(180deg, #ffd700 0%, #d4af37 50%, #8b6914 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.4))',
+        textAlign: 'center',
+        lineHeight: '1.2',
+      }}>
+        Выберите подземелье
+      </h1>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        width: '100%',
+        alignItems: 'center',
+      }}>
+        {DUNGEON_DIFFICULTIES.map((diff) => (
+          <div
+            key={diff}
+            onClick={() => onSelect(diff)}
             style={{
               width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              pointerEvents: 'none',
+              maxWidth: '700px',
+              aspectRatio: '700 / 150',
+              height: '150px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              opacity: selectedDifficulty === diff ? 1 : 0.6,
+              transform: selectedDifficulty === diff ? 'scale(1.05)' : 'scale(1)',
+              position: 'relative',
             }}
-          />
-        </div>
-      ))}
+            onMouseEnter={(e) => {
+              if (selectedDifficulty !== diff) {
+                e.currentTarget.style.opacity = '0.8';
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedDifficulty !== diff) {
+                e.currentTarget.style.opacity = '0.6';
+                e.currentTarget.style.transform = 'scale(1)';
+              }
+            }}
+          >
+            <img
+              src={DIFFICULTY_INFO[diff].badge}
+              alt={DIFFICULTY_INFO[diff].name}
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'block',
+                objectFit: 'contain',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

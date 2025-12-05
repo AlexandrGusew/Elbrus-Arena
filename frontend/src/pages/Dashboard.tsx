@@ -1,46 +1,131 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useGetCharacterQuery, useGetStaminaInfoQuery, useTestLevelBoostMutation } from '../store/api/characterApi';
-import { styles } from './Dashboard.styles';
+import { useNavigate } from 'react-router-dom';
+import {
+  useGetCharacterQuery,
+  useGetStaminaInfoQuery,
+  useTestLevelBoostMutation,
+  useGetMyCharacterQuery,
+  useAutoCreateCharactersMutation,
+  useUpdateCharacterNameMutation,
+} from '../store/api/characterApi';
+import { useLogoutMutation } from '../store/api/authApi';
+import { setAccessToken } from '../store/api/baseApi';
 import { useState, useEffect, useRef } from 'react';
-
-// Импортируем видео и музыку
-import backgroundVideo from '../assets/mainCity/mainCityBackground.mp4';
-import backgroundMusic from '../assets/mainCity/mainCity.mp3';
-
-// Импортируем изображения героев
-import warriorImg from '../assets/choosePlayer/warrior (1).png';
-import mageImg from '../assets/choosePlayer/mage (1).png';
-import rogueImg from '../assets/choosePlayer/rogue (1).png';
-
-// Импортируем изображения кнопок
-import dungeonsImg from '../assets/mainCity/dungeons.png';
-import inventoryImg from '../assets/mainCity/inventory.png';
-import blacksmithImg from '../assets/mainCity/blacksmith.png';
-import pvpImg from '../assets/mainCity/pvp.png';
-import lvlupImg from '../assets/mainCity/lvlup.png';
+import { getAssetUrl } from '../utils/assetUrl';
+import { ChatWindow } from '../components/ChatWindow';
+import { CharacterCard } from '../components/dashboard/CharacterCard';
+import { ChatSection } from '../components/dashboard/ChatSection';
+import { InventorySection } from '../components/dashboard/InventorySection';
+import { ForgeSection } from '../components/dashboard/ForgeSection';
+import { NavigationButtons } from '../components/dashboard/NavigationButtons';
+import { CharacterSelector } from '../components/CharacterSelector';
+import { Volume2, VolumeX } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const characterId = localStorage.getItem('characterId');
-  const [boostMessage, setBoostMessage] = useState<string | null>(null);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const characterIdFromStorage = localStorage.getItem('characterId');
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Состояние для управления секциями
+  const [activeSection, setActiveSection] = useState<'main' | 'inventory'>('main');
+  const [showForge, setShowForge] = useState(false);
+
+  // Состояние для слотов кузницы
+  const [forgeItemSlot, setForgeItemSlot] = useState<any | null>(null); // TODO: типизировать
+
+  // Загружаем настройку музыки из localStorage
+  const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
+    const savedMusicState = localStorage.getItem('musicPlaying');
+    return savedMusicState !== null ? savedMusicState === 'true' : true;
+  });
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioRef2 = useRef<HTMLAudioElement>(null);
 
+  // Получаем персонажа из localStorage
+  const [characterId, setCharacterId] = useState<number | null>(
+    characterIdFromStorage ? Number(characterIdFromStorage) : null
+  );
+
+  // Синхронизируем characterId с localStorage при изменении
+  useEffect(() => {
+    if (characterId) {
+      localStorage.setItem('characterId', characterId.toString());
+    } else {
+      localStorage.removeItem('characterId');
+    }
+  }, [characterId]);
+
   const { data: character, isLoading, error } = useGetCharacterQuery(
-    Number(characterId),
+    characterId!,
     { skip: !characterId }
   );
 
   const { data: staminaInfo } = useGetStaminaInfoQuery(
-    Number(characterId),
+    characterId!,
     {
       skip: !characterId || !character || !!error,
       pollingInterval: 1000,
     }
   );
 
+  const [logout] = useLogoutMutation();
   const [testLevelBoost, { isLoading: isBoostLoading }] = useTestLevelBoostMutation();
+  const [boostMessage, setBoostMessage] = useState<string | null>(null);
+
+  // Получаем список персонажей пользователя
+  const { data: myCharacters = [], isLoading: isLoadingCharacters } = useGetMyCharacterQuery();
+  const [autoCreateCharacters, { isLoading: isCreatingCharacters }] = useAutoCreateCharactersMutation();
+  const [updateCharacterName] = useUpdateCharacterNameMutation();
+
+  // Автоматически создаем персонажей, если их нет
+  useEffect(() => {
+    if (!isLoadingCharacters && myCharacters.length === 0) {
+      autoCreateCharacters().catch((error) => {
+        console.error('Error auto-creating characters:', error);
+      });
+    }
+  }, [isLoadingCharacters, myCharacters.length, autoCreateCharacters]);
+
+  // Автоматически выбираем первого персонажа, если есть персонажи, но не выбран
+  useEffect(() => {
+    if (myCharacters.length > 0 && !characterId) {
+      const firstCharacter = myCharacters[0];
+      setCharacterId(firstCharacter.id);
+    }
+  }, [myCharacters, characterId]);
+
+  // Обработчик выбора персонажа
+  const handleSelectCharacter = (newCharacterId: number) => {
+    setCharacterId(newCharacterId);
+  };
+
+  // Обработчик обновления имени персонажа
+  const handleUpdateName = async (characterId: number, newName: string) => {
+    await updateCharacterName({ characterId, name: newName }).unwrap();
+  };
+
+  // Обработчик выхода
+  const handleLogout = async () => {
+    try {
+      // Вызываем logout API для очистки refresh token в cookie
+      await logout().unwrap();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Очищаем access token из памяти
+      setAccessToken(null);
+      // Очищаем состояние персонажа
+      setCharacterId(null);
+      // Очищаем localStorage
+      localStorage.removeItem('characterId');
+      localStorage.removeItem('isAuthenticated');
+      // Переходим на страницу входа
+      navigate('/');
+    }
+  };
+
+  // Если нет персонажа, просто не показываем контент
+  // CharacterSelector или логика выбора персонажа может быть добавлена позже
 
   // Управление музыкой с crossfade
   useEffect(() => {
@@ -119,13 +204,27 @@ const Dashboard = () => {
   }, [isMusicPlaying]);
 
   const toggleMusic = () => {
-    setIsMusicPlaying(!isMusicPlaying);
+    const newState = !isMusicPlaying;
+    setIsMusicPlaying(newState);
+    // Сохраняем настройку в localStorage
+    localStorage.setItem('musicPlaying', String(newState));
+  };
+
+  // Обработчик навигации назад
+  const handleBack = () => {
+    if (showForge) {
+      // Если открыт forge - сначала закрываем его
+      setShowForge(false);
+    } else if (activeSection === 'inventory') {
+      // Если открыт инвентарь - возвращаемся на главную секцию
+      setActiveSection('main');
+    }
   };
 
   const handleLevelBoost = async () => {
     if (!characterId) return;
     try {
-      const result = await testLevelBoost(Number(characterId)).unwrap();
+      const result = await testLevelBoost(characterId).unwrap();
       setBoostMessage(result.message);
       setTimeout(() => setBoostMessage(null), 5000);
     } catch (error: any) {
@@ -134,42 +233,10 @@ const Dashboard = () => {
     }
   };
 
-  if (!characterId) {
-    navigate('/');
-    return null;
-  }
 
-  if (isLoading) {
-    return <div style={styles.loadingContainer}>Загрузка...</div>;
-  }
-
-  if (error || !character) {
-    return (
-      <div style={styles.errorContainer}>
-        Ошибка: {error ? 'error' in error ? error.error : 'Ошибка загрузки' : 'Персонаж не найден'}
-        <br />
-        <Link to="/">Создать персонажа</Link>
-      </div>
-    );
-  }
-
-  const hpPercent = (character.currentHp / character.maxHp) * 100;
-
-  const currentStamina = staminaInfo?.currentStamina ?? character.stamina;
-  const maxStamina = staminaInfo?.maxStamina ?? 100;
-  const staminaPercent = (currentStamina / maxStamina) * 100; // Максимум стамины 100
-
-  // Выбор изображения героя по классу
-  const getHeroImage = () => {
-    const classLower = character.class.toLowerCase();
-    if (classLower === 'warrior') return warriorImg;
-    if (classLower === 'mage') return mageImg;
-    if (classLower === 'rogue') return rogueImg;
-    return warriorImg; // fallback
-  };
-
+  // Выбор видео героя по классу
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '1440px', height: '1080px', overflow: 'hidden' }}>
       {/* Видео фон */}
       <video
         autoPlay
@@ -177,98 +244,135 @@ const Dashboard = () => {
         muted
         playsInline
         style={{
-          position: 'fixed',
+          position: 'absolute',
           top: 0,
           left: 0,
-          width: '100vw',
-          height: '100vh',
+          width: '100%',
+          height: '100%',
           objectFit: 'cover',
           zIndex: 1,
         }}
       >
-        <source src={backgroundVideo} type="video/mp4" />
+        <source src={getAssetUrl('dashboard/mainCityBackground.mp4')} type="video/mp4" />
       </video>
 
       {/* Фоновая музыка - два трека для crossfade */}
-      <audio ref={audioRef}>
-        <source src={backgroundMusic} type="audio/mpeg" />
+      <audio 
+        ref={audioRef}
+        onError={(e) => {
+          console.warn('[Dashboard] Audio file not found, music will be disabled');
+          setIsMusicPlaying(false);
+        }}
+      >
+        <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
-      <audio ref={audioRef2}>
-        <source src={backgroundMusic} type="audio/mpeg" />
+      <audio 
+        ref={audioRef2}
+        onError={(e) => {
+          console.warn('[Dashboard] Audio file not found, music will be disabled');
+          setIsMusicPlaying(false);
+        }}
+      >
+        <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
 
-      {/* Левый нижний угол - кнопки одинакового размера */}
+      {/* Кнопки управления - верхний правый угол */}
       <div style={{
-        position: 'fixed',
-        bottom: '40px',
-        left: '40px',
+        position: 'absolute',
+        top: '15px',
+        right: '15px',
         display: 'flex',
-        gap: '10px',
+        gap: '8px',
         zIndex: 1000,
+        alignItems: 'flex-start',
       }}>
-        {/* Кнопка управления музыкой */}
+        {/* Кнопка музыки */}
         <button
           onClick={toggleMusic}
           style={{
-            padding: '10px',
-            border: '2px solid #fff',
-            background: isMusicPlaying ? 'rgba(255, 215, 0, 0.8)' : 'rgba(220, 38, 38, 0.8)',
-            color: '#fff',
-            fontSize: '24px',
+            padding: '8px 16px',
+            border: '1px solid #d4af37',
+            background: 'rgba(20, 20, 20, 0.9)',
+            color: '#d4af37',
             cursor: 'pointer',
-            borderRadius: '8px',
             transition: 'all 0.3s ease',
-            width: '50px',
-            height: '50px',
+            borderRadius: '4px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            fontFamily: "'IM Fell English', serif",
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: '6px',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}
         >
-          {isMusicPlaying ? '🔊' : '🔇'}
+          {isMusicPlaying ? (
+            <Volume2 size={14} color="#d4af37" />
+          ) : (
+            <VolumeX size={14} color="#d4af37" />
+          )}
+          <span>MUSIC</span>
         </button>
 
-        {/* Кнопка выхода */}
-        <button
-          onClick={() => {
-            localStorage.removeItem('characterId');
-            navigate('/');
-          }}
-          style={{
-            padding: '10px',
-            border: '2px solid #fff',
-            background: 'rgba(220, 38, 38, 0.8)',
-            color: '#fff',
-            fontSize: '20px',
-            cursor: 'pointer',
-            borderRadius: '8px',
-            transition: 'all 0.3s ease',
-            width: '50px',
-            height: '50px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          🚪
-        </button>
+        {/* Кнопка назад - показываем только если не на главной секции */}
+        {(activeSection === 'inventory' || showForge) && (
+          <button
+            onClick={handleBack}
+            style={{
+              padding: '8px 16px',
+              border: '1px solid #d4af37',
+              background: 'rgba(20, 20, 20, 0.9)',
+              color: '#d4af37',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              fontFamily: "'IM Fell English', serif",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            BACK
+          </button>
+        )}
+      </div>
+
+      <div style={{
+        display: 'none',
+      }}>
 
         {/* Кнопка теста */}
         <button
           onClick={handleLevelBoost}
           disabled={isBoostLoading}
           style={{
-            padding: '10px',
-            border: '2px solid #fff',
+            padding: '5px',
+            border: '1px solid #fff',
             background: isBoostLoading ? 'rgba(128, 128, 128, 0.8)' : 'rgba(255, 152, 0, 0.8)',
             color: '#fff',
-            fontSize: '20px',
+            fontSize: '10px',
             cursor: isBoostLoading ? 'not-allowed' : 'pointer',
-            borderRadius: '8px',
+            borderRadius: '2px',
             transition: 'all 0.3s ease',
-            width: '50px',
-            height: '50px',
-            display: 'flex',
+            width: '25px',
+            height: '25px',
+            display: 'none', // Скрыто
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -277,435 +381,113 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Навигационные кнопки - в ряд снизу по центру */}
-      <div style={{
-        position: 'fixed',
-        bottom: '40px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        gap: '5px',
-        zIndex: 1000,
-      }}>
-        <Link to="/dungeon" style={{ display: 'block' }}>
-          <img
-            src={dungeonsImg}
-            alt="Подземелье"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/inventory" style={{ display: 'block' }}>
-          <img
-            src={inventoryImg}
-            alt="Инвентарь"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/blacksmith" style={{ display: 'block' }}>
-          <img
-            src={blacksmithImg}
-            alt="Кузница"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/pvp" style={{ display: 'block' }}>
-          <img
-            src={pvpImg}
-            alt="PvP"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        {character.level >= 10 && (
-          <Link to="/specialization" style={{ display: 'block' }}>
-            <button style={{
-              width: '450px',
-              height: '240px',
-              background: '#673ab7',
-              color: '#fff',
-              border: '2px solid #fff',
-              borderRadius: '8px',
-              fontSize: '32px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}>
-              Специализация
-            </button>
-          </Link>
-        )}
-        {character.level >= 15 && (
-          <Link to="/class-mentor" style={{ display: 'block' }}>
-            <button style={{
-              width: '450px',
-              height: '240px',
-              background: '#ff9800',
-              color: '#fff',
-              border: '2px solid #fff',
-              borderRadius: '8px',
-              fontSize: '32px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}>
-              Наставник {character.superPoints > 0 && `(${character.superPoints})`}
-            </button>
-          </Link>
-        )}
-      </div>
+      {/* Если персонаж выбран - показываем контент Dashboard */}
+      {character ? (
+        <div className="absolute top-4 left-4 right-4 bottom-4 z-[2]">
+          <div className="w-full h-full border-4 border-amber-700/60 rounded-2xl bg-gradient-to-b from-stone-950/95 to-black/95 backdrop-blur-md shadow-2xl shadow-black/80 p-6 relative">
+            {/* Corner ornaments */}
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-red-700/60"></div>
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-red-700/60"></div>
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-red-700/60"></div>
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-red-700/60"></div>
 
-      {/* Портрет героя - левый верхний угол */}
-      <div style={{
-        position: 'fixed',
-        top: '80px',
-        left: '40px',
-        width: '150px',
-        height: '200px',
-        borderRadius: '10px',
-        overflow: 'hidden',
-        zIndex: 1000,
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
-      }}>
-        {/* Уровень - в верхнем правом углу портрета */}
+            <div className="grid grid-cols-[45%_55%] gap-6 h-full">
+              {/* LEFT COLUMN */}
+              <div className="flex flex-col gap-4 h-full">
+                {/* Character Info Card OR Forge Section - 2/3 of height */}
+                <div className="h-[66%]">
+                  {showForge ? (
+                    <ForgeSection
+                      character={character}
+                      onClose={() => setShowForge(false)}
+                      itemInSlot={forgeItemSlot}
+                      onItemChange={setForgeItemSlot}
+                    />
+                  ) : (
+                    <CharacterCard character={character} />
+                  )}
+                </div>
+
+                {/* Chat Section - 1/3 of height */}
+                <div className="h-[33%]">
+                  <ChatSection characterId={character.id} characterName={character.name} />
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN */}
+              {activeSection === 'main' ? (
+                <NavigationButtons
+                  onInventoryClick={() => {
+                    setActiveSection('inventory');
+                    setShowForge(false);
+                  }}
+                  onForgeClick={() => {
+                    // При клике на Forge из главного меню - открываем инвентарь + кузницу
+                    setActiveSection('inventory');
+                    setShowForge(true);
+                  }}
+                />
+              ) : activeSection === 'inventory' ? (
+                <InventorySection
+                  character={character}
+                  onNavigateToForge={() => {
+                    // Оставляем activeSection='inventory', только показываем кузницу
+                    setShowForge(true);
+                  }}
+                  showForge={showForge}
+                  onNavigateToInventory={() => setShowForge(false)}
+                  onBack={() => {
+                    setActiveSection('main');
+                    setShowForge(false);
+                  }}
+                  forgeItemSlot={forgeItemSlot}
+                  onForgeItemSelect={setForgeItemSlot}
+                />
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : isLoadingCharacters || isCreatingCharacters ? (
+        /* Показываем загрузку при создании персонажей */
         <div style={{
           position: 'absolute',
-          top: '5px',
-          right: '5px',
-          background: 'rgba(255, 215, 0, 0.9)',
-          color: '#000',
-          padding: '3px 8px',
-          borderRadius: '12px',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          border: '2px solid #000',
-          zIndex: 2,
-        }}>
-          Ур. {character.level}
-        </div>
-        <img
-          src={getHeroImage()}
-          alt={character.class}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-        />
-      </div>
-
-      {/* Имя персонажа под портретом */}
-      <div style={{
-        position: 'fixed',
-        top: '285px', // 80px (top) + 200px (height) + 5px (gap)
-        left: '40px',
-        width: '150px',
-        background: 'rgba(255, 255, 255, 0.9)',
-        padding: '5px',
-        textAlign: 'center',
-        color: '#000',
-        fontSize: '14px',
-        fontWeight: 'bold',
-        borderRadius: '5px',
-        zIndex: 1000,
-      }}>
-        {character.name}
-      </div>
-
-      {/* Кнопка Level Up - появляется только когда есть свободные очки */}
-      {character.freePoints > 0 && (
-        <Link to="/inventory" style={{
-          position: 'fixed',
-          top: '310px', // Сразу под именем
-          left: '40px',
-          width: '150px',
-          height: '60px',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           zIndex: 1000,
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          display: 'block',
+          color: '#fff',
+          fontSize: '24px',
+          fontFamily: "'IM Fell English', serif",
         }}>
-          <img
-            src={lvlupImg}
-            alt="Level Up"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: '8px',
-              boxShadow: '0 4px 15px rgba(255, 215, 0, 0.6)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
+          {isCreatingCharacters ? 'Создание персонажей...' : 'Загрузка...'}
+        </div>
+      ) : myCharacters.length > 0 ? (
+        /* Показываем выбор персонажа, если персонажи есть, но не выбран */
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 1000,
+        }}>
+          <CharacterSelector
+            characters={myCharacters}
+            selectedCharacterId={characterId}
+            onSelectCharacter={handleSelectCharacter}
+            onUpdateName={handleUpdateName}
           />
-        </Link>
+        </div>
+      ) : null}
+
+      {/* Окно чата */}
+      {character && (
+        <ChatWindow
+          characterId={character.id}
+          characterName={character.name}
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
       )}
-
-      {/* HP и Stamina бары - справа от портрета */}
-      <div style={{
-        position: 'fixed',
-        top: '100px',
-        left: '205px', // 40px (left) + 150px (width) + 15px (gap)
-        width: '300px',
-        zIndex: 1000,
-      }}>
-        {/* HP Bar */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '10px',
-          borderRadius: '8px',
-          marginBottom: '10px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>HP</span>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>
-              {character.currentHp} / {character.maxHp}
-            </span>
-          </div>
-          <div style={{
-            width: '100%',
-            height: '20px',
-            background: '#333',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            border: '1px solid #555',
-          }}>
-            <div style={{
-              width: `${hpPercent}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #ff4444, #cc0000)',
-              transition: 'width 0.3s ease',
-            }} />
-          </div>
-        </div>
-
-        {/* Stamina Bar */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '10px',
-          borderRadius: '8px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>Выносливость</span>
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>
-              {currentStamina} / {maxStamina}
-            </span>
-          </div>
-          <div style={{
-            width: '100%',
-            height: '20px',
-            background: '#333',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            border: '1px solid #555',
-          }}>
-            <div style={{
-              width: `${staminaPercent}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #4CAF50, #2E7D32)',
-              transition: 'width 0.3s ease',
-            }} />
-          </div>
-          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '5px' }}>
-            Восстанавливается: 1/сек
-            {staminaInfo?.secondsToFull && staminaInfo.secondsToFull > 0 && (
-              <span> • Полная через {Math.ceil(staminaInfo.secondsToFull)}с</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ ...styles.container, position: 'relative', zIndex: 2, height: '100vh', overflowY: 'auto' }}>
-        <h1>{character.class}</h1>
-
-      {boostMessage && (
-        <div style={{
-          marginTop: '10px',
-          marginBottom: '20px',
-          padding: '10px',
-          background: '#4caf50',
-          borderRadius: '4px',
-          fontSize: '14px',
-          textAlign: 'center',
-        }}>
-          {boostMessage}
-        </div>
-      )}
-
-      {/* Объединённый блок: Золото + Характеристики - слева под портретом */}
-      <div style={{
-        position: 'fixed',
-        top: character.freePoints > 0 ? '380px' : '310px', // Под кнопкой lvlup или под именем
-        left: '40px',
-        width: '300px',
-        background: 'rgba(0, 0, 0, 0.85)',
-        padding: '20px',
-        borderRadius: '12px',
-        border: '2px solid #ffd700',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
-        zIndex: 1000,
-      }}>
-        {/* Золото */}
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '20px',
-          paddingBottom: '15px',
-          borderBottom: '1px solid #ffd700',
-        }}>
-          <div style={{
-            fontSize: '14px',
-            color: '#aaa',
-            marginBottom: '5px',
-          }}>
-            Золото
-          </div>
-          <div style={{
-            fontSize: '32px',
-            fontWeight: 'bold',
-            color: '#FFD700',
-            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
-          }}>
-            {character.gold.toLocaleString()}
-          </div>
-        </div>
-
-        {/* Характеристики */}
-        <div>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '12px',
-          }}>
-            <h3 style={{
-              margin: 0,
-              color: '#ffd700',
-              fontSize: '16px',
-            }}>
-              Характеристики
-            </h3>
-            {character.freePoints > 0 && (
-              <Link to="/levelup" style={{ textDecoration: 'none' }}>
-                <button style={{
-                  padding: '4px 12px',
-                  fontSize: '11px',
-                  background: '#4CAF50',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                }}>
-                  Прокачка ({character.freePoints})
-                </button>
-              </Link>
-            )}
-          </div>
-          <div style={{
-            display: 'grid',
-            gap: '8px',
-            color: '#fff',
-            fontSize: '14px',
-          }}>
-            <div>Сила: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.strength}</span></div>
-            <div>Ловкость: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.agility}</span></div>
-            <div>Интеллект: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{character.intelligence}</span></div>
-            {character.freePoints > 0 && (
-              <div style={{
-                marginTop: '4px',
-                padding: '6px',
-                background: 'rgba(76, 175, 80, 0.2)',
-                borderRadius: '4px',
-                textAlign: 'center',
-              }}>
-                Свободных очков: <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>{character.freePoints}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      </div>
     </div>
   );
 };

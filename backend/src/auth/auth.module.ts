@@ -7,10 +7,12 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { PrismaModule } from '../prisma/prisma.module';
+import { TelegramModule } from '../telegram/telegram.module';
 
 @Module({
   imports: [
     PrismaModule,
+    TelegramModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
