@@ -29,6 +29,9 @@ const Dashboard = () => {
   const [activeSection, setActiveSection] = useState<'main' | 'inventory'>('main');
   const [showForge, setShowForge] = useState(false);
 
+  // Состояние для слотов кузницы
+  const [forgeItemSlot, setForgeItemSlot] = useState<any | null>(null); // TODO: типизировать
+
   // Загружаем настройку музыки из localStorage
   const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
     const savedMusicState = localStorage.getItem('musicPlaying');
@@ -394,7 +397,12 @@ const Dashboard = () => {
                 {/* Character Info Card OR Forge Section - 2/3 of height */}
                 <div className="h-[66%]">
                   {showForge ? (
-                    <ForgeSection character={character} onClose={() => setShowForge(false)} />
+                    <ForgeSection
+                      character={character}
+                      onClose={() => setShowForge(false)}
+                      itemInSlot={forgeItemSlot}
+                      onItemChange={setForgeItemSlot}
+                    />
                   ) : (
                     <CharacterCard character={character} />
                   )}
@@ -414,20 +422,26 @@ const Dashboard = () => {
                     setShowForge(false);
                   }}
                   onForgeClick={() => {
+                    // При клике на Forge из главного меню - открываем инвентарь + кузницу
+                    setActiveSection('inventory');
                     setShowForge(true);
-                    setActiveSection('main');
                   }}
                 />
               ) : activeSection === 'inventory' ? (
                 <InventorySection
                   character={character}
                   onNavigateToForge={() => {
+                    // Оставляем activeSection='inventory', только показываем кузницу
                     setShowForge(true);
-                    setActiveSection('main');
                   }}
                   showForge={showForge}
                   onNavigateToInventory={() => setShowForge(false)}
-                  onBack={() => setActiveSection('main')}
+                  onBack={() => {
+                    setActiveSection('main');
+                    setShowForge(false);
+                  }}
+                  forgeItemSlot={forgeItemSlot}
+                  onForgeItemSelect={setForgeItemSlot}
                 />
               ) : null}
             </div>

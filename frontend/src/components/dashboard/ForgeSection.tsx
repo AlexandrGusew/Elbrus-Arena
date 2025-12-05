@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import type { Character, InventoryItem } from '../../types/api';
 import { useEnhanceItemMutation } from '../../store/api/characterApi';
+import { ItemIcon } from '../common/ItemIcon';
 
 interface ForgeSectionProps {
   character: Character;
   onClose?: () => void;
+  itemInSlot: InventoryItem | null;
+  onItemChange: (item: InventoryItem | null) => void;
 }
 
 interface UpgradeHistoryEntry {
@@ -14,27 +17,47 @@ interface UpgradeHistoryEntry {
   success: boolean;
 }
 
-export function ForgeSection({ character, onClose }: ForgeSectionProps) {
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: ForgeSectionProps) {
+  const [scrollInSlot, setScrollInSlot] = useState<any | null>(null); // TODO: добавить тип ScrollItem
   const [upgradeHistory, setUpgradeHistory] = useState<UpgradeHistoryEntry[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const [enhanceItem, { isLoading: isEnhancing }] = useEnhanceItemMutation();
 
-  // Получаем предметы из инвентаря (только не надетые)
-  const inventoryItems = character.inventory?.items?.filter(item => !item.isEquipped) || [];
+  // Drag & Drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const itemData = e.dataTransfer.getData('inventory-item');
+    if (itemData) {
+      const item: InventoryItem = JSON.parse(itemData);
+      onItemChange(item);
+    }
+  };
 
   const handleUpgrade = async () => {
-    if (!selectedItem || isEnhancing) return;
+    if (!itemInSlot || isEnhancing) return;
 
     try {
       const result = await enhanceItem({
         characterId: character.id,
-        itemId: selectedItem.id,
+        itemId: itemInSlot.id,
       }).unwrap();
 
       const message = result.success
-        ? `Успешное улучшение: ${selectedItem.item.name}+${selectedItem.enhancement} → +${result.newEnhancement}`
-        : `Неудача: ${selectedItem.item.name}+${selectedItem.enhancement} не удалось улучшить`;
+        ? `Успешное улучшение: ${itemInSlot.item.name}+${itemInSlot.enhancement} → +${result.newEnhancement}`
+        : `Неудача: ${itemInSlot.item.name}+${itemInSlot.enhancement} не удалось улучшить`;
 
       setUpgradeHistory(prev => [
         {
@@ -46,8 +69,8 @@ export function ForgeSection({ character, onClose }: ForgeSectionProps) {
         ...prev.slice(0, 9), // Храним последние 10 записей
       ]);
 
-      // Сбрасываем выбранный предмет после улучшения
-      setSelectedItem(null);
+      // Сбрасываем предмет из слота после улучшения
+      onItemChange(null);
     } catch (error: any) {
       const errorMessage = error?.data?.message || 'Ошибка улучшения предмета';
       setUpgradeHistory(prev => [
@@ -70,60 +93,79 @@ export function ForgeSection({ character, onClose }: ForgeSectionProps) {
       <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/60"></div>
 
       <div className="flex flex-col gap-4 h-full">
-        {/* Top Row - Selected Item Name */}
-        <div className="grid grid-cols-1 gap-4">
+        {/* Top Row - Name Item and Update Scroll */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Name Item */}
           <div className="border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/80 to-black/90 px-4 py-2 flex items-center justify-center">
             <span className="text-amber-200 uppercase tracking-wider text-sm" style={{ fontFamily: 'serif' }}>
-              {selectedItem ? `${selectedItem.item.name} +${selectedItem.enhancement}` : 'Выберите предмет'}
+              {itemInSlot ? `${itemInSlot.item.name} +${itemInSlot.enhancement}` : 'name item'}
+            </span>
+          </div>
+          {/* Update Scroll */}
+          <div className="border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/80 to-black/90 px-4 py-2 flex items-center justify-center">
+            <span className="text-amber-200 uppercase tracking-wider text-sm" style={{ fontFamily: 'serif' }}>
+              {scrollInSlot ? scrollInSlot.name : 'update scroll'}
             </span>
           </div>
         </div>
 
-        {/* Middle Row - Item Slot and Info */}
+        {/* Middle Row - Item Slot and Scroll Slot */}
         <div className="grid grid-cols-2 gap-4">
           {/* Item Slot */}
-          <div className="aspect-square border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 hover:border-amber-600/60 transition-all relative overflow-hidden">
-            {selectedItem ? (
-              <div className="w-full h-full flex flex-col items-center justify-center p-2">
-                <span className="text-amber-300 text-sm text-center" style={{ fontFamily: 'serif' }}>
-                  {selectedItem.item.name}
-                </span>
-                <span className="text-green-400 text-lg mt-2">+{selectedItem.enhancement}</span>
+          <div
+            className={`aspect-square border-2 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 hover:border-amber-600/60 transition-all relative overflow-hidden cursor-pointer ${
+              isDragOver ? 'border-green-500/80 bg-green-950/30' : 'border-amber-800/40'
+            }`}
+            onClick={() => onItemChange(null)} // Клик убирает предмет
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {itemInSlot ? (
+              <div className="w-full h-full flex items-center justify-center p-2">
+                <ItemIcon
+                  item={itemInSlot.item}
+                  size="medium"
+                  showName={true}
+                  enhancement={itemInSlot.enhancement}
+                />
               </div>
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-amber-300/40 text-xs" style={{ fontFamily: 'serif' }}>Item Slot</span>
+              <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-amber-700/30 rounded-lg m-1">
+                <span className="text-amber-300/40 text-xs text-center" style={{ fontFamily: 'serif' }}>
+                  Drop Item<br/>Here
+                </span>
               </div>
             )}
           </div>
 
-          {/* Item Selection Grid */}
-          <div className="grid grid-cols-3 gap-2">
-            {inventoryItems.slice(0, 6).map((invItem) => (
-              <div
-                key={invItem.id}
-                onClick={() => setSelectedItem(invItem)}
-                className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 hover:border-amber-600/60 transition-all cursor-pointer flex flex-col items-center justify-center p-1 aspect-square ${
-                  selectedItem?.id === invItem.id ? 'border-red-700/80' : 'border-amber-800/40'
-                }`}
-              >
-                <span className="text-amber-300 text-[10px] text-center leading-tight" style={{ fontFamily: 'serif' }}>
-                  {invItem.item.name.substring(0, 10)}
+          {/* Scroll Slot */}
+          <div
+            className="aspect-square border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 hover:border-amber-600/60 transition-all relative overflow-hidden cursor-pointer"
+            onClick={() => setScrollInSlot(null)} // Временно - клик убирает свиток
+          >
+            {scrollInSlot ? (
+              <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                <span className="text-amber-300 text-sm text-center" style={{ fontFamily: 'serif' }}>
+                  {scrollInSlot.name}
                 </span>
-                {invItem.enhancement > 0 && (
-                  <span className="text-green-400 text-[10px]">+{invItem.enhancement}</span>
-                )}
               </div>
-            ))}
+            ) : (
+              <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-amber-700/30 rounded-lg m-1">
+                <span className="text-amber-300/40 text-xs text-center" style={{ fontFamily: 'serif' }}>
+                  Scroll Slot
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Upgrade Button */}
         <button
           onClick={handleUpgrade}
-          disabled={!selectedItem || isEnhancing}
+          disabled={!itemInSlot || isEnhancing}
           className={`border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/90 to-black/90 py-4 relative transition-all group ${
-            !selectedItem || isEnhancing ? 'opacity-50 cursor-not-allowed' : 'hover:border-red-700/70 cursor-pointer'
+            !itemInSlot || isEnhancing ? 'opacity-50 cursor-not-allowed' : 'hover:border-red-700/70 cursor-pointer'
           }`}
         >
           <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { Character, InventoryItem } from '../../types/api';
+import { useUnequipItemMutation } from '../../store/api/characterApi';
+import { ItemIcon } from '../common/ItemIcon';
 
 interface InventorySectionProps {
   character: Character;
@@ -7,6 +9,8 @@ interface InventorySectionProps {
   showForge?: boolean;
   onNavigateToInventory?: () => void;
   onBack?: () => void;
+  forgeItemSlot?: InventoryItem | null;
+  onForgeItemSelect?: (item: InventoryItem | null) => void;
 }
 
 export function InventorySection({
@@ -14,15 +18,79 @@ export function InventorySection({
   onNavigateToForge,
   showForge,
   onNavigateToInventory,
-  onBack
+  onBack,
+  forgeItemSlot,
+  onForgeItemSelect
 }: InventorySectionProps) {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [draggedItem, setDraggedItem] = useState<InventoryItem | null>(null);
+  const [isInventoryDropZone, setIsInventoryDropZone] = useState(false);
+
+  const [unequipItem] = useUnequipItemMutation();
 
   // Получаем items из инвентаря персонажа
   const inventoryItems = character.inventory?.items || [];
 
   // Фильтруем только не надетые предметы
   const unequippedItems = inventoryItems.filter(invItem => !invItem.isEquipped);
+
+  // Drag & Drop handlers
+  const handleDragStart = (e: React.DragEvent, invItem: InventoryItem) => {
+    setDraggedItem(invItem);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('inventory-item', JSON.stringify(invItem));
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+  };
+
+  const handleItemClick = (invItem: InventoryItem) => {
+    setSelectedItem(invItem);
+    // Если кузница открыта и есть callback - помещаем предмет в кузницу
+    if (showForge && onForgeItemSelect) {
+      onForgeItemSelect(invItem);
+    }
+  };
+
+  // Drop handlers для снятия экипировки
+  const handleInventoryDragOver = (e: React.DragEvent) => {
+    // Проверяем, что перетаскивается надетый предмет
+    const equippedItemData = e.dataTransfer.types.includes('equipped-item');
+    if (equippedItemData) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      setIsInventoryDropZone(true);
+    }
+  };
+
+  const handleInventoryDragLeave = (e: React.DragEvent) => {
+    // Проверяем, что мы действительно покинули область инвентаря
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      setIsInventoryDropZone(false);
+    }
+  };
+
+  const handleInventoryDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsInventoryDropZone(false);
+
+    const equippedItemData = e.dataTransfer.getData('equipped-item');
+    if (!equippedItemData) return;
+
+    const item: InventoryItem = JSON.parse(equippedItemData);
+
+    // Снимаем предмет
+    try {
+      await unequipItem({ characterId: character.id, itemId: item.id }).unwrap();
+    } catch (error) {
+      console.error('Error unequipping item:', error);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col gap-4">
@@ -154,16 +222,24 @@ export function InventorySection({
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          <span style={{
-            color: '#d4af37',
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            textAlign: 'center',
-            fontFamily: "'IM Fell English', serif",
-            opacity: selectedItem ? 0.6 : 0.4,
-          }}>
-            IMAGE<br/>ITEM
-          </span>
+          {selectedItem ? (
+            <ItemIcon
+              item={selectedItem.item}
+              size="large"
+              enhancement={selectedItem.enhancement}
+            />
+          ) : (
+            <span style={{
+              color: '#d4af37',
+              fontSize: '11px',
+              textTransform: 'uppercase',
+              textAlign: 'center',
+              fontFamily: "'IM Fell English', serif",
+              opacity: 0.4,
+            }}>
+              IMAGE<br/>ITEM
+            </span>
+          )}
         </div>
 
         {/* Правая панель - информация о предмете */}
@@ -308,7 +384,14 @@ export function InventorySection({
       </div>
 
       {/* Inventory Grid */}
-      <div className="flex-1 border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 p-6 relative">
+      <div
+        className={`flex-1 border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 p-6 relative transition-all ${
+          isInventoryDropZone ? 'border-green-500/80 bg-green-950/30' : 'border-amber-700/60'
+        }`}
+        onDragOver={handleInventoryDragOver}
+        onDragLeave={handleInventoryDragLeave}
+        onDrop={handleInventoryDrop}
+      >
         <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/60"></div>
         <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/60"></div>
         <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/60"></div>
@@ -318,17 +401,19 @@ export function InventorySection({
           {unequippedItems.map((invItem) => (
             <div
               key={invItem.id}
-              onClick={() => setSelectedItem(invItem)}
-              className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 hover:border-amber-600/60 transition-all cursor-pointer flex flex-col items-center justify-center aspect-square p-2 ${
-                selectedItem?.id === invItem.id ? 'border-red-700/80' : 'border-amber-800/40'
-              }`}
+              draggable={true}
+              onDragStart={(e) => handleDragStart(e, invItem)}
+              onDragEnd={handleDragEnd}
+              onClick={() => handleItemClick(invItem)}
+              className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 hover:border-amber-600/60 transition-all cursor-move flex flex-col items-center justify-center aspect-square p-2 ${
+                selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id ? 'border-red-700/80' : 'border-amber-800/40'
+              } ${draggedItem?.id === invItem.id ? 'opacity-50' : ''}`}
             >
-              <span className="text-amber-300 text-xs text-center" style={{ fontFamily: 'serif' }}>
-                {invItem.item.name}
-              </span>
-              {invItem.enhancement > 0 && (
-                <span className="text-green-400 text-xs mt-1">+{invItem.enhancement}</span>
-              )}
+              <ItemIcon
+                item={invItem.item}
+                size="small"
+                enhancement={invItem.enhancement}
+              />
             </div>
           ))}
 
