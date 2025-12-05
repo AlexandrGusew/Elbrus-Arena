@@ -1,5 +1,14 @@
 /* Landing Page Styles */
 
+/* Medieval/Fantasy Font Declarations */
+:root {
+  --font-medieval: 'MedievalSharp', cursive;
+  --font-items: 'Cormorant Unicase', serif;
+  --font-accents: 'Gabriela', serif;
+  --font-ui: 'Cinzel', serif;
+  --font-body: 'Junicode', serif;
+}
+
 .landing {
   width: 100%;
   min-height: 100vh;
@@ -8,6 +17,7 @@
   position: relative;
   background: transparent;
   isolation: isolate; /* Создает новый stacking context */
+  font-family: var(--font-body); /* Основной текст - Junicode */
 }
 
 /* Фиксированное видео на весь экран */
@@ -55,6 +65,7 @@
 }
 
 .logo {
+  font-family: var(--font-medieval); /* MedievalSharp */
   font-size: 1.5rem;
   font-weight: bold;
   color: #ffd700;
@@ -68,6 +79,7 @@
 }
 
 .nav-menu a {
+  font-family: var(--font-ui); /* Cinzel */
   color: #ffffff;
   text-decoration: none;
   font-size: 1rem;
@@ -128,6 +140,7 @@
 }
 
 .hero-title {
+  font-family: var(--font-medieval); /* MedievalSharp - H1 */
   font-size: 4rem;
   font-weight: bold;
   margin-bottom: 1.5rem;
@@ -140,6 +153,7 @@
 }
 
 .hero-subtitle {
+  font-family: var(--font-accents); /* Gabriela - важный текст */
   font-size: 1.25rem;
   color: #cccccc;
   margin-bottom: 3rem;
@@ -154,6 +168,7 @@
 }
 
 .btn {
+  font-family: var(--font-ui); /* Cinzel - UI элементы */
   padding: 1rem 2.5rem;
   font-size: 1rem;
   font-weight: bold;
@@ -225,7 +240,8 @@
 }
 
 .section-title {
-  font-size: 2.5rem;
+  font-family: var(--font-medieval); /* MedievalSharp - H2 в стиле Diablo */
+  font-size: 2rem;
   font-weight: bold;
   color: #ffd700;
   text-align: center;
@@ -286,13 +302,16 @@
 }
 
 .class-title {
+  font-family: var(--font-items); /* Cormorant Unicase - легендарное снаряжение */
   font-size: 1.5rem;
   color: #ffd700;
   margin-bottom: 1rem;
   font-weight: bold;
+  letter-spacing: 1px;
 }
 
 .class-description {
+  font-family: var(--font-accents); /* Gabriela - описания */
   color: #cccccc;
   line-height: 1.6;
   font-size: 0.95rem;
@@ -307,7 +326,8 @@
 }
 
 .section-title-alt {
-  font-size: 3rem;
+  font-family: var(--font-medieval); /* MedievalSharp - H2 */
+  font-size: 2rem;
   font-weight: bold;
   text-align: center;
   color: #ffd700;
@@ -334,12 +354,14 @@
 }
 
 .feature-content h3 {
-  font-size: 2rem;
+  font-family: var(--font-medieval); /* MedievalSharp - H3 */
+  font-size: 1.5rem;
   color: #ffd700;
   margin-bottom: 1.5rem;
 }
 
 .feature-content p {
+  font-family: var(--font-body); /* Junicode - основной текст */
   color: #cccccc;
   line-height: 1.8;
   margin-bottom: 2rem;
@@ -488,18 +510,19 @@
 }
 
 .parchment-title {
-  font-size: 2.5rem;
+  font-family: var(--font-medieval); /* MedievalSharp - H2 */
+  font-size: 2rem;
   color: #ffd700;
   margin-bottom: 2rem;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
 .parchment-text {
+  font-family: var(--font-accents); /* Gabriela - описание квеста */
   color: #d4c5a9;
   line-height: 2;
   margin-bottom: 2.5rem;
   font-size: 1.1rem;
-  font-family: 'Georgia', serif;
 }
 
 /* Footer */
@@ -521,6 +544,7 @@
 }
 
 .footer-column h4 {
+  font-family: var(--font-ui); /* Cinzel - UI элементы */
   color: #ffd700;
   font-size: 1.2rem;
   margin-bottom: 1.5rem;
@@ -528,6 +552,7 @@
 }
 
 .footer-column p {
+  font-family: var(--font-body); /* Junicode - основной текст */
   color: #999999;
   line-height: 1.8;
   font-size: 0.95rem;
