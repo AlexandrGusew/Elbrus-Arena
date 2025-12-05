@@ -7,6 +7,11 @@ export default function Landing() {
   const navigate = useNavigate();
   const backgroundVideoUrl = getAssetUrl('Landing/Landing_background.mp4');
 
+  // Портреты классов
+  const warriorPortrait = getAssetUrl('Landing/portrait-chars/War_port.png');
+  const roguePortrait = getAssetUrl('Landing/portrait-chars/Rog_port.png');
+  const magePortrait = getAssetUrl('Landing/portrait-chars/Mag_port.png');
+
   // Debug: проверяем URL фонового видео
   console.log('[Landing] Background Video URL:', backgroundVideoUrl);
 
@@ -100,7 +105,7 @@ export default function Landing() {
 
         <div className="classes-grid">
           <div className="class-card scroll-reveal scale-in delay-1">
-            <div className="class-icon">🗡️</div>
+            <img src={roguePortrait} alt="Воин Призраков" className="class-icon" />
             <h3 className="class-title">Воин Призраков</h3>
             <p className="class-description">
               Мастер ближнего боя и защиты. Использует тяжелую броню
@@ -109,7 +114,7 @@ export default function Landing() {
           </div>
 
           <div className="class-card featured scroll-reveal scale-in delay-2">
-            <div className="class-icon">🔮</div>
+            <img src={magePortrait} alt="Маг Бездны" className="class-icon" />
             <h3 className="class-title">Маг Бездны</h3>
             <p className="class-description">
               Повелитель темной магии и стихий. Наносит
@@ -119,7 +124,7 @@ export default function Landing() {
           </div>
 
           <div className="class-card scroll-reveal scale-in delay-3">
-            <div className="class-icon">🗡️</div>
+            <img src={warriorPortrait} alt="Воин Рассекающего Щита" className="class-icon" />
             <h3 className="class-title">Воин Рассекающего Щита</h3>
             <p className="class-description">
               Быстрый и смертоносный убийца. Наносит критические удары

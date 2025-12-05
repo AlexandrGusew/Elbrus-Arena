@@ -296,9 +296,20 @@
 }
 
 .class-icon {
-  font-size: 4rem;
+  width: 100px;
+  height: 100px;
   margin-bottom: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  object-fit: cover;
   filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+  transition: all 0.3s ease;
+}
+
+.class-icon:hover {
+  border-color: #ffd700;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+  transform: scale(1.05);
 }
 
 .class-title {
