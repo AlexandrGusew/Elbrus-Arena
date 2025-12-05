@@ -4,29 +4,44 @@
 
 /* Dark Fantasy Base Styles */
 @layer base {
-  body {
-    @apply bg-dark-bg text-dark-text min-h-screen;
-    font-family: system-ui, -apple-system, sans-serif;
-  }
 
-  #root {
-    @apply min-h-screen;
-  }
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+		/* Предотвращаем скролл на body */
+		background-color: #000000;
+		/* Черный фон для всего экрана */
+	}
+
+	body {
+		@apply text-dark-text;
+		font-family: system-ui, -apple-system, sans-serif;
+	}
+
+	#root {
+		width: 100vw;
+		height: 100vh;
+		overflow: hidden;
+	}
 }
 
 /* Custom Components */
 @layer components {
-  .btn-primary {
-    @apply bg-dark-red hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
-  }
+	.btn-primary {
+		@apply bg-dark-red hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
+	}
 
-  .btn-secondary {
-    @apply bg-dark-accent hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
-  }
+	.btn-secondary {
+		@apply bg-dark-accent hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
+	}
 
-  .card {
-    @apply bg-dark-panel p-6 rounded-lg shadow-lg border border-dark-accent;
-  }
+	.card {
+		@apply bg-dark-panel p-6 rounded-lg shadow-lg border border-dark-accent;
+	}
 }
 
 /* Fix autofill white background in browsers */
@@ -34,24 +49,24 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: #ffffff;
-  transition: background-color 5000s ease-in-out 0s;
-  box-shadow: inset 0 0 20px 20px transparent !important;
-  background-color: transparent !important;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: #ffffff;
+	transition: background-color 5000s ease-in-out 0s;
+	box-shadow: inset 0 0 20px 20px transparent !important;
+	background-color: transparent !important;
 }
 
 /* Firefox autofill */
 input:-moz-autofill,
 input:-moz-autofill-preview {
-  filter: none;
-  background-color: transparent !important;
-  color: #ffffff !important;
+	filter: none;
+	background-color: transparent !important;
+	color: #ffffff !important;
 }
 
 /* Ensure all inputs have transparent background by default */
 input[type="text"],
 input[type="password"],
 input[type="email"] {
-  background-color: transparent !important;
+	background-color: transparent !important;
 }

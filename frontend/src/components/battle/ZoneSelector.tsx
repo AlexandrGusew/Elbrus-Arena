@@ -70,20 +70,20 @@ export const ZoneSelector = ({
     <div style={{
       background: 'rgba(0, 0, 0, 0.6)',
       borderRadius: '12px',
-      padding: '15px 20px',
+      padding: '12px 15px',
       border: `3px solid ${selectedColor}33`,
     }}>
-      <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: selectedColor, marginBottom: '10px', textAlign: 'center' }}>
+      <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: selectedColor, marginBottom: '8px', textAlign: 'center' }}>
         {title} - {selectedZones.length}/{maxSelections}
       </h4>
-      <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
         {zones.map(zone => (
           <div
             key={zone}
             onClick={() => onToggle(zone)}
             style={{
-              width: '120px',
-              height: '120px',
+              width: '90px',
+              height: '90px',
               position: 'relative',
               cursor: 'pointer',
               transition: 'all 0.3s ease',

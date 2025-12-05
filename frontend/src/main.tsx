@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './store'
 import './index.css'
@@ -32,10 +32,6 @@ const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      {
-        path: '/create-character',
-        element: <CreateCharacter />
-      },
       {
         path: '/dashboard',
         element: <ProtectedRoute><Dashboard /></ProtectedRoute>
