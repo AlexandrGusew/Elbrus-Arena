@@ -92,6 +92,40 @@ export function InventorySection({
     }
   };
 
+  // Функция для генерации блока характеристики
+  const renderStatBlock = (label: string, value: number | string) => (
+    <div style={{
+      border: '1px solid rgba(139, 69, 19, 0.8)',
+      borderRadius: '8px',
+      background: 'rgba(10, 10, 10, 0.5)',
+      padding: '10px 12px',
+      minHeight: '40px',
+    }}>
+      <div style={{
+        color: '#d4af37',
+        fontSize: '12px',
+        fontFamily: "'Courier New', monospace",
+        letterSpacing: '0.5px',
+        display: 'flex',
+        width: '100%',
+        alignItems: 'center',
+      }}>
+        <span style={{ whiteSpace: 'nowrap' }}>{label}</span>
+        <span style={{ 
+          flex: 1, 
+          overflow: 'hidden',
+          textAlign: 'center',
+          padding: '0 4px',
+          opacity: 0.6,
+          fontSize: '14px',
+          lineHeight: '12px',
+          whiteSpace: 'nowrap',
+        }}>{'.'.repeat(50)}</span>
+        <span style={{ whiteSpace: 'nowrap' }}>{value}</span>
+      </div>
+    </div>
+  );
+
   return (
     <div className="h-full flex flex-col gap-4">
       {/* Header with Navigation */}
@@ -249,137 +283,56 @@ export function InventorySection({
           flexDirection: 'column',
           gap: '8px',
         }}>
-          {/* NAME ITEM */}
-          <div style={{
-            border: '1px solid rgba(139, 69, 19, 0.8)',
-            borderRadius: '8px',
-            background: 'rgba(10, 10, 10, 0.5)',
-            padding: '10px 12px',
-          }}>
-            <span style={{
-              color: '#d4af37',
-              fontSize: '12px',
-              textTransform: 'uppercase',
-              fontFamily: "'IM Fell English', serif",
-              opacity: selectedItem ? 0.6 : 0.4,
+          {!selectedItem ? (
+            // Placeholder когда предмет не выбран
+            <div style={{
+              border: '1px solid rgba(139, 69, 19, 0.8)',
+              borderRadius: '8px',
+              background: 'rgba(10, 10, 10, 0.5)',
+              padding: '20px 12px',
+              textAlign: 'center',
             }}>
-              NAME ITEM
-            </span>
-          </div>
-
-          {/* Название предмета */}
-          <div style={{
-            border: '1px solid rgba(139, 69, 19, 0.8)',
-            borderRadius: '8px',
-            background: 'rgba(10, 10, 10, 0.5)',
-            padding: '10px 12px',
-          }}>
-            <span style={{
-              color: '#d4af37',
-              fontSize: '13px',
-              textTransform: 'uppercase',
-              fontFamily: "'IM Fell English', serif",
-            }}>
-              {selectedItem ? (
-                <>
+              <span style={{
+                color: '#d4af37',
+                fontSize: '13px',
+                textTransform: 'uppercase',
+                fontFamily: "'IM Fell English', serif",
+                opacity: 0.5,
+              }}>
+                Выберите предмет
+              </span>
+            </div>
+          ) : (
+            <>
+              {/* Название предмета - всегда показываем если предмет выбран */}
+              <div style={{
+                border: '1px solid rgba(139, 69, 19, 0.8)',
+                borderRadius: '8px',
+                background: 'rgba(10, 10, 10, 0.5)',
+                padding: '10px 12px',
+              }}>
+                <span style={{
+                  color: '#d4af37',
+                  fontSize: '13px',
+                  textTransform: 'uppercase',
+                  fontFamily: "'IM Fell English', serif",
+                }}>
                   {selectedItem.item.name}
                   {selectedItem.enhancement > 0 && ` +${selectedItem.enhancement}`}
-                </>
-              ) : (
-                <span style={{ opacity: 0.4 }}>---</span>
-              )}
-            </span>
-          </div>
-
-          {/* ARMOR или DAMAGE */}
-          <div style={{
-            border: '1px solid rgba(139, 69, 19, 0.8)',
-            borderRadius: '8px',
-            background: 'rgba(10, 10, 10, 0.5)',
-            padding: '10px 12px',
-            minHeight: '40px',
-          }}>
-            {selectedItem && (selectedItem.item.armor > 0 || selectedItem.item.damage > 0) ? (
-              <div style={{
-                color: '#d4af37',
-                fontSize: '12px',
-                fontFamily: "'Courier New', monospace",
-                letterSpacing: '0.5px',
-                display: 'flex',
-                width: '100%',
-                alignItems: 'center',
-              }}>
-                <span style={{ whiteSpace: 'nowrap' }}>
-                  {selectedItem.item.armor > 0 ? 'ARMOR' : 'DAMAGE'}
-                </span>
-                <span style={{ 
-                  flex: 1, 
-                  overflow: 'hidden',
-                  textAlign: 'center',
-                  padding: '0 4px',
-                  opacity: 0.6,
-                  fontSize: '14px',
-                  lineHeight: '12px',
-                  whiteSpace: 'nowrap',
-                }}>{'.'.repeat(50)}</span>
-                <span style={{ whiteSpace: 'nowrap' }}>
-                  {selectedItem.item.armor > 0 ? selectedItem.item.armor : selectedItem.item.damage}
                 </span>
               </div>
-            ) : (
-              <span style={{
-                color: '#d4af37',
-                fontSize: '12px',
-                fontFamily: "'Courier New', monospace",
-                opacity: 0.4,
-              }}>
-                ---
-              </span>
-            )}
-          </div>
 
-          {/* GOLD */}
-          <div style={{
-            border: '1px solid rgba(139, 69, 19, 0.8)',
-            borderRadius: '8px',
-            background: 'rgba(10, 10, 10, 0.5)',
-            padding: '10px 12px',
-            minHeight: '40px',
-          }}>
-            {selectedItem ? (
-              <div style={{
-                color: '#d4af37',
-                fontSize: '12px',
-                fontFamily: "'Courier New', monospace",
-                letterSpacing: '0.5px',
-                display: 'flex',
-                width: '100%',
-                alignItems: 'center',
-              }}>
-                <span style={{ whiteSpace: 'nowrap' }}>GOLD</span>
-                <span style={{ 
-                  flex: 1, 
-                  overflow: 'hidden',
-                  textAlign: 'center',
-                  padding: '0 4px',
-                  opacity: 0.6,
-                  fontSize: '14px',
-                  lineHeight: '12px',
-                  whiteSpace: 'nowrap',
-                }}>{'.'.repeat(50)}</span>
-                <span style={{ whiteSpace: 'nowrap' }}>{selectedItem.item.price}</span>
-              </div>
-            ) : (
-              <span style={{
-                color: '#d4af37',
-                fontSize: '12px',
-                fontFamily: "'Courier New', monospace",
-                opacity: 0.4,
-              }}>
-                GOLD{'.'.repeat(46)}---
-              </span>
-            )}
-          </div>
+              {/* Динамически генерируем блоки только для характеристик со значениями > 0 */}
+              {selectedItem.item.damage > 0 && renderStatBlock('DAMAGE', selectedItem.item.damage)}
+              {selectedItem.item.armor > 0 && renderStatBlock('ARMOR', selectedItem.item.armor)}
+              {selectedItem.item.bonusStr > 0 && renderStatBlock('STR', `+${selectedItem.item.bonusStr}`)}
+              {selectedItem.item.bonusAgi > 0 && renderStatBlock('AGI', `+${selectedItem.item.bonusAgi}`)}
+              {selectedItem.item.bonusInt > 0 && renderStatBlock('INT', `+${selectedItem.item.bonusInt}`)}
+
+              {/* GOLD - всегда показываем если предмет выбран */}
+              {renderStatBlock('GOLD', selectedItem.item.price)}
+            </>
+          )}
         </div>
       </div>
 
