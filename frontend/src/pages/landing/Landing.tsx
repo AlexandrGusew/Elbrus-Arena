@@ -7,6 +7,9 @@ export default function Landing() {
   const navigate = useNavigate();
   const backgroundUrl = getAssetUrl('Landing/Landing_background.png');
 
+  // Debug: проверяем URL фона
+  console.log('[Landing] Background URL:', backgroundUrl);
+
   const handleLoginClick = () => {
     navigate('/auth');
   };
