@@ -39,7 +39,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  background: rgba(10, 10, 10, 0.95);
+  background: rgba(10, 10, 10, 0.7);
   backdrop-filter: blur(10px);
   z-index: 1000;
   padding: 1rem 0;
@@ -104,10 +104,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #1a0505 0%, #0a0a0a 100%);
-  background-image:
-    radial-gradient(circle at 50% 30%, rgba(139, 0, 0, 0.3) 0%, transparent 50%),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" /></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.05"/></svg>');
+  background: transparent;
   overflow: hidden;
 }
 
@@ -117,7 +114,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 30%, rgba(139, 0, 0, 0.4) 0%, transparent 60%);
+  background: transparent;
   pointer-events: none;
 }
 
@@ -209,7 +206,7 @@
 /* Classes Section */
 .classes-section {
   padding: 6rem 2rem;
-  background: #0f0f0f;
+  background: transparent;
 }
 
 .section-header {
@@ -242,7 +239,7 @@
 }
 
 .class-card {
-  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 215, 0, 0.2);
   border-radius: 8px;
   padding: 3rem 2rem;
@@ -250,6 +247,7 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(5px);
 }
 
 .class-card::before {
@@ -301,7 +299,7 @@
 /* Features Section */
 .features-section {
   padding: 6rem 2rem;
-  background: #0a0a0a;
+  background: transparent;
 }
 
 .section-title-alt {
@@ -347,7 +345,7 @@
 .feature-image {
   width: 100%;
   height: 350px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 215, 0, 0.2);
   border-radius: 8px;
   display: flex;
@@ -355,6 +353,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(5px);
 }
 
 .arena-placeholder,
@@ -369,7 +368,7 @@
 /* Gallery Section */
 .gallery-section {
   padding: 6rem 2rem;
-  background: #0f0f0f;
+  background: transparent;
 }
 
 .gallery-grid {
@@ -382,7 +381,7 @@
 
 .gallery-item {
   height: 250px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 215, 0, 0.2);
   border-radius: 8px;
   display: flex;
@@ -390,6 +389,7 @@
   justify-content: center;
   transition: all 0.3s ease;
   overflow: hidden;
+  backdrop-filter: blur(5px);
 }
 
 .gallery-item:hover {
@@ -437,7 +437,7 @@
 /* Parchment Section */
 .parchment-section {
   padding: 6rem 2rem;
-  background: #0a0a0a;
+  background: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -445,7 +445,7 @@
 
 .parchment {
   max-width: 900px;
-  background: linear-gradient(135deg, #2a2a1a 0%, #1a1a0a 100%);
+  background: rgba(26, 26, 10, 0.5);
   border: 3px solid #8b7355;
   border-radius: 8px;
   padding: 4rem 3rem;
@@ -453,6 +453,7 @@
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.5),
     inset 0 0 20px rgba(139, 115, 85, 0.1);
+  backdrop-filter: blur(5px);
 }
 
 .parchment::before,
@@ -495,9 +496,10 @@
 
 /* Footer */
 .landing-footer {
-  background: #050505;
+  background: rgba(5, 5, 5, 0.5);
   border-top: 1px solid rgba(255, 215, 0, 0.2);
   padding: 4rem 2rem 2rem;
+  backdrop-filter: blur(5px);
 }
 
 .footer-container {
