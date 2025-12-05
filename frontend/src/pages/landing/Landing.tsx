@@ -18,6 +18,11 @@ export default function Landing() {
   const fateImage = getAssetUrl('Landing/World Worthy of Falling/Wood.png');
   const itemsImage = getAssetUrl('Landing/World Worthy of Falling/Item.png');
 
+  // Gallery images - Breath of Darkness
+  const darkLandsImage = getAssetUrl('Landing/Breath of Darkness/Enter.png');
+  const epicBattlesImage = getAssetUrl('Landing/Breath of Darkness/Battl.png');
+  const abyssMagicImage = getAssetUrl('Landing/Breath of Darkness/Abys.png');
+
   // Debug: проверяем URL фонового видео
   console.log('[Landing] Background Video URL:', backgroundVideoUrl);
 
@@ -211,13 +216,13 @@ export default function Landing() {
 
         <div className="gallery-grid">
           <div className="gallery-item scroll-reveal scale-in delay-1">
-            <div className="gallery-placeholder">🏰 Темные земли</div>
+            <img src={darkLandsImage} alt="Темные земли" className="gallery-img" />
           </div>
           <div className="gallery-item scroll-reveal scale-in delay-2">
-            <div className="gallery-placeholder">⚔️ Эпичные битвы</div>
+            <img src={epicBattlesImage} alt="Эпичные битвы" className="gallery-img" />
           </div>
           <div className="gallery-item scroll-reveal scale-in delay-3">
-            <div className="gallery-placeholder">✨ Магия бездны</div>
+            <img src={abyssMagicImage} alt="Магия бездны" className="gallery-img" />
           </div>
         </div>
 
