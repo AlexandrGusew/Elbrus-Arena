@@ -304,6 +304,7 @@
   object-fit: cover;
   filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .class-icon:hover {
@@ -816,5 +817,51 @@
 
   .parchment-text {
     font-size: 1rem;
+  }
+}
+
+/* Модальное окно для портретов */
+.portrait-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.portrait-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  animation: zoomIn 1s ease-out;
+}
+
+.portrait-modal-img {
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 12px;
+  border: 3px solid #ffd700;
+  box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+  object-fit: contain;
+}
+
+/* Анимация появления модального окна */
+@keyframes zoomIn {
+  from {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
   }
 }

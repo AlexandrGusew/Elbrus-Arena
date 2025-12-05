@@ -1,11 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getAssetUrl } from '../../utils/assetUrl';
 import './Landing.css';
 
 export default function Landing() {
   const navigate = useNavigate();
   const backgroundVideoUrl = getAssetUrl('Landing/Landing_background.mp4');
+
+  // Состояние для модального окна с портретом
+  const [selectedPortrait, setSelectedPortrait] = useState<string | null>(null);
 
   // Портреты классов
   const warriorPortrait = getAssetUrl('Landing/portrait-chars/War_port.png');
@@ -39,11 +42,11 @@ export default function Landing() {
   useEffect(() => {
     const observerOptions = {
       threshold: 0.1,
-      rootMargin: '0px 0px -100px 0px'
+      rootMargin: '0px 0px -100px 0px',
     };
 
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('revealed');
           // Можно отключить observer после первого показа
@@ -54,10 +57,10 @@ export default function Landing() {
 
     // Находим все элементы с классом scroll-reveal
     const revealElements = document.querySelectorAll('.scroll-reveal');
-    revealElements.forEach(el => observer.observe(el));
+    revealElements.forEach((el) => observer.observe(el));
 
     return () => {
-      revealElements.forEach(el => observer.unobserve(el));
+      revealElements.forEach((el) => observer.unobserve(el));
     };
   }, []);
 
@@ -77,11 +80,51 @@ export default function Landing() {
         <div className="header-container">
           <div className="logo">Nightfall-Arena</div>
           <nav className="nav-menu">
-            <a href="#home" onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}>Главная</a>
-            <a href="#classes" onClick={(e) => { e.preventDefault(); scrollToSection('classes'); }}>Классы</a>
-            <a href="#features" onClick={(e) => { e.preventDefault(); scrollToSection('features'); }}>Возможности</a>
-            <a href="#gallery" onClick={(e) => { e.preventDefault(); scrollToSection('gallery'); }}>Галерея</a>
-            <a href="#community" onClick={(e) => { e.preventDefault(); scrollToSection('community'); }}>Сообщество</a>
+            <a
+              href="#home"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('home');
+              }}
+            >
+              Главная
+            </a>
+            <a
+              href="#classes"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('classes');
+              }}
+            >
+              Классы
+            </a>
+            <a
+              href="#features"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('features');
+              }}
+            >
+              Возможности
+            </a>
+            <a
+              href="#gallery"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('gallery');
+              }}
+            >
+              Галерея
+            </a>
+            <a
+              href="#community"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('community');
+              }}
+            >
+              Сообщество
+            </a>
           </nav>
         </div>
       </header>
@@ -92,16 +135,15 @@ export default function Landing() {
         <div className="hero-content">
           <h1 className="hero-title">Судьба выбирает павших</h1>
           <p className="hero-subtitle">
-            Шагните в Бездну и докажите, что только<br />
+            Шагните в Бездну и докажите, что только
+            <br />
             павшие герои могут достичь бессмертия и силы
           </p>
           <div className="hero-buttons">
             <button className="btn btn-primary" onClick={handleLoginClick}>
               НАЧАТЬ ПУТЬ БЕССМЕРТИЯ
             </button>
-            <button className="btn btn-secondary">
-              Смотреть трейлер
-            </button>
+            <button className="btn btn-secondary">Смотреть трейлер</button>
           </div>
         </div>
       </section>
@@ -116,30 +158,41 @@ export default function Landing() {
 
         <div className="classes-grid">
           <div className="class-card scroll-reveal scale-in delay-1">
-            <img src={roguePortrait} alt="Воин Призраков" className="class-icon" />
-            <h3 className="class-title">Воин Призраков</h3>
+            <img
+              src={roguePortrait}
+              alt="Воин Призраков"
+              className="class-icon"
+              onClick={() => setSelectedPortrait(roguePortrait)}
+            />
+            <h3 className="class-title">Крадущийся в тени</h3>
             <p className="class-description">
-              Мастер ближнего боя и защиты. Использует тяжелую броню
-              и мощные атаки, чтобы сокрушить врагов на передовой.
+              Никогда не знаешь, с какой стороны продкрадется смерть
             </p>
           </div>
 
           <div className="class-card featured scroll-reveal scale-in delay-2">
-            <img src={magePortrait} alt="Маг Бездны" className="class-icon" />
-            <h3 className="class-title">Маг Бездны</h3>
+            <img
+              src={magePortrait}
+              alt="Маг Бездны"
+              className="class-icon"
+              onClick={() => setSelectedPortrait(magePortrait)}
+            />
+            <h3 className="class-title">Сраный колдун</h3>
             <p className="class-description">
-              Повелитель темной магии и стихий. Наносит
-              разрушительный урон с дальних дистанций, контролируя
-              поле боя заклинаниями.
+              Повелитель сил бездны, продавший душу ради обретения могущества
             </p>
           </div>
 
           <div className="class-card scroll-reveal scale-in delay-3">
-            <img src={warriorPortrait} alt="Воин Рассекающего Щита" className="class-icon" />
-            <h3 className="class-title">Воин Рассекающего Щита</h3>
+            <img
+              src={warriorPortrait}
+              alt="Воин Рассекающего Щита"
+              className="class-icon"
+              onClick={() => setSelectedPortrait(warriorPortrait)}
+            />
+            <h3 className="class-title">Воин из бездны</h3>
             <p className="class-description">
-              Быстрый и смертоносный убийца. Наносит критические удары
-              и использует скорость для уничтожения врагов.
+              Ничто не может противостоять силе и мощи этого бойца
             </p>
           </div>
         </div>
@@ -147,14 +200,17 @@ export default function Landing() {
 
       {/* Features Section */}
       <section id="features" className="features-section">
-        <div className="section-title-alt scroll-reveal fade-up">World Worthy of Falling</div>
+        <div className="section-title-alt scroll-reveal fade-up">
+          World Worthy of Falling
+        </div>
 
         <div className="feature-block scroll-reveal slide-left">
           <div className="feature-content">
             <h3>Arena Battles</h3>
             <p>
               Сражайтесь с другими игроками арены в<br />
-              напряженных PvP поединках. Докажите свою<br />
+              напряженных PvP поединках. Докажите свою
+              <br />
               силу в битвах на лучшего бойца Nightfall-Arena.
             </p>
             <button className="btn btn-outline">Узнать Больше</button>
@@ -166,14 +222,18 @@ export default function Landing() {
 
         <div className="feature-block reverse scroll-reveal slide-right">
           <div className="feature-image">
-            <img src={abyssImage} alt="Abyss Dungeons" className="feature-img" />
+            <img
+              src={abyssImage}
+              alt="Abyss Dungeons"
+              className="feature-img"
+            />
           </div>
           <div className="feature-content">
             <h3>Abyss Dungeons</h3>
             <p>
               Исследуйте темные подземелья, полные опасностей и<br />
-              сокровищ. Каждое подземелье таит уникальные вызовы<br />
-              и награды за храбрость.
+              сокровищ. Каждое подземелье таит уникальные вызовы
+              <br />и награды за храбрость.
             </p>
             <button className="btn btn-outline">Узнать Больше</button>
           </div>
@@ -183,27 +243,36 @@ export default function Landing() {
           <div className="feature-content">
             <h3>Fate and Characteristics</h3>
             <p>
-              Разработайте уникальный путь для персонажа через<br />
-              систему судьбы. Каждый выбор открывает новые способности<br />
-              и возможности для развития героя.
+              Разработайте уникальный путь для персонажа через
+              <br />
+              систему судьбы. Каждый выбор открывает новые способности
+              <br />и возможности для развития героя.
             </p>
             <button className="btn btn-outline">Узнать Больше</button>
           </div>
           <div className="feature-image">
-            <img src={fateImage} alt="Fate and Characteristics" className="feature-img" />
+            <img
+              src={fateImage}
+              alt="Fate and Characteristics"
+              className="feature-img"
+            />
           </div>
         </div>
 
         <div className="feature-block reverse scroll-reveal slide-right">
           <div className="feature-image">
-            <img src={itemsImage} alt="Drop and Improvement" className="feature-img" />
+            <img
+              src={itemsImage}
+              alt="Drop and Improvement"
+              className="feature-img"
+            />
           </div>
           <div className="feature-content">
             <h3>Drop and Improvement</h3>
             <p>
               Находите и улучшайте легендарное оружие и<br />
-              снаряжение. Каждый предмет имеет уникальные свойства<br />
-              и может быть усилен до невероятных уровней.
+              снаряжение. Каждый предмет имеет уникальные свойства
+              <br />и может быть усилен до невероятных уровней.
             </p>
             <button className="btn btn-outline">Узнать Больше</button>
           </div>
@@ -212,23 +281,41 @@ export default function Landing() {
 
       {/* Gallery Section */}
       <section id="gallery" className="gallery-section">
-        <div className="section-title-alt scroll-reveal fade-up">Breath of Darkness</div>
+        <div className="section-title-alt scroll-reveal fade-up">
+          Breath of Darkness
+        </div>
 
         <div className="gallery-grid">
           <div className="gallery-item scroll-reveal scale-in delay-1">
-            <img src={darkLandsImage} alt="Темные земли" className="gallery-img" />
+            <img
+              src={darkLandsImage}
+              alt="Темные земли"
+              className="gallery-img"
+            />
           </div>
           <div className="gallery-item scroll-reveal scale-in delay-2">
-            <img src={epicBattlesImage} alt="Эпичные битвы" className="gallery-img" />
+            <img
+              src={epicBattlesImage}
+              alt="Эпичные битвы"
+              className="gallery-img"
+            />
           </div>
           <div className="gallery-item scroll-reveal scale-in delay-3">
-            <img src={abyssMagicImage} alt="Магия бездны" className="gallery-img" />
+            <img
+              src={abyssMagicImage}
+              alt="Магия бездны"
+              className="gallery-img"
+            />
           </div>
         </div>
 
         <div className="social-links scroll-reveal fade-up delay-4">
-          <a href="#" className="social-icon">Discord</a>
-          <a href="#" className="social-icon">VK</a>
+          <a href="#" className="social-icon">
+            Discord
+          </a>
+          <a href="#" className="social-icon">
+            VK
+          </a>
         </div>
       </section>
 
@@ -238,11 +325,15 @@ export default function Landing() {
           <div className="parchment-content">
             <h2 className="parchment-title">📜 Легенда гласит...</h2>
             <p className="parchment-text">
-              В древние времена, когда мир был молод, павшие герои получили<br />
-              второй шанс от богов Бездны. Те, кто докажет свою силу и волю,<br />
-              смогут вернуться в мир живых бессмертными воинами.<br />
+              В древние времена, когда мир был молод, павшие герои получили
               <br />
-              Nightfall-Arena - это место, где решается судьба павших.<br />
+              второй шанс от богов Бездны. Те, кто докажет свою силу и волю,
+              <br />
+              смогут вернуться в мир живых бессмертными воинами.
+              <br />
+              <br />
+              Nightfall-Arena - это место, где решается судьба павших.
+              <br />
               Примите вызов и станьте легендой!
             </p>
             <button className="btn btn-primary" onClick={handleLoginClick}>
@@ -258,7 +349,8 @@ export default function Landing() {
           <div className="footer-column">
             <h4>Nightfall-Arena</h4>
             <p>
-              Эпическая RPG игра, где павшие<br />
+              Эпическая RPG игра, где павшие
+              <br />
               герои борются за бессмертие
             </p>
           </div>
@@ -266,27 +358,45 @@ export default function Landing() {
           <div className="footer-column">
             <h4>Игра</h4>
             <ul>
-              <li><a href="#classes">Классы</a></li>
-              <li><a href="#features">Возможности</a></li>
-              <li><a href="#gallery">Галерея</a></li>
+              <li>
+                <a href="#classes">Классы</a>
+              </li>
+              <li>
+                <a href="#features">Возможности</a>
+              </li>
+              <li>
+                <a href="#gallery">Галерея</a>
+              </li>
             </ul>
           </div>
 
           <div className="footer-column">
             <h4>Сообщество</h4>
             <ul>
-              <li><a href="#">Discord</a></li>
-              <li><a href="#">VK</a></li>
-              <li><a href="#">Telegram</a></li>
+              <li>
+                <a href="#">Discord</a>
+              </li>
+              <li>
+                <a href="#">VK</a>
+              </li>
+              <li>
+                <a href="#">Telegram</a>
+              </li>
             </ul>
           </div>
 
           <div className="footer-column">
             <h4>Поддержка</h4>
             <ul>
-              <li><a href="#">Правила</a></li>
-              <li><a href="#">Помощь</a></li>
-              <li><a href="#">Контакты разработчиков</a></li>
+              <li>
+                <a href="#">Правила</a>
+              </li>
+              <li>
+                <a href="#">Помощь</a>
+              </li>
+              <li>
+                <a href="#">Контакты разработчиков</a>
+              </li>
             </ul>
           </div>
         </div>
@@ -301,6 +411,22 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Модальное окно для полного портрета */}
+      {selectedPortrait && (
+        <div
+          className="portrait-modal"
+          onClick={() => setSelectedPortrait(null)}
+        >
+          <div className="portrait-modal-content">
+            <img
+              src={selectedPortrait}
+              alt="Портрет персонажа"
+              className="portrait-modal-img"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
