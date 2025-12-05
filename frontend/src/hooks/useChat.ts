@@ -102,11 +102,16 @@ export function useChat(characterId: number | null) {
 
     // Событие: список чатов
     newSocket.on('user_chats', (rooms: ChatRoom[]) => {
+      console.log('[useChat] Получено событие user_chats, чатов:', rooms.length);
       setChatState((prev) => {
         // Найти новые приватные чаты, которых ещё нет в openTabs
         const newPrivateRooms = rooms
           .filter((room) => room.type === 'PRIVATE')
           .filter((room) => !prev.openTabs.includes(room.id));
+
+        if (newPrivateRooms.length > 0) {
+          console.log('[useChat] Найдено новых приватных чатов:', newPrivateRooms.length);
+        }
 
         // Автоматически открыть новые приватные чаты
         const updatedOpenTabs = [...prev.openTabs];
@@ -121,8 +126,8 @@ export function useChat(characterId: number | null) {
           rooms: rooms,
           openTabs: updatedOpenTabs,
           // Если есть новый приватный чат, переключиться на него
-          activeTabId: newPrivateRooms.length > 0 
-            ? newPrivateRooms[0].id 
+          activeTabId: newPrivateRooms.length > 0
+            ? newPrivateRooms[0].id
             : prev.activeTabId,
         };
       });

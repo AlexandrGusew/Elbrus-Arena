@@ -1,7 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetCharacterQuery, useGetStaminaInfoQuery, useTestLevelBoostMutation } from '../store/api/characterApi';
-import { useLogoutMutation } from '../store/api/authApi';
-import { setAccessToken } from '../store/api/baseApi';
 import { styles } from './Dashboard.styles';
 import { useState, useEffect, useRef } from 'react';
 import { getAssetUrl } from '../utils/assetUrl';
@@ -36,25 +34,6 @@ const Dashboard = () => {
   );
 
   const [testLevelBoost, { isLoading: isBoostLoading }] = useTestLevelBoostMutation();
-  const [logout] = useLogoutMutation();
-
-  // Обработчик выхода
-  const handleLogout = async () => {
-    try {
-      // Вызываем logout API для очистки refresh token в cookie
-      await logout().unwrap();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Очищаем access token из памяти
-      setAccessToken(null);
-      // Очищаем localStorage
-      localStorage.removeItem('characterId');
-      localStorage.removeItem('isAuthenticated');
-      // Переходим на страницу входа
-      navigate('/');
-    }
-  };
 
   // Управление музыкой с crossfade
   useEffect(() => {
@@ -208,22 +187,10 @@ const Dashboard = () => {
       </video>
 
       {/* Фоновая музыка - два трека для crossfade */}
-      <audio 
-        ref={audioRef}
-        onError={(e) => {
-          console.warn('[Dashboard] Audio file not found, music will be disabled');
-          setIsMusicPlaying(false);
-        }}
-      >
+      <audio ref={audioRef}>
         <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
-      <audio 
-        ref={audioRef2}
-        onError={(e) => {
-          console.warn('[Dashboard] Audio file not found, music will be disabled');
-          setIsMusicPlaying(false);
-        }}
-      >
+      <audio ref={audioRef2}>
         <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
 
@@ -310,7 +277,10 @@ const Dashboard = () => {
 
       {/* Кнопка выхода - правый нижний угол */}
       <button
-        onClick={handleLogout}
+        onClick={() => {
+          localStorage.removeItem('characterId');
+          navigate('/');
+        }}
         style={{
           position: 'fixed',
           bottom: '40px',
