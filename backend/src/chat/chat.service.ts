@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChatRoomType } from '@prisma/client';
 import {
@@ -8,15 +8,21 @@ import {
 } from './dto/chat.dto';
 
 @Injectable()
-export class ChatService {
+export class ChatService implements OnModuleInit {
+  private readonly logger = new Logger(ChatService.name);
   private globalChatRoomId: string | null = null;
+  private initRetryCount = 0;
+  private readonly maxRetries = 10;
 
-  constructor(private prisma: PrismaService) {
-    this.initGlobalChat();
+  constructor(private prisma: PrismaService) {}
+
+  async onModuleInit() {
+    // Инициализация происходит после подключения к БД через PrismaService
+    await this.initGlobalChat();
   }
 
   // Инициализация глобального чата при запуске
-  private async initGlobalChat() {
+  private async initGlobalChat(): Promise<void> {
     try {
       const globalRoom = await this.prisma.chatRoom.findFirst({
         where: { type: ChatRoomType.GLOBAL },
@@ -27,17 +33,39 @@ export class ChatService {
           data: { type: ChatRoomType.GLOBAL },
         });
         this.globalChatRoomId = newGlobalRoom.id;
+        this.logger.log('Global chat room created successfully');
       } else {
         this.globalChatRoomId = globalRoom.id;
+        this.logger.log('Global chat room initialized successfully');
       }
+      this.initRetryCount = 0; // Сброс счетчика при успехе
     } catch (error) {
-      console.error('Failed to initialize global chat (database unavailable):', error.message);
-      // Не блокируем запуск приложения, инициализация произойдет позже
-      setTimeout(() => {
-        this.initGlobalChat().catch(err => {
-          console.error('Retry failed to initialize global chat:', err.message);
-        });
-      }, 5000); // Повтор через 5 секунд
+      this.initRetryCount++;
+      
+      // Проверяем, является ли это ошибкой подключения к БД
+      const isConnectionError = error?.code === 'P1001' || 
+                                error?.message?.includes("Can't reach database server");
+      
+      if (isConnectionError) {
+        if (this.initRetryCount <= this.maxRetries) {
+          this.logger.warn(
+            `Database unavailable. Retrying global chat initialization (${this.initRetryCount}/${this.maxRetries})...`
+          );
+          // Повтор через 5 секунд
+          setTimeout(() => {
+            this.initGlobalChat().catch(() => {
+              // Ошибка уже обработана в следующей попытке
+            });
+          }, 5000);
+        } else {
+          this.logger.error(
+            `Failed to initialize global chat after ${this.maxRetries} attempts. Database server may be unavailable.`
+          );
+        }
+      } else {
+        // Другие ошибки логируем полностью
+        this.logger.error(`Failed to initialize global chat: ${error.message}`, error.stack);
+      }
     }
   }
 
