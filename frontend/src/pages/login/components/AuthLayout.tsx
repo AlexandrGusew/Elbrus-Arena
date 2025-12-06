@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState, ReactNode } from 'react';
 import { Volume2, VolumeX, ArrowLeft } from 'lucide-react';
 import { getAssetUrl } from '../../../utils/assetUrl';
-import loginBackground from '../images/login-background.png';
 
 interface AuthLayoutProps {
     children: ReactNode;
@@ -107,7 +106,7 @@ export function AuthLayout({ children, showBackButton = false, onBack, showExitB
             <div
                 className="relative z-[5] w-screen h-screen flex flex-col items-center justify-center"
                 style={showLoginBackground ? {
-                    backgroundImage: `url(${loginBackground})`,
+                    backgroundImage: `url(${getAssetUrl('login/login-background.png')})`,
                     backgroundSize: '66%',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat'
