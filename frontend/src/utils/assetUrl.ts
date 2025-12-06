@@ -54,14 +54,15 @@ function getMinIOAssetUrl(assetPath: string): string {
   // Удаляем начальный слеш если есть
   const cleanPath = assetPath.startsWith('/') ? assetPath.slice(1) : assetPath;
 
-  // Формируем URL: http://host:port/bucket/path/to/file
+  // Формируем URL: http://host:port/bucket/asset/path/to/file
+  // В MinIO файлы хранятся в структуре: bucket/asset/...
   return `${minioUrl}/${minioBucket}/asset/${cleanPath}`;
 }
 
 /**
  * Генерирует URL для локального файла (для dev режима)
  */
-const assetModules = import.meta.glob('../../asset/**/*', {
+const assetModules = import.meta.glob('../assets/**/*', {
   eager: true,
   query: '?url',
   import: 'default',
@@ -69,7 +70,7 @@ const assetModules = import.meta.glob('../../asset/**/*', {
 
 function getLocalAssetUrl(assetPath: string): string {
   const cleanPath = assetPath.startsWith('/') ? assetPath.slice(1) : assetPath;
-  const key = `../../asset/${cleanPath}`;
+  const key = `../assets/${cleanPath}`;
   const url = assetModules[key];
 
   if (!url) {
