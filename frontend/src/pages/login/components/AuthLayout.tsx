@@ -48,7 +48,7 @@ export function AuthLayout({ children, showBackButton = false, onBack, showExitB
     };
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center px-16 py-8 relative">
+        <div className="w-screen h-screen flex flex-col items-center justify-center relative overflow-hidden">
             {/* Видео фон */}
             <video
                 autoPlay
@@ -105,10 +105,10 @@ export function AuthLayout({ children, showBackButton = false, onBack, showExitB
 
             {/* Content */}
             <div
-                className="relative z-[5] w-full flex flex-col items-center"
+                className="relative z-[5] w-screen h-screen flex flex-col items-center justify-center"
                 style={showLoginBackground ? {
                     backgroundImage: `url(${loginBackground})`,
-                    backgroundSize: 'contain',
+                    backgroundSize: '66%',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat'
                 } : {}}
