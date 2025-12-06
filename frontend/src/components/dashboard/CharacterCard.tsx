@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Character, InventoryItem } from '../../types/api';
+import type { Character, InventoryItem, Item } from '../../types/api';
 import { useEquipItemMutation, useUnequipItemMutation, useGetCharacterQuery, useGetLevelProgressQuery } from '../../store/api/characterApi';
 import { StatsCalculator } from '../../utils/statsCalculator';
 import { getAssetUrl } from '../../utils/assetUrl';
@@ -55,6 +55,7 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
   const [equipItem] = useEquipItemMutation();
   const [unequipItem] = useUnequipItemMutation();
   const [clickedSlot, setClickedSlot] = useState<ItemSlotType | null>(null);
+  const [highlightSlot, setHighlightSlot] = useState<ItemSlotType | null>(null);
 
   // Получаем актуальные данные персонажа через RTK Query для автоматического обновления
   const { data: characterData } = useGetCharacterQuery(characterProp.id, {
@@ -109,13 +110,33 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
   const effectiveStats = StatsCalculator.calculateEffectiveStats(character);
 
   // Drag & Drop handlers для экипировки
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent, slotType: ItemSlotType) => {
+    // Разрешаем drop всегда, как в старом инвентаре,
+    // а подсветку считаем только если смогли прочитать данные
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+
+    const itemData = e.dataTransfer.getData('inventory-item');
+    if (!itemData) {
+      setHighlightSlot(null);
+      return;
+    }
+
+    try {
+      const item: InventoryItem = JSON.parse(itemData);
+      const itemSlot = itemTypeToSlot(item.item.type);
+      if (itemSlot === slotType) {
+        setHighlightSlot(slotType);
+      } else {
+        setHighlightSlot(null);
+      }
+    } catch {
+      setHighlightSlot(null);
+    }
   };
 
   const handleDragLeave = () => {
-    // Обработка ухода курсора при drag
+    setHighlightSlot(null);
   };
 
   const handleDrop = async (e: React.DragEvent, slotType: ItemSlotType) => {
@@ -137,16 +158,23 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
       // Бэкенд автоматически снимает все предметы того же типа перед экипировкой нового
       // Поэтому просто экипируем новый предмет
       await equipItem({ characterId: character.id, itemId: item.id }).unwrap();
-    } catch (error) {
+      setHighlightSlot(null);
+    } catch (error: unknown) {
       console.error('Error equipping item:', error);
+      const anyError = error as { data?: { message?: string }; message?: string } | undefined;
+      const message = anyError?.data?.message || anyError?.message || 'Не удалось надеть предмет';
+      alert(message);
     }
   };
 
   const handleUnequip = async (item: InventoryItem) => {
     try {
       await unequipItem({ characterId: character.id, itemId: item.id }).unwrap();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error unequipping item:', error);
+      const anyError = error as { data?: { message?: string }; message?: string } | undefined;
+      const message = anyError?.data?.message || anyError?.message || 'Не удалось снять предмет';
+      alert(message);
     }
   };
 
@@ -160,18 +188,72 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
     RING: ringImg,
   };
 
+  // Маппинг типов предметов на базовые иконки из assets/items
+  const ITEM_TYPE_ART: Record<string, string[]> = {
+    weapon: [
+      'items/swords/sword1.png',
+      'items/swords/sword2.png',
+      'items/swords/sword3.png',
+    ],
+    helmet: [
+      'items/helmets/helmet1.png',
+      'items/helmets/helmet2.png',
+      'items/helmets/helmet3.png',
+    ],
+    armor: [
+      'items/armors/armor1.png',
+      'items/armors/armor2.png',
+      'items/armors/armor3.png',
+    ],
+    belt: [
+      'items/belts/belts1.png',
+      'items/belts/belts2.png',
+      'items/belts/belts3.png',
+    ],
+    legs: [
+      'items/legs/legs1.png',
+      'items/legs/legs2.png',
+      'items/legs/legs3.png',
+    ],
+    accessory: [
+      'items/accessorys/ring1.png',
+      'items/accessorys/ring2.png',
+      'items/accessorys/ring3.png',
+    ],
+  };
+
+  const getItemArtUrl = (item: Item): string | null => {
+    if (item.imageUrl) {
+      if (item.imageUrl.startsWith('http')) return item.imageUrl;
+      return getAssetUrl(item.imageUrl);
+    }
+    const key = item.type.toLowerCase();
+    const list = ITEM_TYPE_ART[key];
+    if (!list || list.length === 0) return null;
+    const index = item.id % list.length;
+    return getAssetUrl(list[index]);
+  };
+
   // Рендер слота экипировки
   const renderEquipmentSlot = (slotType: ItemSlotType, equippedItem?: InventoryItem) => {
     const isClicked = clickedSlot === slotType;
-    // Лёгкий эффект увеличения при клике
-    const scale = isClicked ? 1.25 : 1;
+    const isHighlighted = highlightSlot === slotType;
+    const artUrl = equippedItem ? getItemArtUrl(equippedItem.item) : null;
+    // Более лёгкий эффект увеличения при клике, чтобы слоты не залезали друг на друга
+    const scale = isClicked ? 1.1 : 1;
     const zIndex = isClicked ? 50 : 1;
 
     return (
       <div
-        onDragOver={handleDragOver}
+        onDragOver={(e) => handleDragOver(e, slotType)}
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, slotType)}
+        draggable={!!equippedItem}
+        onDragStart={(e) => {
+          if (!equippedItem) return;
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('equipped-item', JSON.stringify(equippedItem));
+        }}
         onClick={() => handleSlotClick(slotType, equippedItem)}
         onDoubleClick={(e) => {
           // Двойной клик - снимаем предмет
@@ -191,9 +273,48 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
           position: 'relative',
           transform: `scale(${scale})`,
           zIndex: zIndex,
-          transition: 'transform 0.3s ease',
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+          boxShadow: isHighlighted ? '0 0 16px rgba(201, 168, 106, 0.7)' : '0 0 8px rgba(0,0,0,0.9)',
+          border: isHighlighted ? `2px solid ${dashboardColors.borderGold}` : '2px solid transparent',
         }}
-      />
+      >
+        {equippedItem && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: '12%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {artUrl ? (
+              <img
+                src={artUrl}
+                alt={equippedItem.item.name}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.9))',
+                }}
+              />
+            ) : (
+              <span
+                style={{
+                  color: dashboardColors.textGold,
+                  fontSize: '10px',
+                  textAlign: 'center',
+                  textTransform: 'uppercase',
+                  textShadow: dashboardEffects.textShadow,
+                }}
+              >
+                {equippedItem.item.name}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -342,19 +463,19 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
           </div>
         </div>
 
-        {/* Right Half - Split between Stats and Equipment */}
+        {/* Right Half - Split between Stats и Equipment */}
         <div className="flex flex-col gap-4 h-full" style={{ overflow: 'hidden' }}>
-          {/* Stats Box - верхняя часть (делаем крупнее, как на примере) */}
+          {/* Stats Box - адаптивный по высоте, чтобы все характеристики помещались */}
           <div 
             style={{
               ...cardStyle,
               padding: '18px',
-              height: '40%',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              gap: '8px',
+              gap: '6px',
               overflow: 'hidden',
+              flex: '0 0 auto',
             }}
           >
             {/* HIT POINT */}
@@ -569,7 +690,7 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
           {/* Equipment Grid - Bottom Half */}
           <div
             className="grid grid-cols-2 grid-rows-3 gap-2 p-0 place-items-stretch"
-            style={{ overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}
+            style={{ overflow: 'hidden', width: '100%', boxSizing: 'border-box', flex: '1 1 auto', minHeight: 0 }}
           >
             {renderEquipmentSlot('WEAPON', equipmentSlots.WEAPON)}
             {renderEquipmentSlot('HELMET', equipmentSlots.HELMET)}

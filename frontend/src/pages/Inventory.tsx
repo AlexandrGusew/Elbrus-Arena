@@ -6,6 +6,7 @@ import type { InventoryItem } from '../types/api';
 import type { ItemType } from '../../../shared/types/enums';
 import { styles } from './Inventory.styles';
 import { StatsCalculator } from '../utils/statsCalculator';
+import { getAssetUrl } from '../utils/assetUrl';
 
 // Импорт изображений для слотов
 import weaponImg from '../assets/inventory-pers/weapon.png';
@@ -51,6 +52,16 @@ const SLOT_NAMES: Record<ItemType, string> = {
   offhand: 'Левая рука',
   scroll: 'Свиток'
 };
+
+// Тестовые предметы для визуализации слотов и арта из assets/items
+const PREVIEW_ITEMS: Array<{ id: string; type: ItemType; name: string; artPath: string }> = [
+  { id: 'preview-weapon-1', type: 'weapon', name: 'Ржавый меч', artPath: 'items/swords/sword1.png' },
+  { id: 'preview-helmet-1', type: 'helmet', name: 'Старый шлем', artPath: 'items/helmets/helmet1.png' },
+  { id: 'preview-armor-1', type: 'armor', name: 'Потрёпанная броня', artPath: 'items/armors/armor1.png' },
+  { id: 'preview-belt-1', type: 'belt', name: 'Пояс авантюриста', artPath: 'items/belts/belts1.png' },
+  { id: 'preview-legs-1', type: 'legs', name: 'Поношенные поножи', artPath: 'items/legs/legs1.png' },
+  { id: 'preview-accessory-1', type: 'accessory', name: 'Кольцо странника', artPath: 'items/accessorys/ring1.png' },
+];
 
 const Inventory = () => {
   const navigate = useNavigate();
@@ -396,8 +407,58 @@ const Inventory = () => {
           <h2>Предметы ({unequippedItems.length} / {character.inventory.size})</h2>
 
           {unequippedItems.length === 0 ? (
-            <div style={styles.inventoryEmpty}>
-              Инвентарь пуст. Пройдите подземелье, чтобы получить предметы!
+            <div>
+              <div style={styles.inventoryEmpty}>
+                Инвентарь пуст. Пройдите подземелье, чтобы получить предметы!
+              </div>
+              {/* Превью слотов и предметов из assets/items для теста */}
+              <h3 style={{ marginTop: '16px', marginBottom: '8px' }}>Пример предметов</h3>
+              <div style={styles.inventoryGrid}>
+                {PREVIEW_ITEMS.map((item) => {
+                  const slotBg = SLOT_BACKGROUNDS[item.type];
+                  const artUrl = getAssetUrl(item.artPath);
+
+                  return (
+                    <div
+                      key={item.id}
+                      style={{
+                        ...styles.inventoryItem,
+                        padding: '8px',
+                        borderRadius: '10px',
+                        background: '#141418',
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'relative',
+                          borderRadius: '10px',
+                          backgroundImage: `url(${slotBg})`,
+                          backgroundSize: 'cover',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'center',
+                          aspectRatio: '1',
+                          padding: '8px',
+                          marginBottom: '8px',
+                          boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
+                        }}
+                      >
+                        <img
+                          src={artUrl}
+                          alt={item.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.8))',
+                          }}
+                        />
+                      </div>
+                      <div style={styles.itemName}>{item.name}</div>
+                      <div style={styles.itemStats}>Тип: {SLOT_NAMES[item.type]}</div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div style={styles.inventoryGrid}>

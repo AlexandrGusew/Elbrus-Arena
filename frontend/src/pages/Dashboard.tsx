@@ -510,7 +510,7 @@ const Dashboard = () => {
               </div>
 
               {/* RIGHT COLUMN */}
-              <div style={{ width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
+              <div style={{ width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box', paddingRight: '4px' }}>
               {activeSection === 'main' ? (
                 <NavigationButtons
                   onInventoryClick={() => {

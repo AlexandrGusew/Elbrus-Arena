@@ -15,7 +15,7 @@ interface NavigationButtonsProps {
 export function NavigationButtons({ onInventoryClick, onForgeClick }: NavigationButtonsProps) {
 
   return (
-    <div className="flex flex-col gap-3 h-full items-center" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className="flex flex-col gap-3 h-full items-center" style={{ width: '100%', height: '100%', overflow: 'hidden', padding: '0 4px' }}>
       {/* Arena */}
       <Link
         to="/pvp"
@@ -27,8 +27,9 @@ export function NavigationButtons({ onInventoryClick, onForgeClick }: Navigation
           border: `3px solid ${dashboardColors.borderGold}`,
           padding: '10px',
           overflow: 'visible',
-          width: 'calc(100% - 8px)',
-          maxWidth: 'calc(100% - 8px)',
+          // чуть уменьшаем ширину, чтобы рамки были видны со всех сторон
+          width: 'calc(100% - 20px)',
+          maxWidth: 'calc(100% - 20px)',
           boxSizing: 'border-box',
           margin: '0 auto',
         }}
@@ -63,8 +64,8 @@ export function NavigationButtons({ onInventoryClick, onForgeClick }: Navigation
           border: `3px solid ${dashboardColors.borderGold}`,
           padding: '10px',
           overflow: 'visible',
-          width: 'calc(100% - 8px)',
-          maxWidth: 'calc(100% - 8px)',
+          width: 'calc(100% - 20px)',
+          maxWidth: 'calc(100% - 20px)',
           boxSizing: 'border-box',
           margin: '0 auto',
         }}
@@ -99,8 +100,8 @@ export function NavigationButtons({ onInventoryClick, onForgeClick }: Navigation
           border: `3px solid ${dashboardColors.borderGold}`,
           padding: '10px',
           overflow: 'visible',
-          width: 'calc(100% - 8px)',
-          maxWidth: 'calc(100% - 8px)',
+          width: 'calc(100% - 20px)',
+          maxWidth: 'calc(100% - 20px)',
           boxSizing: 'border-box',
           margin: '0 auto',
         }}
@@ -135,8 +136,8 @@ export function NavigationButtons({ onInventoryClick, onForgeClick }: Navigation
           border: `3px solid ${dashboardColors.borderGold}`,
           padding: '10px',
           overflow: 'visible',
-          width: 'calc(100% - 8px)',
-          maxWidth: 'calc(100% - 8px)',
+          width: 'calc(100% - 20px)',
+          maxWidth: 'calc(100% - 20px)',
           boxSizing: 'border-box',
           margin: '0 auto',
         }}
