@@ -13,7 +13,6 @@ import { store } from '../store';
 import { baseApi } from '../store/api/baseApi';
 import { useState, useEffect, useRef } from 'react';
 import { getAssetUrl } from '../utils/assetUrl';
-// import borderPattern from '../assets/border/pattern.svg'; // Файл не существует
 import { ChatWindow } from '../components/ChatWindow';
 import { CharacterCard } from '../components/dashboard/CharacterCard';
 import { ChatSection } from '../components/dashboard/ChatSection';
@@ -436,9 +435,9 @@ const Dashboard = () => {
             borderStyle: 'solid',
             borderColor: 'transparent',
             borderRadius: '16px',
-            // borderImageSource: `url(${borderPattern})`, // Файл не существует
-            // borderImageSlice: 30,
-            // borderImageRepeat: 'round',
+            borderImageSource: `url(${getAssetUrl('border/pattern.svg')})`,
+            borderImageSlice: 30,
+            borderImageRepeat: 'round',
             backdropFilter: 'blur(12px)',
             boxShadow: dashboardEffects.boxShadow,
             padding: '20px 12px 20px 20px',

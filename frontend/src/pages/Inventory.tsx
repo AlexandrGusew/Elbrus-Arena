@@ -8,25 +8,17 @@ import { styles } from './Inventory.styles';
 import { StatsCalculator } from '../utils/statsCalculator';
 import { getAssetUrl } from '../utils/assetUrl';
 
-// Импорт изображений для слотов - закомментировано, файлы не существуют
-// import weaponImg from '../assets/inventory-pers/weapon.png';
-// import helmetImg from '../assets/inventory-pers/helmet.png';
-// import armorImg from '../assets/inventory-pers/armor.png';
-// import beltsImg from '../assets/inventory-pers/belt.png';
-// import bootsImg from '../assets/inventory-pers/boots.png';
-// import ringImg from '../assets/inventory-pers/ring.png';
-
 const SLOT_BACKGROUNDS: Record<ItemType, string> = {
-  weapon: '',
-  helmet: '',
-  armor: '',
-  belt: '',
-  legs: '',
-  accessory: '',
-  potion: '',
-  shield: '',
-  offhand: '',
-  scroll: ''
+  weapon: getAssetUrl('inventory-pers/weapon.png'),
+  helmet: getAssetUrl('inventory-pers/helmet.png'),
+  armor: getAssetUrl('inventory-pers/armor.png'),
+  belt: getAssetUrl('inventory-pers/belt.png'),
+  legs: getAssetUrl('inventory-pers/boots.png'),
+  accessory: getAssetUrl('inventory-pers/ring.png'),
+  potion: getAssetUrl('inventory-pers/ring.png'), // используем ring как заглушку
+  shield: getAssetUrl('inventory-pers/weapon.png'), // используем weapon как заглушку
+  offhand: getAssetUrl('inventory-pers/weapon.png'), // используем weapon как заглушку
+  scroll: getAssetUrl('inventory-pers/ring.png') // используем ring как заглушку
 };
 
 const SLOT_ICONS: Record<ItemType, string> = {

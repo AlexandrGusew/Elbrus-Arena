@@ -5,14 +5,6 @@ import { StatsCalculator } from '../../utils/statsCalculator';
 import { getAssetUrl } from '../../utils/assetUrl';
 import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, cardStyle } from '../../styles/dashboard.styles';
 
-// Импорт изображений для слотов
-import weaponImg from '../../assets/inventory-pers/weapon.png';
-import helmetImg from '../../assets/inventory-pers/helmet.png';
-import armorImg from '../../assets/inventory-pers/armor.png';
-import beltsImg from '../../assets/inventory-pers/belt.png';
-import bootsImg from '../../assets/inventory-pers/boots.png';
-import ringImg from '../../assets/inventory-pers/ring.png';
-
 interface CharacterCardProps {
   character: Character;
   onEquipmentClick?: (slotType: string) => void;
@@ -180,12 +172,12 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
 
   // Маппинг изображений для слотов
   const slotBackgrounds: Record<ItemSlotType, string> = {
-    WEAPON: weaponImg,
-    HELMET: helmetImg,
-    ARMOR: armorImg,
-    BOOTS: bootsImg,
-    BELT: beltsImg,
-    RING: ringImg,
+    WEAPON: getAssetUrl('inventory-pers/weapon.png'),
+    HELMET: getAssetUrl('inventory-pers/helmet.png'),
+    ARMOR: getAssetUrl('inventory-pers/armor.png'),
+    BOOTS: getAssetUrl('inventory-pers/boots.png'),
+    BELT: getAssetUrl('inventory-pers/belt.png'),
+    RING: getAssetUrl('inventory-pers/ring.png'),
   };
 
   // Маппинг типов предметов на базовые иконки из assets/items

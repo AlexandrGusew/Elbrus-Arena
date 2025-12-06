@@ -1,11 +1,6 @@
 import { Link } from 'react-router-dom';
 import { dashboardColors, dashboardFonts, cornerOrnaments, cardStyle } from '../../styles/dashboard.styles';
-
-// Импорт изображений кнопок из асетов
-import arenaImg from '../../assets/button-for-page/arena.png';
-import dungImg from '../../assets/button-for-page/dung.png';
-import inventoryImg from '../../assets/button-for-page/inventory.png';
-import forgeImg from '../../assets/button-for-page/forge.png';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 interface NavigationButtonsProps {
   onInventoryClick: () => void;
@@ -45,8 +40,8 @@ export function NavigationButtons({ onInventoryClick, onForgeClick }: Navigation
         <div style={cornerOrnaments.bottomLeft}></div>
         <div style={cornerOrnaments.bottomRight}></div>
 
-        <img 
-          src={arenaImg} 
+        <img
+          src={getAssetUrl('button-for-page/arena.png')}
           alt="Arena" 
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           style={{ maxWidth: '100%', maxHeight: '100%' }}
@@ -81,8 +76,8 @@ export function NavigationButtons({ onInventoryClick, onForgeClick }: Navigation
         <div style={cornerOrnaments.bottomLeft}></div>
         <div style={cornerOrnaments.bottomRight}></div>
 
-        <img 
-          src={dungImg} 
+        <img
+          src={getAssetUrl('button-for-page/dung.png')}
           alt="Dungeon" 
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           style={{ maxWidth: '100%', maxHeight: '100%' }}
@@ -117,8 +112,8 @@ export function NavigationButtons({ onInventoryClick, onForgeClick }: Navigation
         <div style={cornerOrnaments.bottomLeft}></div>
         <div style={cornerOrnaments.bottomRight}></div>
 
-        <img 
-          src={inventoryImg} 
+        <img
+          src={getAssetUrl('button-for-page/inventory.png')}
           alt="Inventory" 
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           style={{ maxWidth: '100%', maxHeight: '100%' }}
@@ -153,8 +148,8 @@ export function NavigationButtons({ onInventoryClick, onForgeClick }: Navigation
         <div style={cornerOrnaments.bottomLeft}></div>
         <div style={cornerOrnaments.bottomRight}></div>
 
-        <img 
-          src={forgeImg} 
+        <img
+          src={getAssetUrl('button-for-page/forge.png')}
           alt="Forge" 
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           style={{ maxWidth: '100%', maxHeight: '100%' }}
