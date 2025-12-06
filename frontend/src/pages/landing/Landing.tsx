@@ -143,7 +143,6 @@ export default function Landing() {
             <button className="btn btn-primary" onClick={handleLoginClick}>
               НАЧАТЬ ПУТЬ БЕССМЕРТИЯ
             </button>
-            <button className="btn btn-secondary">Смотреть трейлер</button>
           </div>
         </div>
       </section>
