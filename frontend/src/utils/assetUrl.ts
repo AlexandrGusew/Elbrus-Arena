@@ -48,7 +48,7 @@ export function getAssetUrl(assetPath: string, options: AssetUrlOptions = {}): s
  * Генерирует URL для файла из MinIO (S3-совместимое хранилище)
  */
 function getMinIOAssetUrl(assetPath: string): string {
-  const minioUrl = import.meta.env.VITE_MINIO_URL || 'http://178.72.139.236:9000';
+  const minioUrl = import.meta.env.VITE_MINIO_URL || 'http://178.72.139.236:9001';
   const minioBucket = import.meta.env.VITE_MINIO_BUCKET || 'elbrus-arena-assets';
 
   // Удаляем начальный слеш если есть
