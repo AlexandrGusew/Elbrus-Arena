@@ -10,6 +10,9 @@ export default function Landing() {
   // Состояние для модального окна с портретом
   const [selectedPortrait, setSelectedPortrait] = useState<string | null>(null);
 
+  // Состояние для модального окна с feature изображением
+  const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
+
   // Портреты классов
   const warriorPortrait = getAssetUrl('Landing/portrait-chars/War_port.png');
   const roguePortrait = getAssetUrl('Landing/portrait-chars/Rog_port.png');
@@ -215,7 +218,12 @@ export default function Landing() {
             <button className="btn btn-outline">Узнать Больше</button>
           </div>
           <div className="feature-image">
-            <img src={arenaImage} alt="Arena Battles" className="feature-img" />
+            <img
+              src={arenaImage}
+              alt="Arena Battles"
+              className="feature-img"
+              onClick={() => setSelectedFeature(arenaImage)}
+            />
           </div>
         </div>
 
@@ -225,6 +233,7 @@ export default function Landing() {
               src={abyssImage}
               alt="Abyss Dungeons"
               className="feature-img"
+              onClick={() => setSelectedFeature(abyssImage)}
             />
           </div>
           <div className="feature-content">
@@ -254,6 +263,7 @@ export default function Landing() {
               src={fateImage}
               alt="Fate and Characteristics"
               className="feature-img"
+              onClick={() => setSelectedFeature(fateImage)}
             />
           </div>
         </div>
@@ -264,6 +274,7 @@ export default function Landing() {
               src={itemsImage}
               alt="Drop and Improvement"
               className="feature-img"
+              onClick={() => setSelectedFeature(itemsImage)}
             />
           </div>
           <div className="feature-content">
@@ -422,6 +433,22 @@ export default function Landing() {
               src={selectedPortrait}
               alt="Портрет персонажа"
               className="portrait-modal-img"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно для feature изображений */}
+      {selectedFeature && (
+        <div
+          className="feature-modal"
+          onClick={() => setSelectedFeature(null)}
+        >
+          <div className="feature-modal-content">
+            <img
+              src={selectedFeature}
+              alt="Feature"
+              className="feature-modal-img"
             />
           </div>
         </div>

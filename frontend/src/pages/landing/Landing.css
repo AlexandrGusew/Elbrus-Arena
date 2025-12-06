@@ -171,27 +171,27 @@
 .hero-buttons {
   display: flex;
   gap: 1.5rem;
-  justify-content: flex-start; /* Изменено: кнопки слева */
+  justify-content: center; /* Изменено: кнопки по центру */
   flex-wrap: wrap;
 }
 
 .btn {
   font-family: var(--font-interface); /* Roboto - интерфейс */
-  padding: 1.5rem 3rem;
-  font-size: 1rem;
+  padding: 1rem 2rem;
+  font-size: 0.9rem;
   font-weight: 700;
   background: transparent;
   cursor: pointer;
   transition: all 0.3s ease;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
   position: relative;
 
-  /* Фэнтезийная рамка */
-  border: 30px solid transparent;
+  /* Фэнтезийная рамка - уменьшена для лучшего вмещения текста */
+  border: 20px solid transparent;
   border-image-source: url('../../asset/Landing/UI/button-frame.png');
-  border-image-slice: 200 200 200 200 fill;
-  border-image-width: 30px;
+  border-image-slice: 150 150 150 150 fill;
+  border-image-width: 20px;
   border-image-outset: 0;
   border-image-repeat: stretch;
 }
@@ -222,7 +222,6 @@
     0 0 8px rgba(255, 215, 0, 0.6),
     2px 2px 4px rgba(0, 0, 0, 0.8);
   filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.2));
-  padding: 1rem 2.5rem;
 }
 
 .btn-outline:hover {
@@ -262,14 +261,13 @@
 }
 
 .section-title {
-  font-family: var(--font-epic); /* Cinzel - эпичный для заголовков */
+  font-family: var(--font-gothic); /* UnifrakturMaguntia - готический как в хедере */
   font-size: 2.5rem;
-  font-weight: 700;
+  font-weight: bold;
   color: #ffd700;
   text-align: center;
-  text-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 2px 2px 4px rgba(0, 0, 0, 0.8);
-  text-transform: uppercase;
-  letter-spacing: 3px;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.7), 0 0 30px rgba(139, 0, 0, 0.5);
+  letter-spacing: 2px;
 }
 
 .classes-grid {
@@ -1018,5 +1016,95 @@
       0 0 80px rgba(255, 215, 0, 0.8),
       0 0 120px rgba(139, 0, 0, 1),
       inset 0 0 30px rgba(255, 215, 0, 0.3);
+  }
+}
+
+/* Модальное окно для feature images - ДРУГИЕ ЭФФЕКТЫ */
+.feature-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle, rgba(0, 100, 139, 0.3) 0%, rgba(0, 0, 0, 0.95) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+  animation: featureModalBackdropAppear 0.5s ease-out;
+  backdrop-filter: blur(15px);
+}
+
+@keyframes featureModalBackdropAppear {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(15px);
+  }
+}
+
+.feature-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  animation: featureSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 0 80px rgba(0, 150, 255, 0.8))
+          drop-shadow(0 0 120px rgba(0, 255, 255, 0.5));
+}
+
+.feature-modal-img {
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 16px;
+  border: 5px solid #00ffff;
+  box-shadow:
+    0 0 40px rgba(0, 255, 255, 0.9),
+    0 0 80px rgba(0, 150, 255, 0.7),
+    0 0 120px rgba(0, 100, 255, 0.8),
+    inset 0 0 30px rgba(0, 255, 255, 0.2);
+  object-fit: contain;
+  animation: featureGlow 2.5s ease-in-out infinite;
+}
+
+/* Анимация слайда с боковым вращением */
+@keyframes featureSlideIn {
+  0% {
+    transform: translateX(-100vw) rotateY(-90deg);
+    opacity: 0;
+    filter: blur(30px);
+  }
+  60% {
+    filter: blur(10px);
+  }
+  100% {
+    transform: translateX(0) rotateY(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+/* Пульсация синего свечения */
+@keyframes featureGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 40px rgba(0, 255, 255, 0.9),
+      0 0 80px rgba(0, 150, 255, 0.7),
+      0 0 120px rgba(0, 100, 255, 0.8),
+      inset 0 0 30px rgba(0, 255, 255, 0.2);
+    border-color: #00ffff;
+  }
+  50% {
+    box-shadow:
+      0 0 60px rgba(0, 255, 255, 1),
+      0 0 120px rgba(0, 150, 255, 0.9),
+      0 0 180px rgba(0, 100, 255, 1),
+      inset 0 0 50px rgba(0, 255, 255, 0.4);
+    border-color: #00bfff;
   }
 }
