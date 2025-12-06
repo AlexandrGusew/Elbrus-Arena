@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { Character, InventoryItem } from '../../types/api';
-import { useUnequipItemMutation } from '../../store/api/characterApi';
+import type { Character, InventoryItem, Item, ItemType } from '../../types/api';
+import { useUnequipItemMutation, useEquipItemMutation } from '../../store/api/characterApi';
 import { ItemIcon } from '../common/ItemIcon';
-import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, cardStyle, gradientTextStyle, dashboardBorders } from '../../styles/dashboard.styles';
+import { dashboardColors, dashboardFonts, cornerOrnaments, cardStyle, gradientTextStyle, dashboardBorders } from '../../styles/dashboard.styles';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 interface InventorySectionProps {
   character: Character;
@@ -52,6 +53,7 @@ export function InventorySection({
   const [isInventoryDropZone, setIsInventoryDropZone] = useState(false);
 
   const [unequipItem] = useUnequipItemMutation();
+  const [equipItem] = useEquipItemMutation();
 
   // Получаем items из инвентаря персонажа
   const inventoryItems = character.inventory?.items || [];
@@ -119,15 +121,18 @@ export function InventorySection({
     // Снимаем предмет
     try {
       await unequipItem({ characterId: character.id, itemId: item.id }).unwrap();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error unequipping item:', error);
+      const anyError = error as { data?: { message?: string }; message?: string } | undefined;
+      const message = anyError?.data?.message || anyError?.message || 'Не удалось снять предмет';
+      alert(message);
     }
   };
 
   // Функция для генерации блока характеристики
   const renderStatBlock = (label: string, value: number | string) => (
     <div style={{
-      border: `1px solid ${dashboardColors.borderAmber}`,
+      border: `1px solid ${dashboardColors.borderGold}`,
       borderRadius: '8px',
       background: dashboardColors.backgroundDark,
       padding: '10px 12px',
@@ -163,10 +168,65 @@ export function InventorySection({
     </div>
   );
 
+  // Маппинг типов предметов на базовые иконки из assets/items
+  const ITEM_TYPE_ART: Partial<Record<ItemType, string[]>> = {
+    weapon: [
+      'items/swords/sword1.png',
+      'items/swords/sword2.png',
+      'items/swords/sword3.png',
+    ],
+    helmet: [
+      'items/helmets/helmet1.png',
+      'items/helmets/helmet2.png',
+      'items/helmets/helmet3.png',
+    ],
+    armor: [
+      'items/armors/armor1.png',
+      'items/armors/armor2.png',
+      'items/armors/armor3.png',
+    ],
+    belt: [
+      'items/belts/belts1.png',
+      'items/belts/belts2.png',
+      'items/belts/belts3.png',
+    ],
+    legs: [
+      'items/legs/legs1.png',
+      'items/legs/legs2.png',
+      'items/legs/legs3.png',
+    ],
+    accessory: [
+      'items/accessorys/ring1.png',
+      'items/accessorys/ring2.png',
+      'items/accessorys/ring3.png',
+    ],
+  };
+
+  const getItemArtUrl = (item: Item): string | null => {
+    if (item.imageUrl) {
+      // если бэкенд уже прислал путь, пробуем использовать его
+      if (item.imageUrl.startsWith('http')) return item.imageUrl;
+      return getAssetUrl(item.imageUrl);
+    }
+    const list = ITEM_TYPE_ART[item.type];
+    if (!list || list.length === 0) return null;
+    const index = item.id % list.length;
+    return getAssetUrl(list[index]);
+  };
+
+  const selectedItemArtUrl = selectedItem ? getItemArtUrl(selectedItem.item) : null;
+
   return (
     <div className="h-full flex flex-col gap-4">
       {/* Header with Navigation */}
-      <div className="flex items-center gap-4">
+      <div
+        className="flex items-center gap-4"
+        style={{
+          width: 'calc(100% - 20px)',
+          maxWidth: 'calc(100% - 20px)',
+          boxSizing: 'border-box',
+        }}
+      >
         {onBack && (
           <button
             onClick={onBack}
@@ -215,12 +275,12 @@ export function InventorySection({
           }}
           onMouseEnter={(e) => {
             if (showForge) {
-              e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+              e.currentTarget.style.borderColor = dashboardColors.borderBronze;
             }
           }}
           onMouseLeave={(e) => {
             if (showForge) {
-              e.currentTarget.style.borderColor = dashboardColors.borderRed;
+              e.currentTarget.style.borderColor = dashboardColors.borderGold;
             }
           }}
         >
@@ -250,12 +310,12 @@ export function InventorySection({
           }}
           onMouseEnter={(e) => {
             if (!showForge) {
-              e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+              e.currentTarget.style.borderColor = dashboardColors.borderBronze;
             }
           }}
           onMouseLeave={(e) => {
             if (!showForge) {
-              e.currentTarget.style.borderColor = dashboardColors.borderRed;
+              e.currentTarget.style.borderColor = dashboardColors.borderGold;
             }
           }}
           >
@@ -277,10 +337,13 @@ export function InventorySection({
       {/* Item Details Section - в стиле референса */}
       <div style={{
         ...cardStyle,
-        border: `2px solid ${dashboardColors.borderAmber}`,
+        border: `2px solid ${dashboardColors.borderGold}`,
         padding: '16px',
         display: 'flex',
         gap: '16px',
+        width: 'calc(100% - 20px)',
+        maxWidth: 'calc(100% - 20px)',
+        boxSizing: 'border-box',
       }}>
         {/* Декоративные уголки */}
         <div style={cornerOrnaments.topLeft}></div>
@@ -292,8 +355,8 @@ export function InventorySection({
           right: 0,
           width: dashboardBorders.cornerSize,
           height: dashboardBorders.cornerSize,
-          borderTop: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderAmber}`,
-          borderRight: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderAmber}`,
+          borderTop: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
+          borderRight: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
         }}></div>
 
         {/* Левая панель - изображение предмета */}
@@ -301,19 +364,33 @@ export function InventorySection({
           width: '150px',
           height: '150px',
           minWidth: '150px',
-          border: `1px solid ${dashboardColors.borderAmber}`,
+          border: `1px solid ${dashboardColors.borderGold}`,
           borderRadius: '8px',
           background: dashboardColors.backgroundDark,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
         }}>
           {selectedItem ? (
-            <ItemIcon
-              item={selectedItem.item}
-              size="large"
-              enhancement={selectedItem.enhancement}
-            />
+            selectedItemArtUrl ? (
+              <img
+                src={selectedItemArtUrl}
+                alt={selectedItem.item.name}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.85))',
+                }}
+              />
+            ) : (
+              <ItemIcon
+                item={selectedItem.item}
+                size="large"
+                enhancement={selectedItem.enhancement}
+              />
+            )
           ) : (
             <span style={{
               color: dashboardColors.textGold,
@@ -338,7 +415,7 @@ export function InventorySection({
           {!selectedItem ? (
             // Placeholder когда предмет не выбран
             <div style={{
-              border: `1px solid ${dashboardColors.borderAmber}`,
+              border: `1px solid ${dashboardColors.borderGold}`,
               borderRadius: '8px',
               background: dashboardColors.backgroundDark,
               padding: '20px 12px',
@@ -358,7 +435,7 @@ export function InventorySection({
             <>
               {/* Название предмета - всегда показываем если предмет выбран */}
               <div style={{
-                border: `1px solid ${dashboardColors.borderAmber}`,
+                border: `1px solid ${dashboardColors.borderGold}`,
                 borderRadius: '8px',
                 background: dashboardColors.backgroundDark,
                 padding: '10px 12px',
@@ -386,6 +463,66 @@ export function InventorySection({
 
               {/* GOLD - всегда показываем если предмет выбран */}
               {renderStatBlock('GOLD', selectedItem.item.price)}
+
+              {/* Кнопки "Надеть" / "Снять" */}
+              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                {!selectedItem.isEquipped && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await equipItem({ characterId: character.id, itemId: selectedItem.id }).unwrap();
+                      } catch (error: unknown) {
+                        console.error('Error equipping item from details:', error);
+                        const anyError = error as { data?: { message?: string }; message?: string } | undefined;
+                        const message = anyError?.data?.message || anyError?.message || 'Не удалось надеть предмет';
+                        alert(message);
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      border: `1px solid ${dashboardColors.borderGold}`,
+                      borderRadius: '6px',
+                      background: dashboardColors.gradientButton,
+                      color: dashboardColors.textGold,
+                      textTransform: 'uppercase',
+                      fontSize: '11px',
+                      letterSpacing: '0.12em',
+                      padding: '8px 10px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Надеть
+                  </button>
+                )}
+                {selectedItem.isEquipped && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await unequipItem({ characterId: character.id, itemId: selectedItem.id }).unwrap();
+                      } catch (error: unknown) {
+                        console.error('Error unequipping item from details:', error);
+                        const anyError = error as { data?: { message?: string }; message?: string } | undefined;
+                        const message = anyError?.data?.message || anyError?.message || 'Не удалось снять предмет';
+                        alert(message);
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      border: `1px solid ${dashboardColors.borderBronze}`,
+                      borderRadius: '6px',
+                      background: 'linear-gradient(to bottom, #3b1a1a, #180808)',
+                      color: dashboardColors.textGold,
+                      textTransform: 'uppercase',
+                      fontSize: '11px',
+                      letterSpacing: '0.12em',
+                      padding: '8px 10px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Снять
+                  </button>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -404,6 +541,9 @@ export function InventorySection({
           padding: '20px',
           transition: 'all 0.3s ease',
           overflow: 'hidden',
+          width: 'calc(100% - 20px)',
+          maxWidth: 'calc(100% - 20px)',
+          boxSizing: 'border-box',
         }}
       >
         <div style={cornerOrnaments.topLeft}></div>
@@ -411,48 +551,100 @@ export function InventorySection({
         <div style={cornerOrnaments.bottomLeft}></div>
         <div style={cornerOrnaments.bottomRight}></div>
 
-        <div className="grid grid-cols-8 gap-3 overflow-y-auto h-full" style={{ maxHeight: '100%', paddingRight: '8px' }}>
-          {unequippedItems.map((invItem) => (
+        {(() => {
+          const totalSlots = character.inventory?.size ?? unequippedItems.length;
+          const slots = Array.from({ length: totalSlots }, (_, index) => unequippedItems[index] || null);
+
+          return (
             <div
-              key={invItem.id}
-              draggable={true}
-              onDragStart={(e) => handleDragStart(e, invItem)}
-              onDragEnd={handleDragEnd}
-              onClick={() => handleItemClick(invItem)}
-              style={{
-                border: `2px solid ${selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id ? dashboardColors.borderGold : dashboardColors.borderMetal}`,
-                borderRadius: '8px',
-                background: cardStyle.background,
-                transition: 'all 0.3s ease',
-                cursor: 'move',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                aspectRatio: '1',
-                padding: '4px',
-                opacity: draggedItem?.id === invItem.id ? 0.5 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if (selectedItem?.id !== invItem.id && forgeItemSlot?.id !== invItem.id) {
-                  e.currentTarget.style.borderColor = dashboardColors.borderGold;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedItem?.id !== invItem.id && forgeItemSlot?.id !== invItem.id) {
-                  e.currentTarget.style.borderColor = dashboardColors.borderAmber;
-                }
-              }}
-              style={{ height: 'fit-content' }}
+              className="grid grid-cols-6 gap-4 overflow-y-auto h-full"
+              style={{ maxHeight: '100%', paddingRight: '8px' }}
             >
-              <ItemIcon
-                item={invItem.item}
-                size="small"
-                enhancement={invItem.enhancement}
-              />
+              {slots.map((invItem, index) => {
+                const artUrl = invItem ? getItemArtUrl(invItem.item) : null;
+                const isSelected =
+                  !!invItem && (selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id);
+
+                return (
+                  <div
+                    key={invItem ? `item-${invItem.id}` : `empty-${index}`}
+                    draggable={!!invItem}
+                    onDragStart={invItem ? (e) => handleDragStart(e, invItem) : undefined}
+                    onDragEnd={invItem ? handleDragEnd : undefined}
+                    onClick={invItem ? () => handleItemClick(invItem) : undefined}
+                    style={{
+                      borderRadius: '10px',
+                      transition: 'all 0.15s ease-out',
+                      cursor: invItem ? 'pointer' : 'default',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: invItem && draggedItem?.id === invItem.id ? 0.6 : 1,
+                      border: invItem
+                        ? `1px solid ${isSelected ? dashboardColors.borderGold : dashboardColors.borderMetal}`
+                        : `1px solid rgba(255,255,255,0.04)`,
+                      background: invItem
+                        ? 'radial-gradient(circle at 50% 10%, rgba(201,168,106,0.18) 0, rgba(11,11,13,0.95) 55%, rgba(0,0,0,1) 100%)'
+                        : 'rgba(11,11,13,0.6)',
+                      boxShadow: invItem
+                        ? '0 0 8px rgba(0,0,0,0.8)'
+                        : '0 0 4px rgba(0,0,0,0.7) inset',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!invItem) return;
+                      const el = e.currentTarget as HTMLDivElement;
+                      el.style.transform = 'translateY(-2px) scale(1.03)';
+                      el.style.borderColor = dashboardColors.borderGold;
+                      el.style.boxShadow = '0 0 14px rgba(201,168,106,0.45)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!invItem) return;
+                      const el = e.currentTarget as HTMLDivElement;
+                      el.style.transform = 'translateY(0) scale(1)';
+                      el.style.borderColor = isSelected
+                        ? dashboardColors.borderGold
+                        : dashboardColors.borderMetal;
+                      el.style.boxShadow = '0 0 8px rgba(0,0,0,0.8)';
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: '100%',
+                        aspectRatio: '1',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '4px',
+                        filter: invItem && isSelected ? 'drop-shadow(0 0 10px rgba(201, 168, 106, 0.7))' : 'none',
+                        opacity: invItem ? 1 : 0.15,
+                      }}
+                    >
+                      {invItem && artUrl ? (
+                        <img
+                          src={artUrl}
+                          alt={invItem.item.name}
+                          style={{
+                            width: '90%',
+                            height: '90%',
+                            objectFit: 'contain',
+                            filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.8))',
+                          }}
+                        />
+                      ) : invItem ? (
+                        <ItemIcon
+                          item={invItem.item}
+                          size="small"
+                          enhancement={invItem.enhancement}
+                        />
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          );
+        })()}
       </div>
     </div>
   );
