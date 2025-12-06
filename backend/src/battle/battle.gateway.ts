@@ -102,12 +102,23 @@ export class BattleGateway {
         // Получаем полную информацию о бое для отправки лута
         const fullBattle = await this.battleService.getBattleWithLoot(battleId);
 
-        this.server.to(battleId).emit('battle-end', {
+        const battleEndData = {
           status: battle.status,
           lootedItems: fullBattle?.lootedItems || [],
           expGained: fullBattle?.expGained || 0,
           goldGained: fullBattle?.goldGained || 0,
+        };
+
+        console.log('📤 Отправка battle-end события:', {
+          battleId,
+          status: battleEndData.status,
+          lootedItemsCount: battleEndData.lootedItems.length,
+          lootedItems: battleEndData.lootedItems,
+          expGained: battleEndData.expGained,
+          goldGained: battleEndData.goldGained,
         });
+
+        this.server.to(battleId).emit('battle-end', battleEndData);
       } else {
         setTimeout(() => {
           // Вычисляем turnNumber для следующего хода

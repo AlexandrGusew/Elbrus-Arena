@@ -945,6 +945,19 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                     : 'Вы погибли, но получили награды за пройденный путь:'}
                 </div>
 
+                {(() => {
+                  console.log('🎁 BattleArena: Отображение результатов боя:', {
+                    status: battleState.status,
+                    lootedItems: battleState.lootedItems,
+                    lootedItemsLength: battleState.lootedItems?.length || 0,
+                    expGained: battleState.expGained,
+                    goldGained: battleState.goldGained,
+                    hasLootedItems: !!battleState.lootedItems,
+                    lootedItemsIsArray: Array.isArray(battleState.lootedItems),
+                  });
+                  return null;
+                })()}
+
                 {battleState.expGained && battleState.expGained > 0 && (
                   <div style={styles.rewardItem}>
                     ⭐ Опыт: <span style={styles.rewardValue}>+{battleState.expGained}</span>

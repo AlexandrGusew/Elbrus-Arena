@@ -106,7 +106,14 @@ export const characterApi = baseApi.injectEndpoints({
 
     distributeStats: builder.mutation<
       void,
-      { characterId: number; strength: number; agility: number; intelligence: number }
+      { 
+        characterId: number; 
+        strength: number; 
+        agility: number; 
+        intelligence: number;
+        maxHp?: number;
+        stamina?: number;
+      }
     >({
       query: ({ characterId, ...stats }) => ({
         url: `/character/${characterId}/distribute-stats`,

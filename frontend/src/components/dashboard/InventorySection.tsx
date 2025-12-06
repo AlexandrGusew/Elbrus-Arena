@@ -400,13 +400,15 @@ export function InventorySection({
                 acc[key] = {
                   items: [invItem],
                   firstItem: invItem,
+                  totalQuantity: invItem.quantity, // Суммируем quantity
                 };
               } else {
                 acc[key].items.push(invItem);
+                acc[key].totalQuantity += invItem.quantity; // Добавляем quantity
               }
               
               return acc;
-            }, {} as Record<string, { items: InventoryItem[]; firstItem: InventoryItem }>);
+            }, {} as Record<string, { items: InventoryItem[]; firstItem: InventoryItem; totalQuantity: number }>);
 
             // Преобразуем объект в массив для отображения
             const itemsArray = Object.values(groupedItems);
@@ -435,7 +437,15 @@ export function InventorySection({
               inventorySize,
               maxSlots,
               filledSlots: itemsArray.length,
-              emptySlots: maxSlots - itemsArray.length
+              emptySlots: maxSlots - itemsArray.length,
+              groupedItemsDetails: itemsArray.map(group => ({
+                name: group.firstItem.item.name,
+                type: group.firstItem.item.type,
+                enhancement: group.firstItem.enhancement,
+                totalQuantity: group.totalQuantity,
+                itemsCount: group.items.length,
+                itemsQuantities: group.items.map(item => item.quantity),
+              })),
             });
 
             return allSlots.map((slotItem, index) => {
@@ -468,7 +478,7 @@ export function InventorySection({
                   style={{ height: 'fit-content', minHeight: '80px' }}
                 >
                   {/* Счетчик количества в верхнем правом углу */}
-                  {group && group.items.length > 1 && (
+                  {group && group.totalQuantity > 1 && (
                     <div style={{
                       position: 'absolute',
                       top: '4px',
@@ -486,7 +496,7 @@ export function InventorySection({
                       textAlign: 'center',
                       lineHeight: '1',
                     }}>
-                      ×{group.items.length}
+                      ×{group.totalQuantity}
                     </div>
                   )}
                   

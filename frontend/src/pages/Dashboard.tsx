@@ -9,6 +9,8 @@ import {
 } from '../store/api/characterApi';
 import { useLogoutMutation } from '../store/api/authApi';
 import { setAccessToken } from '../store/api/baseApi';
+import { store } from '../store';
+import { baseApi } from '../store/api/baseApi';
 import { useState, useEffect, useRef } from 'react';
 import { getAssetUrl } from '../utils/assetUrl';
 import { ChatWindow } from '../components/ChatWindow';
@@ -17,6 +19,7 @@ import { ChatSection } from '../components/dashboard/ChatSection';
 import { InventorySection } from '../components/dashboard/InventorySection';
 import { ForgeSection } from '../components/dashboard/ForgeSection';
 import { NavigationButtons } from '../components/dashboard/NavigationButtons';
+import { LevelUpSection } from '../components/dashboard/LevelUpSection';
 import { CharacterSelector } from '../components/CharacterSelector';
 import { Volume2, VolumeX, LogOut } from 'lucide-react';
 import type { InventoryItem } from '../types/api';
@@ -27,7 +30,7 @@ const Dashboard = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Состояние для управления секциями
-  const [activeSection, setActiveSection] = useState<'main' | 'inventory'>('main');
+  const [activeSection, setActiveSection] = useState<'main' | 'inventory' | 'levelup'>('main');
   const [showForge, setShowForge] = useState(false);
 
   // Состояние для слотов кузницы
@@ -123,6 +126,8 @@ const Dashboard = () => {
       // Очищаем localStorage
       localStorage.removeItem('characterId');
       localStorage.removeItem('isAuthenticated');
+      // Очищаем весь кэш RTK Query
+      store.dispatch(baseApi.util.resetApiState());
       // Переходим на страницу входа
       navigate('/');
     }
@@ -219,8 +224,8 @@ const Dashboard = () => {
     if (showForge) {
       // Если открыт forge - сначала закрываем его
       setShowForge(false);
-    } else if (activeSection === 'inventory') {
-      // Если открыт инвентарь - возвращаемся на главную секцию
+    } else if (activeSection === 'inventory' || activeSection === 'levelup') {
+      // Если открыт инвентарь или levelup - возвращаемся на главную секцию
       setActiveSection('main');
     }
   };
@@ -327,7 +332,7 @@ const Dashboard = () => {
         </button>
 
         {/* Кнопка выхода - показываем только на главной секции */}
-        {activeSection === 'main' && (
+        {(activeSection === 'main' || activeSection === 'levelup') && (
           <button
             onClick={handleLogout}
             style={{
@@ -446,6 +451,10 @@ const Dashboard = () => {
                       character={character}
                       selectedItem={selectedItem}
                       onItemSelect={setSelectedItem}
+                      onLevelBarClick={() => {
+                        setActiveSection('levelup');
+                        setShowForge(false);
+                      }}
                     />
                   )}
                 </div>
@@ -486,6 +495,14 @@ const Dashboard = () => {
                   onForgeItemSelect={setForgeItemSlot}
                   selectedItem={selectedItem}
                   onItemSelect={setSelectedItem}
+                />
+              ) : activeSection === 'levelup' ? (
+                <LevelUpSection
+                  character={character}
+                  onBack={() => {
+                    setActiveSection('main');
+                    setShowForge(false);
+                  }}
                 />
               ) : null}
             </div>

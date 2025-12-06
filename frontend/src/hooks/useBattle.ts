@@ -109,13 +109,32 @@ export function useBattle(battleId: string | null) {
       expGained?: number;
       goldGained?: number;
     }) => {
-      setBattleState((prev) => ({
-        ...prev,
+      console.log('🎁 battle-end event received:', {
         status: data.status,
         lootedItems: data.lootedItems,
+        lootedItemsLength: data.lootedItems?.length || 0,
         expGained: data.expGained,
         goldGained: data.goldGained,
-      }));
+      });
+      
+      setBattleState((prev) => {
+        const newState = {
+          ...prev,
+          status: data.status,
+          lootedItems: data.lootedItems || [],
+          expGained: data.expGained || 0,
+          goldGained: data.goldGained || 0,
+        };
+        
+        console.log('📦 Updated battleState with loot:', {
+          lootedItems: newState.lootedItems,
+          lootedItemsLength: newState.lootedItems?.length || 0,
+          expGained: newState.expGained,
+          goldGained: newState.goldGained,
+        });
+        
+        return newState;
+      });
     });
 
     newSocket.on('error', (error: { message: string }) => {

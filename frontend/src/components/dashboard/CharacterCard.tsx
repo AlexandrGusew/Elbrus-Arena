@@ -10,6 +10,7 @@ interface CharacterCardProps {
   onEquipmentClick?: (slotType: string) => void;
   onItemSelect?: (item: InventoryItem | null) => void;
   selectedItem?: InventoryItem | null;
+  onLevelBarClick?: () => void;
 }
 
 type ItemSlotType = 'WEAPON' | 'HELMET' | 'ARMOR' | 'BOOTS' | 'BELT' | 'RING';
@@ -42,7 +43,7 @@ const getClassVideo = (classType: string): string => {
   }
 };
 
-export function CharacterCard({ character: characterProp, onEquipmentClick, onItemSelect, selectedItem }: CharacterCardProps) {
+export function CharacterCard({ character: characterProp, onEquipmentClick, onItemSelect, selectedItem, onLevelBarClick }: CharacterCardProps) {
   const [equipItem] = useEquipItemMutation();
   const [unequipItem] = useUnequipItemMutation();
   const [dragOverSlot, setDragOverSlot] = useState<ItemSlotType | null>(null);
@@ -242,7 +243,12 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
           </div>
 
           {/* Level Bar at the bottom */}
-          <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 overflow-hidden relative">
+          <div 
+            className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 overflow-hidden relative cursor-pointer hover:border-amber-600/60 transition-all"
+            onClick={onLevelBarClick}
+            style={{ minHeight: '32px' }}
+            title="Нажмите для распределения очков"
+          >
             {/* Background */}
             <div className="w-full h-full bg-black/40" style={{ minHeight: '32px' }}></div>
 

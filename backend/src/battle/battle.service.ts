@@ -118,10 +118,21 @@ export class BattleService {
       return null;
     }
 
+    const lootedItems = (battle.lootedItems as any[]) || [];
+    const expGained = battle.expGained || 0;
+    const goldGained = battle.goldGained || 0;
+
+    console.log(`📦 getBattleWithLoot для боя ${battleId}:`, {
+      lootedItemsCount: lootedItems.length,
+      lootedItems,
+      expGained,
+      goldGained,
+    });
+
     return {
-      lootedItems: battle.lootedItems as any[] || [],
-      expGained: battle.expGained || 0,
-      goldGained: battle.goldGained || 0,
+      lootedItems,
+      expGained,
+      goldGained,
     };
   }
 
@@ -500,7 +511,10 @@ export class BattleService {
           monstersToLoot.push(currentMonster.id);
         }
 
+        console.log(`💀 ПОРАЖЕНИЕ: Генерируем лут с ${monstersToLoot.length} монстров`);
+        
         // Генерируем лут с каждого побежденного монстра
+        const allLootDetails: string[] = [];
         for (const monsterId of monstersToLoot) {
           const lootedItems = await this.lootService.generateLoot(monsterId);
           if (lootedItems.length > 0) {
@@ -518,9 +532,16 @@ export class BattleService {
                   itemType: item.type,
                   enhancement: 0,
                 });
+                allLootDetails.push(`${item.name} x${loot.quantity}`);
               }
             }
           }
+        }
+        
+        if (allLootDetails.length > 0) {
+          console.log(`🎁 ДРОП при поражении: ${allLootDetails.join(', ')}`);
+        } else {
+          console.log(`❌ ДРОП при поражении: ничего не выпало`);
         }
       }
     } else if (newMonsterHp <= 0) {
@@ -557,24 +578,49 @@ export class BattleService {
       // Автоматическая проверка повышения уровня
       await this.levelUpService.checkAndLevelUp(character.id);
 
-      const lootedItems = await this.lootService.generateLoot(currentMonster.id);
-      if (lootedItems.length > 0) {
-        await this.lootService.addItemsToInventory(character.id, lootedItems);
+      // Генерируем лут со всех побежденных монстров при победе
+      // Все монстры до текущего (currentMonster - 1), плюс текущий (босс)
+      const monstersToLoot: number[] = [];
+      
+      // Добавляем всех побежденных монстров до текущего
+      for (let i = 0; i < fullBattle.currentMonster - 1; i++) {
+        monstersToLoot.push(dungeon.monsters[i].monster.id);
+      }
+      
+      // Добавляем текущего монстра (босса), так как он был побежден
+      monstersToLoot.push(currentMonster.id);
 
-        // Получаем полную информацию о лутнутых предметах
-        for (const loot of lootedItems) {
-          const item = await this.prisma.item.findUnique({
-            where: { id: loot.itemId },
-          });
-          if (item) {
-            battleLoot.push({
-              itemId: item.id,
-              itemName: item.name,
-              itemType: item.type,
-              enhancement: 0,
+      console.log(`🏆 ПОБЕДА в подземелье: Генерируем лут с ${monstersToLoot.length} монстров`);
+      
+      // Генерируем лут с каждого побежденного монстра
+      const allLootDetails: string[] = [];
+      for (const monsterId of monstersToLoot) {
+        const lootedItems = await this.lootService.generateLoot(monsterId);
+        if (lootedItems.length > 0) {
+          await this.lootService.addItemsToInventory(character.id, lootedItems);
+
+          // Получаем полную информацию о лутнутых предметах
+          for (const loot of lootedItems) {
+            const item = await this.prisma.item.findUnique({
+              where: { id: loot.itemId },
             });
+            if (item) {
+              battleLoot.push({
+                itemId: item.id,
+                itemName: item.name,
+                itemType: item.type,
+                enhancement: 0,
+              });
+              allLootDetails.push(`${item.name} x${loot.quantity}`);
+            }
           }
         }
+      }
+      
+      if (allLootDetails.length > 0) {
+        console.log(`🎁 ДРОП при победе: ${allLootDetails.join(', ')}`);
+      } else {
+        console.log(`❌ ДРОП при победе: ничего не выпало`);
       }
     } else if (newMonsterHp <= 0 && newStatus === 'active') {
       // Награда за промежуточного монстра = общая награда / количество монстров
@@ -592,9 +638,25 @@ export class BattleService {
       // Автоматическая проверка повышения уровня
       await this.levelUpService.checkAndLevelUp(character.id);
 
+      console.log(`✅ Победа над промежуточным монстром "${currentMonster.name}" (ID: ${currentMonster.id})`);
+      
       const lootedItems = await this.lootService.generateLoot(currentMonster.id);
       if (lootedItems.length > 0) {
         await this.lootService.addItemsToInventory(character.id, lootedItems);
+        
+        // Получаем информацию о предметах для логирования
+        const lootDetails: string[] = [];
+        for (const loot of lootedItems) {
+          const item = await this.prisma.item.findUnique({
+            where: { id: loot.itemId },
+          });
+          if (item) {
+            lootDetails.push(`${item.name} x${loot.quantity}`);
+          }
+        }
+        console.log(`🎁 ДРОП с промежуточного монстра: ${lootDetails.join(', ')}`);
+      } else {
+        console.log(`❌ ДРОП с промежуточного монстра: ничего не выпало`);
       }
 
       const healAmount = Math.floor(character.maxHp * 0.3);
@@ -602,6 +664,17 @@ export class BattleService {
     }
 
     const updatedRounds = [...currentRounds, roundResult];
+
+    // Логируем данные перед сохранением
+    if (newStatus === 'won' || newStatus === 'lost') {
+      console.log(`💾 Сохранение данных боя ${battleId}:`, {
+        status: newStatus,
+        lootedItemsCount: battleLoot.length,
+        lootedItems: battleLoot,
+        expGained: battleExpGained,
+        goldGained: battleGoldGained,
+      });
+    }
 
     await this.prisma.pveBattle.update({
       where: { id: battleId },
@@ -613,7 +686,7 @@ export class BattleService {
         playerFirst: nextPlayerFirst,
         rounds: JSON.parse(JSON.stringify(updatedRounds)),
         ...((newStatus === 'won' || newStatus === 'lost') && {
-          lootedItems: battleLoot,
+          lootedItems: JSON.parse(JSON.stringify(battleLoot)), // Убеждаемся, что это чистый JSON
           expGained: battleExpGained,
           goldGained: battleGoldGained,
         }),

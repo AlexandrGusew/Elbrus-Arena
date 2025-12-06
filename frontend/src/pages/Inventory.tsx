@@ -13,9 +13,9 @@ const SLOT_ICONS: Record<ItemType, string> = {
   belt: '🔗',
   legs: '👖',
   accessory: '💍',
-  potion: '🧪',
   shield: '🛡️',
-  offhand: '🗡️'
+  offhand: '🗡️',
+  scroll: '📜'
 };
 
 const SLOT_NAMES: Record<ItemType, string> = {
@@ -25,9 +25,9 @@ const SLOT_NAMES: Record<ItemType, string> = {
   belt: 'Пояс',
   legs: 'Штаны',
   accessory: 'Аксессуар',
-  potion: 'Зелье',
   shield: 'Щит',
-  offhand: 'Левая рука'
+  offhand: 'Левая рука',
+  scroll: 'Свиток'
 };
 
 const Inventory = () => {
