@@ -117,9 +117,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.2); /* Прозрачность -2 пункта (блок 1) */
+  border-radius: 15px; /* Скругление углов */
   overflow: hidden;
   z-index: 1;
+  backdrop-filter: blur(2px);
 }
 
 .hero-overlay {
@@ -226,9 +229,12 @@
 /* Classes Section */
 .classes-section {
   padding: 6rem 2rem;
-  background: transparent;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.4); /* Прозрачность -4 пункта (блок 2) */
+  border-radius: 15px; /* Скругление углов */
   position: relative;
   z-index: 1;
+  backdrop-filter: blur(3px);
 }
 
 .section-header {
@@ -264,7 +270,16 @@
 }
 
 .class-card {
-  background: rgba(0, 0, 0, 0.3);
+  /* Эффект старинной бумаги для карточек */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(139, 115, 85, 0.02) 0px,
+      transparent 1px,
+      transparent 2px
+    ),
+    radial-gradient(circle at 30% 40%, rgba(101, 67, 33, 0.1) 0%, transparent 60%),
+    rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 215, 0, 0.2);
   border-radius: 8px;
   padding: 3rem 2rem;
@@ -316,8 +331,8 @@
 
 .class-icon:hover {
   border-color: #ffd700;
-  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
-  transform: scale(1.05);
+  filter: brightness(1.1) drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+  transform: scale(1.1);
 }
 
 .class-title {
@@ -341,9 +356,12 @@
 /* Features Section */
 .features-section {
   padding: 6rem 2rem;
-  background: transparent;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.2); /* Прозрачность -2 пункта (блок 3) */
+  border-radius: 15px; /* Скругление углов */
   position: relative;
   z-index: 1;
+  backdrop-filter: blur(2px);
 }
 
 .section-title-alt {
@@ -414,6 +432,13 @@
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.feature-img:hover {
+  filter: brightness(1.1);
+  transform: scale(1.1);
 }
 
 .arena-placeholder,
@@ -428,9 +453,12 @@
 /* Gallery Section */
 .gallery-section {
   padding: 6rem 2rem;
-  background: transparent;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.4); /* Прозрачность -4 пункта (блок 4) */
+  border-radius: 15px; /* Скругление углов */
   position: relative;
   z-index: 1;
+  backdrop-filter: blur(3px);
 }
 
 .gallery-grid {
@@ -465,6 +493,13 @@
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.gallery-img:hover {
+  filter: brightness(1.1);
+  transform: scale(1.1);
 }
 
 .gallery-placeholder {
@@ -506,24 +541,54 @@
 /* Parchment Section */
 .parchment-section {
   padding: 6rem 2rem;
-  background: transparent;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.2); /* Прозрачность -2 пункта (блок 5) */
+  border-radius: 15px; /* Скругление углов */
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   z-index: 1;
+  backdrop-filter: blur(2px);
 }
 
 .parchment {
   max-width: 900px;
-  background: rgba(26, 26, 10, 0.5);
+  /* Эффект старинной бумаги */
+  background:
+    /* Шум и текстура */
+    repeating-linear-gradient(
+      0deg,
+      rgba(139, 115, 85, 0.03) 0px,
+      transparent 1px,
+      transparent 2px,
+      rgba(139, 115, 85, 0.03) 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(139, 115, 85, 0.03) 0px,
+      transparent 1px,
+      transparent 2px,
+      rgba(139, 115, 85, 0.03) 3px
+    ),
+    /* Пятна старения */
+    radial-gradient(circle at 20% 30%, rgba(101, 67, 33, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(101, 67, 33, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(101, 67, 33, 0.12) 0%, transparent 40%),
+    /* Основной фон старой бумаги */
+    linear-gradient(135deg,
+      rgba(42, 35, 20, 0.8) 0%,
+      rgba(26, 26, 10, 0.7) 50%,
+      rgba(35, 30, 15, 0.8) 100%
+    );
   border: 3px solid #8b7355;
   border-radius: 8px;
   padding: 4rem 3rem;
   position: relative;
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.5),
-    inset 0 0 20px rgba(139, 115, 85, 0.1);
+    inset 0 0 20px rgba(139, 115, 85, 0.1),
+    inset 2px 2px 10px rgba(101, 67, 33, 0.3);
   backdrop-filter: blur(5px);
 }
 
@@ -568,10 +633,12 @@
 
 /* Footer */
 .landing-footer {
-  background: rgba(5, 5, 5, 0.5);
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.4); /* Прозрачность -4 пункта (блок 6) */
+  border-radius: 15px; /* Скругление углов */
   border-top: 1px solid rgba(255, 215, 0, 0.2);
   padding: 4rem 2rem 2rem;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(3px);
   position: relative;
   z-index: 1;
 }
@@ -647,6 +714,32 @@
 .footer-social a:hover {
   color: #ffd700;
   transform: translateY(-3px);
+}
+
+/* Scroll-Driven Animations */
+@keyframes scrollScale {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.3;
+  }
+}
+
+/* Применяем scroll-driven анимации к секциям */
+.classes-section,
+.features-section,
+.gallery-section,
+.parchment-section {
+  animation: scrollScale linear;
+  animation-timeline: scroll(root);
+  animation-range: entry 0% exit 100%;
 }
 
 /* Animations */
@@ -829,27 +922,41 @@
   }
 }
 
-/* Модальное окно для портретов */
+/* Модальное окно для портретов - КРАСОЧНАЯ АНИМАЦИЯ */
 .portrait-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.95);
+  background: radial-gradient(circle, rgba(139, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.95) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
   cursor: pointer;
-  animation: fadeIn 0.3s ease-out;
+  animation: modalBackdropAppear 0.6s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes modalBackdropAppear {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+  }
 }
 
 .portrait-modal-content {
   position: relative;
   max-width: 90vw;
   max-height: 90vh;
-  animation: zoomIn 1s ease-out;
+  animation: epicZoomRotate 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  filter: drop-shadow(0 0 60px rgba(255, 215, 0, 0.8))
+          drop-shadow(0 0 100px rgba(139, 0, 0, 0.6));
 }
 
 .portrait-modal-img {
@@ -858,19 +965,47 @@
   max-width: 90vw;
   max-height: 90vh;
   border-radius: 12px;
-  border: 3px solid #ffd700;
-  box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+  border: 4px solid #ffd700;
+  box-shadow:
+    0 0 30px rgba(255, 215, 0, 0.9),
+    0 0 60px rgba(255, 215, 0, 0.6),
+    0 0 90px rgba(139, 0, 0, 0.8),
+    inset 0 0 20px rgba(255, 215, 0, 0.2);
   object-fit: contain;
+  animation: imagePulse 2s ease-in-out infinite;
 }
 
-/* Анимация появления модального окна */
-@keyframes zoomIn {
-  from {
-    transform: scale(0.1);
+/* Эпическая анимация появления с вращением и масштабированием */
+@keyframes epicZoomRotate {
+  0% {
+    transform: scale(0) rotate(-180deg);
     opacity: 0;
+    filter: blur(20px) hue-rotate(0deg);
   }
-  to {
-    transform: scale(1);
+  50% {
+    filter: blur(5px) hue-rotate(180deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
     opacity: 1;
+    filter: blur(0px) hue-rotate(360deg);
+  }
+}
+
+/* Пульсация золотого свечения */
+@keyframes imagePulse {
+  0%, 100% {
+    box-shadow:
+      0 0 30px rgba(255, 215, 0, 0.9),
+      0 0 60px rgba(255, 215, 0, 0.6),
+      0 0 90px rgba(139, 0, 0, 0.8),
+      inset 0 0 20px rgba(255, 215, 0, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 40px rgba(255, 215, 0, 1),
+      0 0 80px rgba(255, 215, 0, 0.8),
+      0 0 120px rgba(139, 0, 0, 1),
+      inset 0 0 30px rgba(255, 215, 0, 0.3);
   }
 }
