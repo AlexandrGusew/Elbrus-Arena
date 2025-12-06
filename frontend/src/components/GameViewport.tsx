@@ -25,8 +25,8 @@ export const GameViewport = ({
       style={{
         position: 'relative',
         width: '100vw',
-        height: '100vh',
-        backgroundColor: '#000000',
+        minHeight: '100vh',
+        backgroundColor: '#0B0B0D', // Path of Exile базовый фон
         overflow: 'auto', // Прокрутка, если контент больше экрана
         display: 'flex',
         alignItems: 'center',
@@ -40,7 +40,7 @@ export const GameViewport = ({
           height: `${targetHeight}px`,
           minWidth: `${targetWidth}px`, // Минимальный размер - не уменьшается
           minHeight: `${targetHeight}px`, // Минимальный размер - не уменьшается
-          backgroundColor: '#1a1a1a',
+          backgroundColor: 'transparent', // Прозрачный, чтобы видеть глобальный фон
           position: 'relative',
           overflow: 'hidden',
           margin: 'auto', // Центрирование

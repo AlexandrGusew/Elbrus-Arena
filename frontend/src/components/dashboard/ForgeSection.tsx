@@ -146,7 +146,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
     <div 
       style={{
         ...cardStyle,
-        border: `3px solid ${dashboardColors.borderRed}`,
+        border: `3px solid ${dashboardColors.borderGold}`,
         padding: '24px',
         height: '100%',
         display: 'flex',
@@ -173,7 +173,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
             }}
           >
             <span style={{
-              color: dashboardColors.textRed,
+              color: dashboardColors.textGold,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               fontSize: '13px',
@@ -194,7 +194,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
             }}
           >
             <span style={{
-              color: dashboardColors.textRed,
+              color: dashboardColors.textGold,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               fontSize: '13px',
@@ -221,7 +221,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
             }}
             onMouseEnter={(e) => {
               if (!isDragOverItem) {
-                e.currentTarget.style.borderColor = dashboardColors.borderRed;
+                e.currentTarget.style.borderColor = dashboardColors.borderGold;
               }
             }}
             onMouseLeave={(e) => {
@@ -256,7 +256,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
                 opacity: 0.3,
               }}>
                 <span style={{
-                  color: dashboardColors.textRed,
+                  color: dashboardColors.textGold,
                   fontSize: '11px',
                   textAlign: 'center',
                   fontFamily: dashboardFonts.primary,
@@ -281,7 +281,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
             }}
             onMouseEnter={(e) => {
               if (!isDragOverScroll) {
-                e.currentTarget.style.borderColor = dashboardColors.borderRed;
+                e.currentTarget.style.borderColor = dashboardColors.borderGold;
               }
             }}
             onMouseLeave={(e) => {
@@ -316,7 +316,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
                 opacity: 0.3,
               }}>
                 <span style={{
-                  color: dashboardColors.textRed,
+                  color: dashboardColors.textGold,
                   fontSize: '11px',
                   textAlign: 'center',
                   fontFamily: dashboardFonts.primary,
@@ -334,7 +334,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
           disabled={!itemInSlot || isEnhancing || isEnhancingWithScroll}
           style={{
             ...cardStyle,
-            border: `3px solid ${dashboardColors.borderRed}`,
+            border: `3px solid ${dashboardColors.borderGold}`,
             padding: '18px',
             position: 'relative',
             transition: 'all 0.3s ease',
@@ -344,12 +344,12 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
           }}
           onMouseEnter={(e) => {
             if (itemInSlot && !isEnhancing && !isEnhancingWithScroll) {
-              e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+              e.currentTarget.style.borderColor = dashboardColors.borderBronze;
             }
           }}
           onMouseLeave={(e) => {
             if (itemInSlot && !isEnhancing && !isEnhancingWithScroll) {
-              e.currentTarget.style.borderColor = dashboardColors.borderRed;
+              e.currentTarget.style.borderColor = dashboardColors.borderGold;
             }
           }}
         >
@@ -379,7 +379,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
             }}
           >
             <h3 style={{
-              color: dashboardColors.textRed,
+              color: dashboardColors.textGold,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               textAlign: 'center',
@@ -408,7 +408,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
                 height: '100%',
               }}>
                 <span style={{
-                  color: dashboardColors.textRed,
+                  color: dashboardColors.textGold,
                   opacity: 0.4,
                   fontSize: '11px',
                   fontFamily: dashboardFonts.primary,

@@ -4,34 +4,35 @@
  */
 
 export const dashboardColors = {
-  // Основные цвета
-  backgroundDark: 'rgba(10, 10, 10, 0.95)',
-  backgroundMedium: 'rgba(20, 20, 20, 0.9)',
-  backgroundLight: 'rgba(30, 30, 30, 0.8)',
+  // Основные фоны (холодные тёмные оттенки, почти камень)
+  backgroundDark: '#0B0B0D',        // почти чёрный (глобальный фон)
+  backgroundMedium: '#1A1A1F',      // графитовый фон панелей
+  backgroundLight: '#232328',        // фон инвентаря/контейнеров
+  backgroundContrast: '#2E2E33',    // лёгкий контраст для блоков
   
-  // Акцентные цвета - кроваво-красный
-  bloodRed: '#8b0000',
-  bloodRedLight: '#dc143c',
-  bloodRedDark: '#5a0000',
-  crimson: '#dc143c',
-  darkRed: '#8b0000',
+  // Рамки / разделители / декоративный металл (старое золото и бронза)
+  borderGold: '#C9A86A',            // PoE-золото (кнопки, рамки, заголовки)
+  borderBronze: '#A07938',          // темнее, бронза
+  borderMetal: '#6B542E',            // старый металл
+  borderShadow: '#4B3C24',          // глубина/тени под рамками
   
-  // Границы
-  borderRed: 'rgba(139, 0, 0, 0.8)',
-  borderRedHover: 'rgba(220, 20, 60, 0.9)',
-  borderRedLight: 'rgba(220, 20, 60, 0.6)',
-  borderAmber: 'rgba(139, 69, 19, 0.8)',
+  // Кнопки (Button UI)
+  buttonBackground: '#1A1A1F',      // фон кнопки
+  buttonHover: '#2C2C32',           // ховер кнопки
+  buttonBorder: '#C9A86A',          // активная рамка
+  buttonGlow: '#8F6B31',            // внутреннее свечение (очень слабое)
   
   // Текст
-  textRed: '#dc143c',
-  textRedLight: '#ff4d6d',
-  textLight: 'rgba(255, 255, 255, 0.9)',
-  textMuted: 'rgba(255, 255, 255, 0.5)',
+  textGold: '#E4D3A5',              // "золотой текст", ключевые надписи
+  textPrimary: '#FFFFFF',           // системный текст
+  textSecondary: '#B8B8B8',         // вторичный текст
+  textMuted: '#757575',             // неактивные элементы
   
   // Градиенты
-  gradientRed: 'linear-gradient(to bottom, #ff6b6b 0%, #dc143c 50%, #8b0000 100%)',
-  gradientBackground: 'linear-gradient(to bottom, rgba(20, 20, 20, 0.95) 0%, rgba(0, 0, 0, 0.95) 100%)',
-  gradientCard: 'linear-gradient(to bottom, rgba(30, 30, 30, 0.9) 0%, rgba(10, 10, 10, 0.9) 100%)',
+  gradientGold: 'linear-gradient(to bottom, #E4D3A5 0%, #C9A86A 50%, #A07938 100%)',
+  gradientBackground: 'linear-gradient(to bottom, #1A1A1F 0%, #0B0B0D 100%)',
+  gradientCard: 'linear-gradient(to bottom, #232328 0%, #1A1A1F 100%)',
+  gradientButton: 'linear-gradient(to bottom, #2C2C32 0%, #1A1A1F 100%)',
 } as const;
 
 export const dashboardFonts = {
@@ -40,10 +41,11 @@ export const dashboardFonts = {
 } as const;
 
 export const dashboardEffects = {
-  textShadow: '0 0 15px rgba(220, 20, 60, 0.6)',
-  textShadowStrong: '0 0 20px rgba(220, 20, 60, 0.8)',
-  boxShadow: '0 0 30px rgba(0, 0, 0, 0.8)',
-  boxShadowRed: '0 0 20px rgba(220, 20, 60, 0.3)',
+  textShadow: '0 0 10px rgba(201, 168, 106, 0.4)',
+  textShadowStrong: '0 0 15px rgba(201, 168, 106, 0.6)',
+  boxShadow: '0 0 30px rgba(0, 0, 0, 0.9)',
+  boxShadowGold: '0 0 15px rgba(201, 168, 106, 0.3)',
+  boxShadowGlow: '0 0 10px rgba(143, 107, 49, 0.2)',
   insetShadow: 'inset 0 0 40px rgba(0, 0, 0, 0.9)',
 } as const;
 
@@ -64,8 +66,8 @@ export const cornerOrnaments = {
     left: 0,
     width: dashboardBorders.cornerSize,
     height: dashboardBorders.cornerSize,
-    borderTop: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderRed}`,
-    borderLeft: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderRed}`,
+    borderTop: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
+    borderLeft: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
   },
   topRight: {
     position: 'absolute' as const,
@@ -73,8 +75,8 @@ export const cornerOrnaments = {
     right: 0,
     width: dashboardBorders.cornerSize,
     height: dashboardBorders.cornerSize,
-    borderTop: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderRed}`,
-    borderRight: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderRed}`,
+    borderTop: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
+    borderRight: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
   },
   bottomLeft: {
     position: 'absolute' as const,
@@ -82,8 +84,8 @@ export const cornerOrnaments = {
     left: 0,
     width: dashboardBorders.cornerSize,
     height: dashboardBorders.cornerSize,
-    borderBottom: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderRed}`,
-    borderLeft: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderRed}`,
+    borderBottom: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
+    borderLeft: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
   },
   bottomRight: {
     position: 'absolute' as const,
@@ -91,8 +93,8 @@ export const cornerOrnaments = {
     right: 0,
     width: dashboardBorders.cornerSize,
     height: dashboardBorders.cornerSize,
-    borderBottom: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderRed}`,
-    borderRight: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderRed}`,
+    borderBottom: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
+    borderRight: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderGold}`,
   },
 };
 
@@ -100,7 +102,7 @@ export const cornerOrnaments = {
  * Стили для основного контейнера
  */
 export const mainContainer = {
-  border: `${dashboardBorders.mainBorder} solid ${dashboardColors.borderRed}`,
+  border: `${dashboardBorders.mainBorder} solid ${dashboardColors.borderGold}`,
   borderRadius: '16px',
   background: dashboardColors.gradientBackground,
   backdropFilter: 'blur(12px)',
@@ -114,12 +116,12 @@ export const mainContainer = {
  * Стили для карточек
  */
 export const cardStyle = {
-  border: `${dashboardBorders.secondaryBorder} solid ${dashboardColors.borderRed}`,
+  border: `${dashboardBorders.secondaryBorder} solid ${dashboardColors.borderGold}`,
   borderRadius: '12px',
   background: dashboardColors.gradientCard,
   padding: '20px',
   position: 'relative' as const,
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.7)',
   overflow: 'hidden' as const,
 };
 
@@ -127,9 +129,9 @@ export const cardStyle = {
  * Стили для кнопок
  */
 export const buttonStyle = {
-  border: `${dashboardBorders.mainBorder} solid ${dashboardColors.borderRed}`,
+  border: `${dashboardBorders.mainBorder} solid ${dashboardColors.borderGold}`,
   borderRadius: '12px',
-  background: dashboardColors.gradientCard,
+  background: dashboardColors.buttonBackground,
   padding: '12px 24px',
   position: 'relative' as const,
   cursor: 'pointer' as const,
@@ -137,12 +139,8 @@ export const buttonStyle = {
   fontFamily: dashboardFonts.primary,
   textTransform: 'uppercase' as const,
   letterSpacing: '0.2em',
-  color: dashboardColors.textRed,
+  color: dashboardColors.textGold,
   textShadow: dashboardEffects.textShadow,
-  backgroundClip: 'text' as const,
-  WebkitBackgroundClip: 'text' as const,
-  WebkitTextFillColor: 'transparent' as const,
-  backgroundImage: dashboardColors.gradientRed,
   overflow: 'hidden' as const,
 };
 
@@ -152,7 +150,7 @@ export const buttonStyle = {
 export const gradientTextStyle = {
   fontFamily: dashboardFonts.primary,
   textShadow: dashboardEffects.textShadow,
-  background: dashboardColors.gradientRed,
+  background: dashboardColors.gradientGold,
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
   backgroundClip: 'text',
@@ -162,9 +160,9 @@ export const gradientTextStyle = {
  * Стили для статистики
  */
 export const statBlockStyle = {
-  border: `1px solid ${dashboardColors.borderAmber}`,
+  border: `1px solid ${dashboardColors.borderMetal}`,
   borderRadius: '8px',
-  background: 'rgba(10, 10, 10, 0.5)',
+  background: dashboardColors.backgroundDark,
   padding: '10px 12px',
   minHeight: '40px',
 };

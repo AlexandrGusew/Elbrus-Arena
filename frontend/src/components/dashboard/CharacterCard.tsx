@@ -162,7 +162,8 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
   // Рендер слота экипировки
   const renderEquipmentSlot = (slotType: ItemSlotType, equippedItem?: InventoryItem) => {
     const isClicked = clickedSlot === slotType;
-    const scale = isClicked ? 1.5 : 1;
+    // Лёгкий эффект увеличения при клике
+    const scale = isClicked ? 1.25 : 1;
     const zIndex = isClicked ? 50 : 1;
 
     return (
@@ -178,10 +179,12 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
             handleUnequip(equippedItem);
           }
         }}
-        className="rounded flex items-center justify-center transition-all cursor-pointer aspect-square w-20 h-20"
+        className="rounded flex items-center justify-center transition-all cursor-pointer w-full aspect-square"
         style={{
           backgroundImage: `url(${slotBackgrounds[slotType]})`,
-          backgroundSize: 'cover',
+          // Увеличиваем видимый размер картинки примерно в 1.5 раза,
+          // масштабируя фон по ширине с сохранением пропорций
+          backgroundSize: '150% auto',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
           position: 'relative',
@@ -197,7 +200,7 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
     <div 
       style={{
         ...cardStyle,
-        border: `3px solid ${dashboardColors.borderRed}`,
+        border: `3px solid ${dashboardColors.borderGold}`,
         padding: '20px',
         height: '100%',
         overflow: 'hidden',
@@ -221,7 +224,7 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
               fontFamily: dashboardFonts.primary,
-              color: dashboardColors.textRed,
+              color: dashboardColors.textGold,
               textShadow: dashboardEffects.textShadow,
               overflow: 'hidden',
             }}
@@ -239,7 +242,7 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
               fontFamily: dashboardFonts.primary,
-              color: dashboardColors.textRed,
+              color: dashboardColors.textGold,
               textShadow: dashboardEffects.textShadow,
               overflow: 'hidden',
             }}
@@ -251,7 +254,7 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
           <div 
             className="flex-1 w-full rounded-full flex items-center justify-center relative"
             style={{
-              border: `3px solid ${dashboardColors.borderRed}`,
+              border: `3px solid ${dashboardColors.borderGold}`,
               background: 'linear-gradient(to bottom right, rgba(139, 0, 0, 0.6) 0%, rgba(30, 30, 30, 0.9) 50%, rgba(0, 0, 0, 1) 100%)',
               boxShadow: dashboardEffects.insetShadow,
               overflow: 'hidden',
@@ -303,10 +306,11 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
                 top: 0,
                 left: 0,
                 height: '100%',
-                background: dashboardColors.gradientRed,
+                background: 'linear-gradient(to right, #C9A86A 0%, #A07938 50%, #6B542E 100%)',
                 width: `${progressPercentage}%`,
                 transition: 'width 0.3s ease',
                 minHeight: '40px',
+                boxShadow: '0 0 10px rgba(201, 168, 106, 0.4)',
               }}
             ></div>
 
@@ -339,12 +343,12 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
 
         {/* Right Half - Split between Stats and Equipment */}
         <div className="flex flex-col gap-4 h-full" style={{ overflow: 'hidden' }}>
-          {/* Stats Box - Top Half */}
+          {/* Stats Box - верхняя часть (делаем крупнее, как на примере) */}
           <div 
             style={{
               ...cardStyle,
-              padding: '14px',
-              height: '50%',
+              padding: '18px',
+              height: '40%',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
@@ -365,14 +369,14 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
             >
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 fontFamily: dashboardFonts.primary,
               }}>HIT POINT</span>
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 fontWeight: 'bold',
                 fontFamily: dashboardFonts.primary,
               }}>{effectiveStats.maxHp}</span>
@@ -391,14 +395,14 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
             >
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 fontFamily: dashboardFonts.primary,
               }}>CURRENT HP</span>
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 fontWeight: 'bold',
                 fontFamily: dashboardFonts.primary,
               }}>{effectiveStats.currentHp}</span>
@@ -417,14 +421,14 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
             >
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 fontFamily: dashboardFonts.primary,
               }}>DAMAGE</span>
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 fontWeight: 'bold',
                 fontFamily: dashboardFonts.primary,
               }}>{effectiveStats.damage}</span>
@@ -443,14 +447,14 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
             >
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 fontFamily: dashboardFonts.primary,
               }}>ARMOR</span>
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 fontWeight: 'bold',
                 fontFamily: dashboardFonts.primary,
               }}>{effectiveStats.armor}</span>
@@ -469,14 +473,14 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
             >
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 fontFamily: dashboardFonts.primary,
               }}>STR</span>
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 fontWeight: 'bold',
                 fontFamily: dashboardFonts.primary,
               }}>{effectiveStats.strength}</span>
@@ -495,14 +499,14 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
             >
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 fontFamily: dashboardFonts.primary,
               }}>AGI</span>
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 fontWeight: 'bold',
                 fontFamily: dashboardFonts.primary,
               }}>{effectiveStats.agility}</span>
@@ -521,14 +525,14 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
             >
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 fontFamily: dashboardFonts.primary,
               }}>INT</span>
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 fontWeight: 'bold',
                 fontFamily: dashboardFonts.primary,
               }}>{effectiveStats.intelligence}</span>
@@ -547,14 +551,14 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
             >
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 fontFamily: dashboardFonts.primary,
               }}>GOLD</span>
               <span style={{
                 fontSize: '11px',
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 fontWeight: 'bold',
                 fontFamily: dashboardFonts.primary,
               }}>{character.gold}</span>
@@ -562,7 +566,10 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
           </div>
 
           {/* Equipment Grid - Bottom Half */}
-          <div className="grid grid-cols-2 gap-4 h-1/2 p-6 place-items-center" style={{ overflow: 'hidden' }}>
+          <div
+            className="grid grid-cols-2 grid-rows-3 gap-2 p-0 place-items-stretch"
+            style={{ overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}
+          >
             {renderEquipmentSlot('WEAPON', equipmentSlots.WEAPON)}
             {renderEquipmentSlot('HELMET', equipmentSlots.HELMET)}
             {renderEquipmentSlot('ARMOR', equipmentSlots.ARMOR)}

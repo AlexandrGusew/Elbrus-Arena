@@ -157,7 +157,7 @@ export function InventorySection({
           whiteSpace: 'nowrap',
           fontSize: '18px',
           fontWeight: 'bold',
-          color: dashboardColors.textRedLight,
+          color: dashboardColors.textGold,
         }}>{value}</span>
       </div>
     </div>
@@ -172,7 +172,7 @@ export function InventorySection({
             onClick={onBack}
           style={{
             ...cardStyle,
-            border: `3px solid ${dashboardColors.borderRed}`,
+            border: `3px solid ${dashboardColors.borderGold}`,
             padding: '14px 28px',
             display: 'flex',
             alignItems: 'center',
@@ -182,10 +182,10 @@ export function InventorySection({
             overflow: 'hidden',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+            e.currentTarget.style.borderColor = dashboardColors.borderBronze;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = dashboardColors.borderRed;
+            e.currentTarget.style.borderColor = dashboardColors.borderGold;
           }}
           >
             <div style={cornerOrnaments.topLeft}></div>
@@ -204,7 +204,7 @@ export function InventorySection({
           onClick={onNavigateToInventory}
           style={{
             ...cardStyle,
-            border: `3px solid ${!showForge ? dashboardColors.borderRedHover : dashboardColors.borderRed}`,
+            border: `3px solid ${!showForge ? dashboardColors.borderBronze : dashboardColors.borderGold}`,
             padding: '14px 28px',
             display: 'flex',
             alignItems: 'center',
@@ -242,7 +242,7 @@ export function InventorySection({
             onClick={onNavigateToForge}
           style={{
             ...cardStyle,
-            border: `3px solid ${showForge ? dashboardColors.borderRedHover : dashboardColors.borderRed}`,
+            border: `3px solid ${showForge ? dashboardColors.borderBronze : dashboardColors.borderGold}`,
             padding: '14px 36px',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
@@ -316,7 +316,7 @@ export function InventorySection({
             />
           ) : (
             <span style={{
-              color: dashboardColors.textRed,
+              color: dashboardColors.textGold,
               fontSize: '11px',
               textTransform: 'uppercase',
               textAlign: 'center',
@@ -345,7 +345,7 @@ export function InventorySection({
               textAlign: 'center',
             }}>
               <span style={{
-                color: dashboardColors.textRed,
+                color: dashboardColors.textGold,
                 fontSize: '13px',
                 textTransform: 'uppercase',
                 fontFamily: dashboardFonts.secondary,
@@ -364,7 +364,7 @@ export function InventorySection({
                 padding: '10px 12px',
               }}>
                 <span style={{
-                  color: dashboardColors.textRed,
+                  color: dashboardColors.textGold,
                   fontSize: '13px',
                   textTransform: 'uppercase',
                   fontFamily: dashboardFonts.secondary,
@@ -398,7 +398,7 @@ export function InventorySection({
         onDrop={handleInventoryDrop}
         style={{ 
           ...cardStyle,
-          border: `3px solid ${isInventoryDropZone ? 'rgba(34, 197, 94, 0.8)' : dashboardColors.borderRed}`,
+          border: `3px solid ${isInventoryDropZone ? 'rgba(34, 197, 94, 0.8)' : dashboardColors.borderGold}`,
           background: isInventoryDropZone ? 'rgba(20, 83, 45, 0.3)' : cardStyle.background,
           height: '560px',
           padding: '20px',
@@ -420,7 +420,7 @@ export function InventorySection({
               onDragEnd={handleDragEnd}
               onClick={() => handleItemClick(invItem)}
               style={{
-                border: `2px solid ${selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id ? dashboardColors.borderRed : dashboardColors.borderAmber}`,
+                border: `2px solid ${selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id ? dashboardColors.borderGold : dashboardColors.borderMetal}`,
                 borderRadius: '8px',
                 background: cardStyle.background,
                 transition: 'all 0.3s ease',
@@ -435,7 +435,7 @@ export function InventorySection({
               }}
               onMouseEnter={(e) => {
                 if (selectedItem?.id !== invItem.id && forgeItemSlot?.id !== invItem.id) {
-                  e.currentTarget.style.borderColor = dashboardColors.borderRed;
+                  e.currentTarget.style.borderColor = dashboardColors.borderGold;
                 }
               }}
               onMouseLeave={(e) => {

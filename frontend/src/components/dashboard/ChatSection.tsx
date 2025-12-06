@@ -15,7 +15,7 @@ export function ChatSection({ characterId, characterName }: ChatSectionProps) {
     <div 
       style={{
         ...cardStyle,
-        border: `3px solid ${dashboardColors.borderRed}`,
+        border: `3px solid ${dashboardColors.borderGold}`,
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
@@ -41,7 +41,7 @@ export function ChatSection({ characterId, characterName }: ChatSectionProps) {
           fontSize: '36px',
           textTransform: 'uppercase',
           letterSpacing: '0.3em',
-          color: dashboardColors.textRed,
+          color: dashboardColors.textGold,
           opacity: 0.4,
           fontFamily: dashboardFonts.primary,
           textShadow: dashboardEffects.textShadow,
@@ -71,21 +71,21 @@ export function ChatSection({ characterId, characterName }: ChatSectionProps) {
               transition: 'all 0.3s ease',
               fontFamily: dashboardFonts.primary,
               border: activeTab === tab 
-                ? `2px solid ${dashboardColors.borderRed}` 
+                ? `2px solid ${dashboardColors.borderGold}` 
                 : `1px solid ${dashboardColors.borderAmber}`,
               background: activeTab === tab
                 ? 'linear-gradient(to bottom, rgba(139, 0, 0, 0.6) 0%, rgba(139, 0, 0, 0.9) 100%)'
                 : dashboardColors.backgroundMedium,
               color: activeTab === tab 
-                ? dashboardColors.textRed 
+                ? dashboardColors.textGold 
                 : dashboardColors.textMuted,
               boxShadow: activeTab === tab ? 'inset 0 2px 4px rgba(0, 0, 0, 0.5)' : 'none',
               cursor: 'pointer',
             }}
             onMouseEnter={(e) => {
               if (activeTab !== tab) {
-                e.currentTarget.style.color = dashboardColors.textRed;
-                e.currentTarget.style.borderColor = dashboardColors.borderRed;
+                e.currentTarget.style.color = dashboardColors.textGold;
+                e.currentTarget.style.borderColor = dashboardColors.borderGold;
               }
             }}
             onMouseLeave={(e) => {
