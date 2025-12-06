@@ -20,7 +20,7 @@ export function AuthLayout({ children, showBackButton = false, onBack, showExitB
     const audioRef = useRef<HTMLAudioElement>(null);
     const [musicOn, setMusicOn] = useState(() => {
         const savedMusicState = localStorage.getItem('musicPlaying');
-        return savedMusicState !== null ? savedMusicState === 'true' : true;
+        return savedMusicState !== null ? savedMusicState === 'true' : false;
     });
 
     // Управление музыкой

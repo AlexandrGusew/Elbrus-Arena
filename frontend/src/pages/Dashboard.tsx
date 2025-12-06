@@ -44,7 +44,7 @@ const Dashboard = () => {
   // Загружаем настройку музыки из localStorage
   const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
     const savedMusicState = localStorage.getItem('musicPlaying');
-    return savedMusicState !== null ? savedMusicState === 'true' : true;
+    return savedMusicState !== null ? savedMusicState === 'true' : false;
   });
 
   const audioRef = useRef<HTMLAudioElement>(null);

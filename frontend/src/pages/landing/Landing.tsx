@@ -39,7 +39,7 @@ export default function Landing() {
   console.log('[Landing] Background Video URL:', backgroundVideoUrl);
 
   const handleLoginClick = () => {
-    navigate('/auth');
+    navigate('/login');
   };
 
   const scrollToSection = (sectionId: string) => {
