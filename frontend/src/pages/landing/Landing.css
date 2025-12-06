@@ -1,12 +1,12 @@
 /* Landing Page Styles */
 
-/* Medieval/Fantasy Font Declarations */
+/* Dark Fantasy Font Declarations */
 :root {
-  --font-medieval: 'MedievalSharp', cursive;
-  --font-items: 'Cormorant Unicase', serif;
-  --font-accents: 'Gabriela', serif;
-  --font-ui: 'Cinzel', serif;
-  --font-body: 'Junicode', serif;
+  --font-gothic: 'UnifrakturMaguntia', cursive; /* Готический основной */
+  --font-epic: 'Cinzel', serif; /* Эпичный для заголовков */
+  --font-descriptions: 'Merriweather', serif; /* Читаемый для описаний */
+  --font-interface: 'Roboto', sans-serif; /* Простой для интерфейса */
+  --font-ui: 'Raleway', sans-serif; /* Минималистичный для UI */
 }
 
 .landing {
@@ -17,7 +17,7 @@
   position: relative;
   background: transparent;
   isolation: isolate; /* Создает новый stacking context */
-  font-family: var(--font-body); /* Основной текст - Junicode */
+  font-family: var(--font-descriptions); /* Основной текст - Merriweather */
 }
 
 /* Фиксированное видео на весь экран */
@@ -65,12 +65,12 @@
 }
 
 .logo {
-  font-family: var(--font-medieval); /* MedievalSharp */
-  font-size: 1.5rem;
+  font-family: var(--font-gothic); /* UnifrakturMaguntia - готический */
+  font-size: 1.8rem;
   font-weight: bold;
   color: #ffd700;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-  letter-spacing: 1px;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.7), 0 0 30px rgba(139, 0, 0, 0.5);
+  letter-spacing: 2px;
 }
 
 .nav-menu {
@@ -79,14 +79,16 @@
 }
 
 .nav-menu a {
-  font-family: var(--font-ui); /* Cinzel */
+  font-family: var(--font-ui); /* Raleway - минималистичный */
   color: #ffffff;
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
   transition: all 0.3s ease;
   position: relative;
   cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .nav-menu a::after {
@@ -133,50 +135,53 @@
 .hero-content {
   position: relative;
   z-index: 10;
-  text-align: center;
+  text-align: left; /* Изменено: текст слева как на макете */
   max-width: 900px;
-  padding: 0 2rem;
+  padding: 0 3rem; /* Увеличен отступ слева */
+  margin-right: auto; /* Прижимаем к левому краю */
   animation: fadeInUp 1s ease-out;
 }
 
 .hero-title {
-  font-family: var(--font-medieval); /* MedievalSharp - H1 */
-  font-size: 4rem;
+  font-family: var(--font-gothic); /* UnifrakturMaguntia - готический */
+  font-size: 3.5rem;
   font-weight: bold;
   margin-bottom: 1.5rem;
   color: #ffd700;
   text-shadow:
-    0 0 20px rgba(255, 215, 0, 0.5),
-    0 0 40px rgba(139, 0, 0, 0.3);
-  letter-spacing: 2px;
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(139, 0, 0, 0.5),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 3px;
   line-height: 1.2;
 }
 
 .hero-subtitle {
-  font-family: var(--font-accents); /* Gabriela - важный текст */
-  font-size: 1.25rem;
-  color: #cccccc;
+  font-family: var(--font-descriptions); /* Merriweather - описания */
+  font-size: 1.2rem;
+  color: #e0e0e0;
   margin-bottom: 3rem;
   line-height: 1.8;
+  font-weight: 300;
 }
 
 .hero-buttons {
   display: flex;
   gap: 1.5rem;
-  justify-content: center;
+  justify-content: flex-start; /* Изменено: кнопки слева */
   flex-wrap: wrap;
 }
 
 .btn {
-  font-family: var(--font-ui); /* Cinzel - UI элементы */
+  font-family: var(--font-interface); /* Roboto - интерфейс */
   padding: 1rem 2.5rem;
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 700;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
@@ -240,12 +245,14 @@
 }
 
 .section-title {
-  font-family: var(--font-medieval); /* MedievalSharp - H2 в стиле Diablo */
-  font-size: 2rem;
-  font-weight: bold;
+  font-family: var(--font-epic); /* Cinzel - эпичный для заголовков */
+  font-size: 2.5rem;
+  font-weight: 700;
   color: #ffd700;
   text-align: center;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 2px 2px 4px rgba(0, 0, 0, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 3px;
 }
 
 .classes-grid {
@@ -314,19 +321,21 @@
 }
 
 .class-title {
-  font-family: var(--font-items); /* Cormorant Unicase - легендарное снаряжение */
-  font-size: 1.5rem;
+  font-family: var(--font-epic); /* Cinzel - эпичный */
+  font-size: 1.6rem;
   color: #ffd700;
   margin-bottom: 1rem;
-  font-weight: bold;
-  letter-spacing: 1px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .class-description {
-  font-family: var(--font-accents); /* Gabriela - описания */
-  color: #cccccc;
-  line-height: 1.6;
+  font-family: var(--font-descriptions); /* Merriweather - описания */
+  color: #d0d0d0;
+  line-height: 1.7;
   font-size: 0.95rem;
+  font-weight: 300;
 }
 
 /* Features Section */
