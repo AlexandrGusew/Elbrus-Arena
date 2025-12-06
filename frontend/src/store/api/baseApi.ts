@@ -1,11 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 // Предупреждение если в production не задан API URL
 if (import.meta.env.PROD && !import.meta.env.VITE_API_BASE_URL) {
-  console.warn('[baseApi] VITE_API_BASE_URL not set in production, using relative path /api')
+  console.warn('[baseApi] VITE_API_BASE_URL not set in production, using relative path (no prefix)')
 }
 
 // Хранилище access token в памяти (не в localStorage!)

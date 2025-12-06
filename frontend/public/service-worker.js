@@ -75,8 +75,20 @@ self.addEventListener('fetch', (event) => {
 
   // Для остального - Network First с fallback на Cache
   event.respondWith(
-    fetch(request).catch(() => {
-      return caches.match(request);
+    fetch(request).catch(async () => {
+      const cached = await caches.match(request);
+      if (cached) {
+        return cached;
+      }
+
+      // Для навигации - возвращаем index.html
+      if (request.mode === 'navigate') {
+        const indexCache = await caches.match('/index.html');
+        if (indexCache) return indexCache;
+      }
+
+      // Для остальных - 404
+      return new Response('Not found', { status: 404 });
     })
   );
 });

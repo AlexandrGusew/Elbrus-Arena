@@ -1,0 +1,1129 @@
+/* Landing Page Styles */
+
+/* Dark Fantasy Font Declarations */
+:root {
+  --font-gothic: 'UnifrakturMaguntia', cursive; /* Готический основной */
+  --font-epic: 'Cinzel', serif; /* Эпичный для заголовков */
+  --font-descriptions: 'Merriweather', serif; /* Читаемый для описаний */
+  --font-interface: 'Roboto', sans-serif; /* Простой для интерфейса */
+  --font-ui: 'Raleway', sans-serif; /* Минималистичный для UI */
+}
+
+.landing {
+  width: 100%;
+  min-height: 100vh;
+  color: #ffffff;
+  overflow-x: hidden;
+  position: relative;
+  background: transparent;
+  isolation: isolate; /* Создает новый stacking context */
+  font-family: var(--font-descriptions); /* Основной текст - Merriweather */
+}
+
+/* Фиксированное видео на весь экран */
+.landing-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Темный оверлей отключен для проверки видимости фона */
+/* .landing-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+} */
+
+/* Header */
+.landing-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.header-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: var(--font-gothic); /* UnifrakturMaguntia - готический */
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.7), 0 0 30px rgba(139, 0, 0, 0.5);
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.logo-img {
+  height: 80px;
+  width: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+  transition: all 0.3s ease;
+}
+
+.logo-img:hover {
+  filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+  transform: scale(1.05);
+}
+
+.nav-menu {
+  display: flex;
+  gap: 2.5rem;
+}
+
+.nav-menu a {
+  font-family: var(--font-ui); /* Raleway - минималистичный */
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.nav-menu a::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #ffd700;
+  transition: width 0.3s ease;
+}
+
+.nav-menu a:hover {
+  color: #ffd700;
+}
+
+.nav-menu a:hover::after {
+  width: 100%;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.2); /* Прозрачность -2 пункта (блок 1) */
+  border-radius: 15px; /* Скругление углов */
+  overflow: hidden;
+  z-index: 1;
+  backdrop-filter: blur(2px);
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: left; /* Изменено: текст слева как на макете */
+  max-width: 900px;
+  padding: 0 3rem; /* Увеличен отступ слева */
+  margin-right: auto; /* Прижимаем к левому краю */
+  animation: fadeInUp 1s ease-out;
+  width: 100%; /* Занимаем всю ширину для центрирования кнопок */
+}
+
+.hero-title {
+  font-family: var(--font-gothic); /* UnifrakturMaguntia - готический */
+  font-size: 3.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #ffd700;
+  text-shadow:
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(139, 0, 0, 0.5),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 3px;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-family: var(--font-descriptions); /* Merriweather - описания */
+  font-size: 1.2rem;
+  color: #e0e0e0;
+  margin-bottom: 3rem;
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center; /* Изменено: кнопки по центру */
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: var(--font-interface); /* Roboto - интерфейс */
+  padding: 0.8rem 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: transparent !important; /* Явно прозрачный фон */
+  background-color: transparent !important; /* Дополнительная гарантия */
+  background-clip: padding-box; /* Обеспечивает прозрачность */
+  -webkit-background-clip: padding-box;
+  -moz-background-clip: padding-box;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  position: relative;
+  white-space: nowrap;
+
+  /* Убираем любые тени и эффекты которые могут создавать непрозрачность */
+  box-shadow: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+}
+
+.btn-primary {
+  color: #ffd700;
+  text-shadow:
+    0 0 10px rgba(255, 215, 0, 0.8),
+    2px 2px 4px rgba(0, 0, 0, 0.9);
+  filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.3));
+}
+
+.btn-primary:hover {
+  color: #ffffff;
+  text-shadow:
+    0 0 15px rgba(255, 255, 255, 1),
+    0 0 25px rgba(255, 215, 0, 0.9),
+    2px 2px 4px rgba(0, 0, 0, 0.9);
+  filter:
+    brightness(1.2)
+    drop-shadow(0 6px 30px rgba(255, 215, 0, 0.6));
+  transform: translateY(-3px) scale(1.02);
+}
+
+.btn-outline {
+  color: #ffd700;
+  text-shadow:
+    0 0 8px rgba(255, 215, 0, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+  filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.2));
+}
+
+.btn-outline:hover {
+  color: #ffffff;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.9),
+    0 0 20px rgba(255, 215, 0, 0.8),
+    2px 2px 4px rgba(0, 0, 0, 0.9);
+  filter:
+    brightness(1.15)
+    drop-shadow(0 6px 25px rgba(255, 215, 0, 0.5));
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* Classes Section */
+.classes-section {
+  padding: 6rem 2rem;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.4); /* Прозрачность -4 пункта (блок 2) */
+  border-radius: 15px; /* Скругление углов */
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(3px);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.section-icon {
+  font-size: 2rem;
+  color: #ffd700;
+}
+
+.section-title {
+  font-family: var(--font-gothic); /* UnifrakturMaguntia - готический как в хедере */
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-align: center;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.7), 0 0 30px rgba(139, 0, 0, 0.5);
+  letter-spacing: 2px;
+}
+
+.classes-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.class-card {
+  /* Эффект старинной бумаги для карточек */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(139, 115, 85, 0.05) 0px,
+      transparent 1px,
+      transparent 2px
+    ),
+    radial-gradient(circle at 30% 40%, rgba(101, 67, 33, 0.2) 0%, transparent 60%),
+    rgba(0, 0, 0, 0.65);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+
+.class-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.class-card:hover::before {
+  opacity: 1;
+}
+
+.class-card.featured {
+  border-color: #ffd700;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+}
+
+.class-card:hover {
+  transform: translateY(-10px);
+  border-color: #ffd700;
+  box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+}
+
+.class-icon {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  object-fit: cover;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.class-icon:hover {
+  border-color: #ffd700;
+  filter: brightness(1.1) drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+  transform: scale(1.1);
+}
+
+.class-title {
+  font-family: var(--font-epic); /* Cinzel - эпичный */
+  font-size: 1.6rem;
+  color: #ffd700;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.class-description {
+  font-family: var(--font-descriptions); /* Merriweather - описания */
+  color: #d0d0d0;
+  line-height: 1.7;
+  font-size: 0.95rem;
+  font-weight: 300;
+}
+
+/* Features Section */
+.features-section {
+  padding: 6rem 2rem;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.2); /* Прозрачность -2 пункта (блок 3) */
+  border-radius: 15px; /* Скругление углов */
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(2px);
+}
+
+.section-title-alt {
+  font-family: var(--font-medieval); /* MedievalSharp - H2 */
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  color: #ffd700;
+  margin-bottom: 4rem;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  letter-spacing: 2px;
+}
+
+.feature-block {
+  max-width: 1200px;
+  margin: 0 auto 4rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.feature-block.reverse {
+  direction: rtl;
+}
+
+.feature-block.reverse > * {
+  direction: ltr;
+}
+
+.feature-content h3 {
+  font-family: var(--font-medieval); /* MedievalSharp - H3 */
+  font-size: 1.5rem;
+  color: #ffd700;
+  margin-bottom: 1.5rem;
+}
+
+.feature-content p {
+  font-family: var(--font-body); /* Junicode - основной текст */
+  color: #cccccc;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  font-size: 1.05rem;
+}
+
+.feature-image {
+  width: 100%;
+  height: 350px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.feature-image:hover {
+  border-color: #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.feature-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.feature-img:hover {
+  filter: brightness(1.1);
+  transform: scale(1.1);
+}
+
+.arena-placeholder,
+.dungeon-placeholder,
+.fate-placeholder,
+.items-placeholder {
+  font-size: 3rem;
+  color: rgba(255, 215, 0, 0.3);
+  font-weight: bold;
+}
+
+/* Gallery Section */
+.gallery-section {
+  padding: 6rem 2rem;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.4); /* Прозрачность -4 пункта (блок 4) */
+  border-radius: 15px; /* Скругление углов */
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(3px);
+}
+
+.gallery-grid {
+  max-width: 1400px;
+  margin: 0 auto 3rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.gallery-item {
+  height: 250px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+  border-color: #ffd700;
+  box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+}
+
+.gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.gallery-img:hover {
+  filter: brightness(1.1);
+  transform: scale(1.1);
+}
+
+.gallery-placeholder {
+  font-size: 2rem;
+  color: rgba(255, 215, 0, 0.3);
+  font-weight: bold;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.social-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 215, 0, 0.1);
+  border: 2px solid #ffd700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.social-icon:hover {
+  background: #ffd700;
+  color: #0a0a0a;
+  transform: translateY(-5px);
+  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Parchment Section */
+.parchment-section {
+  padding: 6rem 2rem;
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.2); /* Прозрачность -2 пункта (блок 5) */
+  border-radius: 15px; /* Скругление углов */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(2px);
+}
+
+.parchment {
+  max-width: 900px;
+  /* Эффект старинной бумаги */
+  background:
+    /* Шум и текстура */
+    repeating-linear-gradient(
+      0deg,
+      rgba(139, 115, 85, 0.03) 0px,
+      transparent 1px,
+      transparent 2px,
+      rgba(139, 115, 85, 0.03) 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(139, 115, 85, 0.03) 0px,
+      transparent 1px,
+      transparent 2px,
+      rgba(139, 115, 85, 0.03) 3px
+    ),
+    /* Пятна старения */
+    radial-gradient(circle at 20% 30%, rgba(101, 67, 33, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(101, 67, 33, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(101, 67, 33, 0.12) 0%, transparent 40%),
+    /* Основной фон старой бумаги */
+    linear-gradient(135deg,
+      rgba(42, 35, 20, 0.8) 0%,
+      rgba(26, 26, 10, 0.7) 50%,
+      rgba(35, 30, 15, 0.8) 100%
+    );
+  border: 3px solid #8b7355;
+  border-radius: 8px;
+  padding: 4rem 3rem;
+  position: relative;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    inset 0 0 20px rgba(139, 115, 85, 0.1),
+    inset 2px 2px 10px rgba(101, 67, 33, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+.parchment::before,
+.parchment::after {
+  content: '⚜';
+  position: absolute;
+  font-size: 2rem;
+  color: #8b7355;
+  opacity: 0.3;
+}
+
+.parchment::before {
+  top: 1rem;
+  left: 1rem;
+}
+
+.parchment::after {
+  bottom: 1rem;
+  right: 1rem;
+}
+
+.parchment-content {
+  text-align: center;
+}
+
+.parchment-title {
+  font-family: var(--font-medieval); /* MedievalSharp - H2 */
+  font-size: 2rem;
+  color: #ffd700;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.parchment-text {
+  font-family: var(--font-accents); /* Gabriela - описание квеста */
+  color: #d4c5a9;
+  line-height: 2;
+  margin-bottom: 2.5rem;
+  font-size: 1.1rem;
+}
+
+/* Footer */
+.landing-footer {
+  margin: 25px; /* Отступы от края экрана */
+  background: rgba(0, 0, 0, 0.4); /* Прозрачность -4 пункта (блок 6) */
+  border-radius: 15px; /* Скругление углов */
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  padding: 4rem 2rem 2rem;
+  backdrop-filter: blur(3px);
+  position: relative;
+  z-index: 1;
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto 3rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 3rem;
+}
+
+.footer-column h4 {
+  font-family: var(--font-ui); /* Cinzel - UI элементы */
+  color: #ffd700;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
+}
+
+.footer-column p {
+  font-family: var(--font-body); /* Junicode - основной текст */
+  color: #999999;
+  line-height: 1.8;
+  font-size: 0.95rem;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-column ul li {
+  margin-bottom: 0.75rem;
+}
+
+.footer-column ul li a {
+  color: #999999;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.footer-column ul li a:hover {
+  color: #ffd700;
+}
+
+.footer-bottom {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 215, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #666666;
+  font-size: 0.9rem;
+}
+
+.footer-social {
+  display: flex;
+  gap: 1rem;
+}
+
+.footer-social a {
+  color: #666666;
+  text-decoration: none;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.footer-social a:hover {
+  color: #ffd700;
+  transform: translateY(-3px);
+}
+
+/* Scroll-Driven Animations */
+@keyframes scrollScale {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.3;
+  }
+}
+
+/* Применяем scroll-driven анимации к секциям */
+.classes-section,
+.features-section,
+.gallery-section,
+.parchment-section {
+  animation: scrollScale linear;
+  animation-timeline: scroll(root);
+  animation-range: entry 0% exit 100%;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scroll reveal classes */
+.scroll-reveal {
+  opacity: 0;
+  transition: none;
+}
+
+.scroll-reveal.revealed {
+  animation-duration: 0.8s;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+.scroll-reveal.revealed.fade-in {
+  animation-name: fadeIn;
+}
+
+.scroll-reveal.revealed.fade-up {
+  animation-name: fadeInUp;
+}
+
+.scroll-reveal.revealed.slide-left {
+  animation-name: slideInLeft;
+}
+
+.scroll-reveal.revealed.slide-right {
+  animation-name: slideInRight;
+}
+
+.scroll-reveal.revealed.scale-in {
+  animation-name: scaleIn;
+}
+
+/* Задержки для последовательного появления */
+.scroll-reveal.delay-1 { animation-delay: 0.1s; }
+.scroll-reveal.delay-2 { animation-delay: 0.2s; }
+.scroll-reveal.delay-3 { animation-delay: 0.3s; }
+.scroll-reveal.delay-4 { animation-delay: 0.4s; }
+.scroll-reveal.delay-5 { animation-delay: 0.5s; }
+.scroll-reveal.delay-6 { animation-delay: 0.6s; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+
+  .feature-block {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .feature-block.reverse {
+    direction: ltr;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .nav-menu {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .section-title-alt {
+    font-size: 2rem;
+  }
+
+  .classes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .parchment {
+    padding: 2rem 1.5rem;
+  }
+
+  .parchment-title {
+    font-size: 1.8rem;
+  }
+
+  .parchment-text {
+    font-size: 1rem;
+  }
+}
+
+/* Модальное окно для портретов - КРАСОЧНАЯ АНИМАЦИЯ */
+.portrait-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle, rgba(139, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.95) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+  animation: modalBackdropAppear 0.6s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes modalBackdropAppear {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+  }
+}
+
+.portrait-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  animation: epicZoomRotate 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  filter: drop-shadow(0 0 60px rgba(255, 215, 0, 0.8))
+          drop-shadow(0 0 100px rgba(139, 0, 0, 0.6));
+}
+
+.portrait-modal-img {
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 12px;
+  border: 4px solid #ffd700;
+  box-shadow:
+    0 0 30px rgba(255, 215, 0, 0.9),
+    0 0 60px rgba(255, 215, 0, 0.6),
+    0 0 90px rgba(139, 0, 0, 0.8),
+    inset 0 0 20px rgba(255, 215, 0, 0.2);
+  object-fit: contain;
+  animation: imagePulse 2s ease-in-out infinite;
+}
+
+/* Эпическая анимация появления с вращением и масштабированием */
+@keyframes epicZoomRotate {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+    filter: blur(20px) hue-rotate(0deg);
+  }
+  50% {
+    filter: blur(5px) hue-rotate(180deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0px) hue-rotate(360deg);
+  }
+}
+
+/* Пульсация золотого свечения */
+@keyframes imagePulse {
+  0%, 100% {
+    box-shadow:
+      0 0 30px rgba(255, 215, 0, 0.9),
+      0 0 60px rgba(255, 215, 0, 0.6),
+      0 0 90px rgba(139, 0, 0, 0.8),
+      inset 0 0 20px rgba(255, 215, 0, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 40px rgba(255, 215, 0, 1),
+      0 0 80px rgba(255, 215, 0, 0.8),
+      0 0 120px rgba(139, 0, 0, 1),
+      inset 0 0 30px rgba(255, 215, 0, 0.3);
+  }
+}
+
+/* Модальное окно для feature images - ДРУГИЕ ЭФФЕКТЫ */
+.feature-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle, rgba(0, 100, 139, 0.3) 0%, rgba(0, 0, 0, 0.95) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+  animation: featureModalBackdropAppear 0.5s ease-out;
+  backdrop-filter: blur(15px);
+}
+
+@keyframes featureModalBackdropAppear {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(15px);
+  }
+}
+
+.feature-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  animation: featureSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 0 80px rgba(0, 150, 255, 0.8))
+          drop-shadow(0 0 120px rgba(0, 255, 255, 0.5));
+}
+
+.feature-modal-img {
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 16px;
+  border: 5px solid #00ffff;
+  box-shadow:
+    0 0 40px rgba(0, 255, 255, 0.9),
+    0 0 80px rgba(0, 150, 255, 0.7),
+    0 0 120px rgba(0, 100, 255, 0.8),
+    inset 0 0 30px rgba(0, 255, 255, 0.2);
+  object-fit: contain;
+  animation: featureGlow 2.5s ease-in-out infinite;
+}
+
+/* Анимация слайда с боковым вращением */
+@keyframes featureSlideIn {
+  0% {
+    transform: translateX(-100vw) rotateY(-90deg);
+    opacity: 0;
+    filter: blur(30px);
+  }
+  60% {
+    filter: blur(10px);
+  }
+  100% {
+    transform: translateX(0) rotateY(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+/* Пульсация синего свечения */
+@keyframes featureGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 40px rgba(0, 255, 255, 0.9),
+      0 0 80px rgba(0, 150, 255, 0.7),
+      0 0 120px rgba(0, 100, 255, 0.8),
+      inset 0 0 30px rgba(0, 255, 255, 0.2);
+    border-color: #00ffff;
+  }
+  50% {
+    box-shadow:
+      0 0 60px rgba(0, 255, 255, 1),
+      0 0 120px rgba(0, 150, 255, 0.9),
+      0 0 180px rgba(0, 100, 255, 1),
+      inset 0 0 50px rgba(0, 255, 255, 0.4);
+    border-color: #00bfff;
+  }
+}

@@ -5,12 +5,9 @@ import { store } from './store'
 import './index.css'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
-// import Login from './pages/Login' // Старый Login
-import { LoginPage } from './pages/login/LoginPage'
-import { RegisterPage } from './pages/login/RegisterPage'
-// import CreateCharacter from './pages/CreateCharacter' // Старый CreateCharacter
-import { ChooseHeroPage } from './pages/chooseHero/ChooseHeroPage'
-import { CreateCharacterPage } from './pages/createCharacter/CreateCharacterPage'
+import Landing from './pages/landing'
+import Login from './pages/Login'
+import CreateCharacter from './pages/CreateCharacter'
 import Dashboard from './pages/Dashboard'
 import PvP from './pages/PvP'
 import Dungeon from './pages/Dungeon'
@@ -25,23 +22,11 @@ import { getAssetUrl } from './utils/assetUrl'
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/login" replace />
+    element: <Landing />
   },
   {
-    path: '/login',
-    element: <LoginPage />
-  },
-  {
-    path: '/register',
-    element: <RegisterPage />
-  },
-  {
-    path: '/choose-hero',
-    element: <ChooseHeroPage />
-  },
-  {
-    path: '/create-character',
-    element: <CreateCharacterPage />
+    path: '/auth',
+    element: <Login />
   },
   {
     element: <Layout />,
@@ -99,6 +84,22 @@ registerServiceWorker({
 
     // Список критических ресурсов для предзагрузки
     const criticalAssets = [
+      // Landing страница
+      getAssetUrl('Landing/Landing_background.mp4'),
+
+      // Login/CreateCharacter страницы
+      getAssetUrl('createCharacter/animatedBackground.mp4'),
+      getAssetUrl('createCharacter/backgroundIntro.mp3'),
+      getAssetUrl('createCharacter/fonModal.png'),
+      getAssetUrl('createCharacter/inputName.png'),
+      getAssetUrl('createCharacter/buttonEnter.png'),
+      getAssetUrl('createCharacter/music.png'),
+
+      // Персонажи
+      getAssetUrl('createCharacter/warrior (1).png'),
+      getAssetUrl('createCharacter/mage (1).png'),
+      getAssetUrl('createCharacter/rogue (1).png'),
+
       // Dashboard
       getAssetUrl('dashboard/mainCity.mp3'),
       getAssetUrl('dashboard/mainCityBackground.mp4'),

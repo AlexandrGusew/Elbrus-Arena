@@ -1,3 +1,6 @@
+/* Import Dark Fantasy Fonts from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Cinzel:wght@400;500;600;700;800&family=Merriweather:wght@300;400;700;900&family=Roboto:wght@300;400;500;700&family=Raleway:wght@300;400;500;600;700&family=Noto+Serif:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,15 +26,15 @@
     height: 100%;
     z-index: -1;
     pointer-events: none;
-    
+
     /* Базовый градиент */
-    background: 
+    background:
       radial-gradient(ellipse 100% 50% at 50% 0%, rgba(201, 168, 106, 0.08) 0%, transparent 50%),
       radial-gradient(ellipse 80% 40% at 20% 100%, rgba(160, 121, 56, 0.06) 0%, transparent 60%),
       radial-gradient(ellipse 80% 40% at 80% 100%, rgba(107, 84, 46, 0.05) 0%, transparent 60%),
       linear-gradient(180deg, #0B0B0D 0%, #1A1A1F 50%, #0B0B0D 100%);
   }
-  
+
   /* Текстура камня/металла */
   body::after {
     content: '';
@@ -42,7 +45,7 @@
     height: 100%;
     z-index: -1;
     pointer-events: none;
-    backgroundImage: 
+    backgroundImage:
       repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(26, 26, 31, 0.3) 2px, rgba(26, 26, 31, 0.3) 4px),
       repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(26, 26, 31, 0.2) 2px, rgba(26, 26, 31, 0.2) 4px);
     opacity: 0.4;
@@ -85,7 +88,7 @@
     height: 100%;
     z-index: -1;
     pointer-events: none;
-    background-image: 
+    background-image:
       radial-gradient(circle at 0% 0%, rgba(201, 168, 106, 0.1) 0%, transparent 15%),
       radial-gradient(circle at 100% 0%, rgba(201, 168, 106, 0.1) 0%, transparent 15%),
       radial-gradient(circle at 0% 100%, rgba(160, 121, 56, 0.08) 0%, transparent 15%),
@@ -95,79 +98,42 @@
 
 /* Custom Components */
 @layer components {
-  .btn-primary {
-    @apply bg-dark-red hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
-  }
+	.btn-primary {
+		@apply bg-dark-red hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
+	}
 
-  .btn-secondary {
-    @apply bg-dark-accent hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
-  }
+	.btn-secondary {
+		@apply bg-dark-accent hover:bg-opacity-80 text-dark-text font-bold py-3 px-6 rounded-lg transition-all duration-200;
+	}
 
-  .card {
-    @apply bg-dark-panel p-6 rounded-lg shadow-lg border border-dark-accent;
-  }
+	.card {
+		@apply bg-dark-panel p-6 rounded-lg shadow-lg border border-dark-accent;
+	}
 }
 
-/* Gradient Glowing Text Utilities */
-@layer utilities {
-  /* Базовый градиентный текст с золотым свечением */
-  .text-gradient-gold {
-    background: linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow:
-      0 0 20px rgba(217, 119, 6, 0.8),
-      0 0 40px rgba(217, 119, 6, 0.4),
-      2px 2px 4px rgba(0, 0, 0, 0.8);
-  }
+/* Fix autofill white background in browsers */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: #ffffff;
+	transition: background-color 5000s ease-in-out 0s;
+	box-shadow: inset 0 0 20px 20px transparent !important;
+	background-color: transparent !important;
+}
 
-  /* Интенсивное свечение (для заголовков) */
-  .text-gradient-gold-intense {
-    background: linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow:
-      0 0 30px rgba(217, 119, 6, 1),
-      0 0 60px rgba(217, 119, 6, 0.6),
-      0 0 90px rgba(217, 119, 6, 0.3),
-      3px 3px 6px rgba(0, 0, 0, 0.9);
-  }
+/* Firefox autofill */
+input:-moz-autofill,
+input:-moz-autofill-preview {
+	filter: none;
+	background-color: transparent !important;
+	color: #ffffff !important;
+}
 
-  /* Легкое свечение (для небольшого текста) */
-  .text-gradient-gold-soft {
-    background: linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow:
-      0 0 10px rgba(217, 119, 6, 0.6),
-      0 0 20px rgba(217, 119, 6, 0.3),
-      1px 1px 2px rgba(0, 0, 0, 0.7);
-  }
-
-  /* Красный градиент (для опасных элементов) */
-  .text-gradient-red {
-    background: linear-gradient(to bottom, #fca5a5 0%, #dc2626 50%, #7f1d1d 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow:
-      0 0 20px rgba(220, 38, 38, 0.8),
-      0 0 40px rgba(220, 38, 38, 0.4),
-      2px 2px 4px rgba(0, 0, 0, 0.8);
-  }
-
-  /* Серебряный градиент (для нейтральных элементов) */
-  .text-gradient-silver {
-    background: linear-gradient(to bottom, #f3f4f6 0%, #9ca3af 50%, #374151 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow:
-      0 0 20px rgba(156, 163, 175, 0.8),
-      0 0 40px rgba(156, 163, 175, 0.4),
-      2px 2px 4px rgba(0, 0, 0, 0.8);
-  }
+/* Ensure all inputs have transparent background by default */
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+	background-color: transparent !important;
 }

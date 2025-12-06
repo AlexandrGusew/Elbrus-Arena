@@ -73,6 +73,17 @@ export const ChatWindow = ({ characterId, characterName, isOpen, onClose }: Chat
     getBlockedUsers,
   ]);
 
+  // Периодически обновляем список чатов для получения новых приватных чатов
+  useEffect(() => {
+    if (!isOpen || !characterId || !chatState.isConnected) return;
+
+    const interval = setInterval(() => {
+      getUserChats();
+    }, 5000); // Каждые 5 секунд
+
+    return () => clearInterval(interval);
+  }, [isOpen, characterId, chatState.isConnected, getUserChats]);
+
   // Автопрокрутка к последнему сообщению
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -100,10 +100,10 @@ export default function Login() {
       await handleAuthSuccess();
     } catch (err: any) {
       console.error('Login error:', err);
-      
+
       // Детальная обработка ошибок
       let errorMessage = 'Неверный логин или пароль';
-      
+
       if (err.status === 500) {
         errorMessage = 'Ошибка сервера. Проверьте логи бэкенда или обратитесь к администратору';
         console.error('Server error details:', err.data || err);
@@ -116,7 +116,7 @@ export default function Login() {
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
     }
   };
