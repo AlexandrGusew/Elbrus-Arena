@@ -2,10 +2,11 @@
   "CORSRules": [
     {
       "AllowedOrigins": [
-        "https://stage.nightfall-arena.ru",
-        "https://nightfall-arena.ru",
-        "http://localhost:5173",
-        "http://localhost:3000"
+          "http://178.72.139.236:9001",
+          "https://stage.nightfall-arena.ru",
+          "https://nightfall-arena.ru",
+          "http://localhost:5173",
+          "http://localhost:3000"
       ],
       "AllowedMethods": [
         "GET",
