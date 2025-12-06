@@ -11,7 +11,10 @@ import type { Character } from '../../types/api';
  */
 export function ChooseHeroPage() {
     const navigate = useNavigate();
-    const { data: character, isLoading } = useGetMyCharacterQuery();
+    const { data: characters, isLoading } = useGetMyCharacterQuery();
+
+    // API возвращает массив персонажей, берем первого
+    const character = characters?.[0] || null;
 
     // Заполняем массив до 3 слотов (1 персонаж если есть + пустые слоты)
     const slots: (Character | null)[] = character
@@ -19,6 +22,10 @@ export function ChooseHeroPage() {
         : [null, null, null];
 
     const handleSelectCharacter = (character: Character) => {
+        if (!character?.id) {
+            console.error('Character has no ID');
+            return;
+        }
         localStorage.setItem('characterId', character.id.toString());
         navigate('/dashboard');
     };
@@ -81,12 +88,12 @@ export function ChooseHeroPage() {
                                 <div className="absolute w-3 h-3 rounded-full bg-red-600 blur-sm animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.9)]" style={{ top: '56px', right: '48px', animationDelay: '0.5s' }}></div>
 
                                 <span className="text-6xl filter drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]">
-                                    {CLASS_ICONS[character.class.toLowerCase()] || '⚔️'}
+                                    {CLASS_ICONS[character.class?.toLowerCase() || ''] || '⚔️'}
                                 </span>
 
                                 {/* Level badge: 32px */}
                                 <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full border-2 border-amber-600/80 bg-gradient-to-br from-red-950 to-black flex items-center justify-center text-amber-200 text-sm shadow-lg">
-                                    {character.level}
+                                    {character.level || 1}
                                 </div>
                             </>
                         ) : (
@@ -107,7 +114,7 @@ export function ChooseHeroPage() {
 
                     {/* CLASS - Level: 22px height */}
                     <div className="h-[22px] px-4 border border-amber-900/30 rounded bg-stone-950/50 flex items-center justify-center text-amber-400/80 text-xs tracking-wider uppercase">
-                        {character ? `${character.class} - Level ${character.level}` : 'No Character'}
+                        {character ? `${character.class || 'Unknown'} - Level ${character.level || 1}` : 'No Character'}
                     </div>
                 </div>
             </div>
