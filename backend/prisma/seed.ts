@@ -307,6 +307,10 @@ async function main() {
 
 
   // ЛОГИКАЯ СЛЕДУЮЩАЯ Крыса → Гоблин → Крыса → Гоблин → Демон ЭТО ЛЕГКИЙ
+  // Удаляем существующих монстров перед добавлением новых (чтобы избежать дубликатов)
+  await prisma.dungeonMonster.deleteMany({
+    where: { dungeonId: easyDungeon.id },
+  });
   await prisma.dungeonMonster.createMany({
     data: [
       { dungeonId: easyDungeon.id, monsterId: rat.id, position: 1 },
@@ -318,6 +322,10 @@ async function main() {
   });
 
   // Гоблин → Скелет → Орк → Скелет → Демон СРЕДНИЙ
+  // Удаляем существующих монстров перед добавлением новых (чтобы избежать дубликатов)
+  await prisma.dungeonMonster.deleteMany({
+    where: { dungeonId: mediumDungeon.id },
+  });
   await prisma.dungeonMonster.createMany({
     data: [
       { dungeonId: mediumDungeon.id, monsterId: goblin.id, position: 1 },
@@ -329,6 +337,10 @@ async function main() {
   });
 
   // Скелет → Орк → Орк → Орк → Демон ХАРД УРОВЕНЬ
+  // Удаляем существующих монстров перед добавлением новых (чтобы избежать дубликатов)
+  await prisma.dungeonMonster.deleteMany({
+    where: { dungeonId: hardDungeon.id },
+  });
   await prisma.dungeonMonster.createMany({
     data: [
       { dungeonId: hardDungeon.id, monsterId: skeleton.id, position: 1 },

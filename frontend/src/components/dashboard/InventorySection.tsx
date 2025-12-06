@@ -390,26 +390,115 @@ export function InventorySection({
         <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/60"></div>
         <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/60"></div>
 
-        <div className="grid grid-cols-8 gap-2 overflow-y-auto h-full pr-2" style={{ maxHeight: '100%' }}>
-          {unequippedItems.map((invItem) => (
-            <div
-              key={invItem.id}
-              draggable={true}
-              onDragStart={(e) => handleDragStart(e, invItem)}
-              onDragEnd={handleDragEnd}
-              onClick={() => handleItemClick(invItem)}
-              className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 hover:border-amber-600/60 transition-all cursor-move flex flex-col items-center justify-center aspect-square p-1 ${
-                selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id ? 'border-red-700/80' : 'border-amber-800/40'
-              } ${draggedItem?.id === invItem.id ? 'opacity-50' : ''}`}
-              style={{ height: 'fit-content' }}
-            >
-              <ItemIcon
-                item={invItem.item}
-                size="small"
-                enhancement={invItem.enhancement}
-              />
-            </div>
-          ))}
+        <div className="grid grid-cols-6 gap-3 overflow-y-auto h-full pr-2" style={{ maxHeight: '100%' }}>
+          {(() => {
+            // Группируем предметы по названию, типу и уровню заточки
+            const groupedItems = unequippedItems.reduce((acc, invItem) => {
+              const key = `${invItem.item.name}_${invItem.item.type}_${invItem.enhancement || 0}`;
+              
+              if (!acc[key]) {
+                acc[key] = {
+                  items: [invItem],
+                  firstItem: invItem,
+                };
+              } else {
+                acc[key].items.push(invItem);
+              }
+              
+              return acc;
+            }, {} as Record<string, { items: InventoryItem[]; firstItem: InventoryItem }>);
+
+            // Преобразуем объект в массив для отображения
+            const itemsArray = Object.values(groupedItems);
+            
+            // Получаем размер инвентаря (по умолчанию 36 для сетки 6x6)
+            const inventorySize = character.inventory?.size || 36;
+            const maxSlots = Math.max(inventorySize, 36); // Минимум 36 слотов (6x6)
+            
+            // Создаем массив всех слотов (заполненные + пустые)
+            const allSlots: (InventoryItem | null)[] = [];
+            
+            // Добавляем заполненные слоты
+            itemsArray.forEach(group => {
+              allSlots.push(group.firstItem);
+            });
+            
+            // Заполняем оставшиеся слоты null (пустые ячейки)
+            while (allSlots.length < maxSlots) {
+              allSlots.push(null);
+            }
+            
+            // Отладка
+            console.log('📦 InventorySection: Сетка инвентаря:', {
+              totalItems: unequippedItems.length,
+              groupedItems: itemsArray.length,
+              inventorySize,
+              maxSlots,
+              filledSlots: itemsArray.length,
+              emptySlots: maxSlots - itemsArray.length
+            });
+
+            return allSlots.map((slotItem, index) => {
+              // Если слот пустой
+              if (!slotItem) {
+                return (
+                  <div
+                    key={`empty-slot-${index}`}
+                    className="border-2 rounded-lg bg-gradient-to-b from-stone-950/30 to-black/30 border-amber-800/20 flex flex-col items-center justify-center aspect-square p-1 opacity-40"
+                    style={{ height: 'fit-content', minHeight: '80px' }}
+                  >
+                    {/* Пустая ячейка */}
+                  </div>
+                );
+              }
+              
+              // Если слот заполнен - находим группу для этого предмета
+              const group = groupedItems[`${slotItem.item.name}_${slotItem.item.type}_${slotItem.enhancement || 0}`];
+              
+              return (
+                <div
+                  key={`${slotItem.item.name}_${slotItem.item.type}_${slotItem.enhancement || 0}_${index}`}
+                  draggable={true}
+                  onDragStart={(e) => handleDragStart(e, slotItem)}
+                  onDragEnd={handleDragEnd}
+                  onClick={() => handleItemClick(slotItem)}
+                  className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 hover:border-amber-600/60 transition-all cursor-move flex flex-col items-center justify-center aspect-square p-1 relative ${
+                    selectedItem?.id === slotItem.id || forgeItemSlot?.id === slotItem.id ? 'border-red-700/80' : 'border-amber-800/40'
+                  } ${draggedItem?.id === slotItem.id ? 'opacity-50' : ''}`}
+                  style={{ height: 'fit-content', minHeight: '80px' }}
+                >
+                  {/* Счетчик количества в верхнем правом углу */}
+                  {group && group.items.length > 1 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      background: 'linear-gradient(135deg, #d4af37 0%, #b8941f 100%)',
+                      color: '#000',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      padding: '3px 6px',
+                      borderRadius: '4px',
+                      border: '2px solid #ffd700',
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.5), 0 0 8px rgba(212, 175, 55, 0.5)',
+                      zIndex: 100,
+                      minWidth: '24px',
+                      textAlign: 'center',
+                      lineHeight: '1',
+                    }}>
+                      ×{group.items.length}
+                    </div>
+                  )}
+                  
+                  <ItemIcon
+                    item={slotItem.item}
+                    size="small"
+                    enhancement={slotItem.enhancement}
+                  />
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
     </div>

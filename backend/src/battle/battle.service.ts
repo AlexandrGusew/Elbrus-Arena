@@ -410,6 +410,11 @@ export class BattleService {
 
     const currentRounds = Array.isArray(fullBattle.rounds) ? (fullBattle.rounds as unknown as RoundResult[]) : [];
 
+    // Вычисляем turnNumber для текущего моба
+    // Фильтруем раунды по текущему мобу и считаем количество ходов
+    const currentMonsterRounds = currentRounds.filter(r => r.roundNumber === fullBattle.currentMonster);
+    const turnNumber = currentMonsterRounds.length + 1;
+
     // ФИНАЛЬНАЯ КРИТИЧЕСКАЯ ПРОВЕРКА перед сохранением в базу данных
     // Убеждаемся, что 'back' НИКОГДА не попадет в результат
     if (monsterActions.attacks.some(z => z === 'back') || monsterActions.defenses.some(z => z === 'back')) {
@@ -439,7 +444,8 @@ export class BattleService {
     }
 
     const roundResult: RoundResult = {
-      roundNumber: currentRounds.length + 1,
+      roundNumber: fullBattle.currentMonster,  // Номер раунда = номер текущего моба (1-5)
+      turnNumber,  // Номер хода внутри раунда с текущим мобом
       playerActions,
       monsterActions,
       playerDamage,
@@ -451,9 +457,72 @@ export class BattleService {
     let nextMonster = fullBattle.currentMonster;
     let nextMonsterHp = newMonsterHp;
     let nextPlayerFirst = !playerFirst;
+    let finalCharacterHp = newCharacterHp;
+    let battleLoot: any[] = [];
+    let battleExpGained = 0;
+    let battleGoldGained = 0;
 
     if (newCharacterHp <= 0) {
       newStatus = 'lost';
+
+      // Начисляем награды за пройденных мобов при поражении
+      const defeatedMonsters = fullBattle.currentMonster - 1 + (newMonsterHp <= 0 ? 1 : 0);
+      if (defeatedMonsters > 0) {
+        // Награда = (общая награда / количество мобов) * количество побежденных мобов
+        const goldReward = Math.floor((dungeon.goldReward / dungeon.monsters.length) * defeatedMonsters);
+        const expReward = Math.floor((dungeon.expReward / dungeon.monsters.length) * defeatedMonsters);
+
+        battleGoldGained = goldReward;
+        battleExpGained = expReward;
+
+        await this.prisma.character.update({
+          where: { id: character.id },
+          data: {
+            gold: character.gold + goldReward,
+            experience: character.experience + expReward,
+          },
+        });
+
+        // Автоматическая проверка повышения уровня
+        await this.levelUpService.checkAndLevelUp(character.id);
+
+        // Генерируем лут со всех побежденных монстров при поражении
+        // Побежденные монстры: все монстры до текущего (currentMonster - 1), плюс текущий, если он был убит
+        const monstersToLoot: number[] = [];
+        
+        // Добавляем всех побежденных монстров до текущего
+        for (let i = 0; i < fullBattle.currentMonster - 1; i++) {
+          monstersToLoot.push(dungeon.monsters[i].monster.id);
+        }
+        
+        // Если текущий монстр был убит, добавляем его тоже
+        if (newMonsterHp <= 0) {
+          monstersToLoot.push(currentMonster.id);
+        }
+
+        // Генерируем лут с каждого побежденного монстра
+        for (const monsterId of monstersToLoot) {
+          const lootedItems = await this.lootService.generateLoot(monsterId);
+          if (lootedItems.length > 0) {
+            await this.lootService.addItemsToInventory(character.id, lootedItems);
+
+            // Получаем полную информацию о лутнутых предметах
+            for (const loot of lootedItems) {
+              const item = await this.prisma.item.findUnique({
+                where: { id: loot.itemId },
+              });
+              if (item) {
+                battleLoot.push({
+                  itemId: item.id,
+                  itemName: item.name,
+                  itemType: item.type,
+                  enhancement: 0,
+                });
+              }
+            }
+          }
+        }
+      }
     } else if (newMonsterHp <= 0) {
       if (fullBattle.currentMonster < dungeon.monsters.length) {
         nextMonster = fullBattle.currentMonster + 1;
@@ -465,11 +534,6 @@ export class BattleService {
         newStatus = 'won';
       }
     }
-
-    let finalCharacterHp = newCharacterHp;
-    let battleLoot: any[] = [];
-    let battleExpGained = 0;
-    let battleGoldGained = 0;
 
     if (newStatus === 'won') {
       finalCharacterHp = character.maxHp;
@@ -548,7 +612,7 @@ export class BattleService {
         status: newStatus,
         playerFirst: nextPlayerFirst,
         rounds: JSON.parse(JSON.stringify(updatedRounds)),
-        ...(newStatus === 'won' && {
+        ...((newStatus === 'won' || newStatus === 'lost') && {
           lootedItems: battleLoot,
           expGained: battleExpGained,
           goldGained: battleGoldGained,

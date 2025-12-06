@@ -341,70 +341,128 @@ const Inventory = () => {
             </div>
           ) : (
             <div style={styles.inventoryGrid}>
-              {unequippedItems.map((invItem) => {
-                const sellPrice = Math.floor(invItem.item.price * 0.5);
-                return (
-                  <div
-                    key={invItem.id}
-                    style={{
-                      ...styles.inventoryItem,
-                      ...(draggedItem?.id === invItem.id && {
-                        opacity: 0.5,
-                        transform: 'scale(0.95)',
-                      })
-                    }}
-                    draggable={true}
-                    onDragStart={(e) => handleDragStart(e, invItem)}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <div style={styles.itemHeader}>
-                      <div style={styles.itemIcon}>{SLOT_ICONS[invItem.item.type]}</div>
-                      <div style={styles.itemBadge}>{SLOT_NAMES[invItem.item.type]}</div>
-                    </div>
+              {(() => {
+                // Группируем предметы по названию, типу и уровню заточки
+                const groupedItems = unequippedItems.reduce((acc, invItem) => {
+                  const key = `${invItem.item.name}_${invItem.item.type}_${invItem.enhancement || 0}`;
+                  
+                  if (!acc[key]) {
+                    acc[key] = {
+                      items: [invItem],
+                      firstItem: invItem,
+                    };
+                  } else {
+                    acc[key].items.push(invItem);
+                  }
+                  
+                  return acc;
+                }, {} as Record<string, { items: InventoryItem[]; firstItem: InventoryItem }>);
 
-                    <div style={styles.itemName}>
-                      {invItem.item.name}
-                      {invItem.enhancement > 0 && <span style={styles.enhancement}> +{invItem.enhancement}</span>}
-                    </div>
+                // Преобразуем объект в массив для отображения
+                const itemsArray = Object.values(groupedItems);
+                
+                // Отладка: выводим информацию о группировке
+                console.log('📦 Группировка предметов:', {
+                  totalItems: unequippedItems.length,
+                  groupedItems: itemsArray.length,
+                  groups: itemsArray.map(g => ({
+                    name: g.firstItem.item.name,
+                    count: g.items.length,
+                    enhancement: g.firstItem.enhancement
+                  }))
+                });
 
-                    <div style={styles.itemStats}>
-                      {invItem.item.damage > 0 && <div>Урон: {invItem.item.damage}</div>}
-                      {invItem.item.armor > 0 && <div>Броня: {invItem.item.armor}</div>}
-                      {invItem.item.bonusStr > 0 && <div>Сила: +{invItem.item.bonusStr}</div>}
-                      {invItem.item.bonusAgi > 0 && <div>Ловк: +{invItem.item.bonusAgi}</div>}
-                      {invItem.item.bonusInt > 0 && <div>Инт: +{invItem.item.bonusInt}</div>}
-                      {(invItem.item.minLevel > 1 || invItem.item.minStrength > 0 || invItem.item.minAgility > 0 || invItem.item.minIntelligence > 0) && (
-                        <div style={{ color: '#f44336', marginTop: '5px', fontSize: '11px', borderTop: '1px solid #444', paddingTop: '5px' }}>
-                          <div style={{ fontWeight: 'bold' }}>Требования:</div>
-                          {invItem.item.minLevel > 1 && <div>Уровень: {invItem.item.minLevel}</div>}
-                          {invItem.item.minStrength > 0 && <div>Сила: {invItem.item.minStrength}</div>}
-                          {invItem.item.minAgility > 0 && <div>Ловкость: {invItem.item.minAgility}</div>}
-                          {invItem.item.minIntelligence > 0 && <div>Интеллект: {invItem.item.minIntelligence}</div>}
+                return itemsArray.map((group, index) => {
+                  const invItem = group.firstItem;
+                  const sellPrice = Math.floor(invItem.item.price * 0.5);
+                  
+                  return (
+                    <div
+                      key={`${invItem.item.name}_${invItem.item.type}_${invItem.enhancement || 0}_${index}`}
+                      style={{
+                        ...styles.inventoryItem,
+                        position: 'relative',
+                        ...(draggedItem?.id === invItem.id && {
+                          opacity: 0.5,
+                          transform: 'scale(0.95)',
+                        })
+                      }}
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, invItem)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      {/* Счетчик количества в верхнем правом углу */}
+                      {group.items.length > 1 && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          background: 'linear-gradient(135deg, #d4af37 0%, #b8941f 100%)',
+                          color: '#000',
+                          fontSize: '16px',
+                          fontWeight: 'bold',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '2px solid #ffd700',
+                          boxShadow: '0 3px 8px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.5)',
+                          zIndex: 100,
+                          minWidth: '32px',
+                          textAlign: 'center',
+                          lineHeight: '1',
+                        }}>
+                          ×{group.items.length}
                         </div>
                       )}
-                    </div>
 
-                    <div style={styles.sellPrice as CSSProperties}>
-                      Продажа: {sellPrice} золота
-                    </div>
+                      <div style={styles.itemHeader}>
+                        <div style={styles.itemIcon}>{SLOT_ICONS[invItem.item.type]}</div>
+                        <div style={styles.itemBadge}>{SLOT_NAMES[invItem.item.type]}</div>
+                      </div>
 
-                    <div style={styles.buttonContainer as CSSProperties}>
-                      <button
-                        style={styles.equipButton}
-                        onClick={() => handleEquip(invItem)}
-                      >
-                        Надеть
-                      </button>
-                      <button
-                        style={styles.sellButton}
-                        onClick={(e) => handleSell(invItem, e)}
-                      >
-                        Продать
-                      </button>
+                      <div style={styles.itemName}>
+                        {invItem.item.name}
+                        {invItem.enhancement > 0 && <span style={styles.enhancement}> +{invItem.enhancement}</span>}
+                      </div>
+
+                      <div style={styles.itemStats}>
+                        {invItem.item.damage > 0 && <div>Урон: {invItem.item.damage}</div>}
+                        {invItem.item.armor > 0 && <div>Броня: {invItem.item.armor}</div>}
+                        {invItem.item.bonusStr > 0 && <div>Сила: +{invItem.item.bonusStr}</div>}
+                        {invItem.item.bonusAgi > 0 && <div>Ловк: +{invItem.item.bonusAgi}</div>}
+                        {invItem.item.bonusInt > 0 && <div>Инт: +{invItem.item.bonusInt}</div>}
+                        {(invItem.item.minLevel > 1 || invItem.item.minStrength > 0 || invItem.item.minAgility > 0 || invItem.item.minIntelligence > 0) && (
+                          <div style={{ color: '#f44336', marginTop: '5px', fontSize: '11px', borderTop: '1px solid #444', paddingTop: '5px' }}>
+                            <div style={{ fontWeight: 'bold' }}>Требования:</div>
+                            {invItem.item.minLevel > 1 && <div>Уровень: {invItem.item.minLevel}</div>}
+                            {invItem.item.minStrength > 0 && <div>Сила: {invItem.item.minStrength}</div>}
+                            {invItem.item.minAgility > 0 && <div>Ловкость: {invItem.item.minAgility}</div>}
+                            {invItem.item.minIntelligence > 0 && <div>Интеллект: {invItem.item.minIntelligence}</div>}
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={styles.sellPrice as CSSProperties}>
+                        Продажа: {sellPrice} золота
+                      </div>
+
+                      <div style={styles.buttonContainer as CSSProperties}>
+                        <button
+                          style={styles.equipButton}
+                          onClick={() => handleEquip(invItem)}
+                        >
+                          Надеть
+                        </button>
+                        <button
+                          style={styles.sellButton}
+                          onClick={(e) => handleSell(invItem, e)}
+                        >
+                          Продать
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           )}
         </div>

@@ -54,8 +54,13 @@ export class BattleGateway {
       return;
     }
 
+    // Вычисляем turnNumber - количество ходов с текущим мобом
+    const currentMonsterRounds = battle.rounds.filter(r => r.roundNumber === battle.currentMonster);
+    const turnNumber = currentMonsterRounds.length + 1;
+
     client.emit('round-start', {
-      roundNumber: battle.rounds.length + 1,
+      roundNumber: battle.currentMonster,  // Раунд = номер моба (1-5)
+      turnNumber,  // Ход внутри раунда
       playerHp: battle.characterHp,
       monsterHp: battle.monsterHp,
       currentMonster: battle.currentMonster,
@@ -105,8 +110,13 @@ export class BattleGateway {
         });
       } else {
         setTimeout(() => {
+          // Вычисляем turnNumber для следующего хода
+          const nextMonsterRounds = battle.rounds.filter(r => r.roundNumber === battle.currentMonster);
+          const nextTurnNumber = nextMonsterRounds.length + 1;
+
           this.server.to(battleId).emit('round-start', {
-            roundNumber: battle.rounds.length + 1,
+            roundNumber: battle.currentMonster,  // Раунд = номер моба (1-5)
+            turnNumber: nextTurnNumber,  // Ход внутри раунда
             playerHp: battle.characterHp,
             monsterHp: battle.monsterHp,
             currentMonster: battle.currentMonster,

@@ -60,7 +60,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
   const [isMonsterAttacking, setIsMonsterAttacking] = useState(false);
   const [monsterInitialHp, setMonsterInitialHp] = useState<Map<number, number>>(new Map());
   const lastMonsterRef = useRef<number | undefined>(undefined);
-  const [timeLeft, setTimeLeft] = useState<number>(15);
+  const [timeLeft, setTimeLeft] = useState<number>(1);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Используем dungeonId из battleState, или fallback если не пришло с сервера
@@ -287,11 +287,11 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     }
   }, [battleState.lastRoundResult, waitingForResult]);
 
-  // Таймер на 15 секунд для автоматического выбора зон
+  // Таймер на 1 секунду для автоматического выбора зон (режим тестирования)
   useEffect(() => {
     // Сбрасываем таймер при начале нового раунда
     if (battleState.status === 'active' && !waitingForResult) {
-      setTimeLeft(15);
+      setTimeLeft(1);
       
       // Очищаем предыдущий таймер если есть
       if (timerRef.current) {
@@ -336,8 +336,8 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
             setSelectedAttacks([]);
             setSelectedDefenses([]);
             setWaitingForResult(true);
-            
-            return 15; // Сбрасываем для следующего раунда
+
+            return 1; // Сбрасываем для следующего раунда (режим тестирования)
           }
           return prev - 1;
         });
@@ -356,7 +356,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      setTimeLeft(15);
+      setTimeLeft(1);
     }
   }, [battleState.status, battleState.roundNumber, waitingForResult, ZONES, onSubmitActions]);
 
@@ -397,7 +397,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    setTimeLeft(15);
+    setTimeLeft(1);
 
     // Запускаем анимацию атаки персонажа
     setIsAttacking(true);
@@ -917,12 +917,33 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
               {battleState.status === 'won' ? '🎉' : '💀'}
             </div>
 
-            {battleState.status === 'won' && (
+            {/* Показываем награды и при победе, и при поражении */}
+            {(battleState.status === 'won' || battleState.status === 'lost') && (
               <div style={{
                 ...styles.lootContainer,
                 maxWidth: '450px',
+                border: battleState.status === 'won'
+                  ? '2px solid #d4af37'
+                  : '2px solid #8b0000',
               }}>
-                <h3 style={{ textAlign: 'center', marginBottom: '11px' }}>🎁 Награды</h3>
+                <h3 style={{
+                  textAlign: 'center',
+                  marginBottom: '11px',
+                  color: battleState.status === 'won' ? '#d4af37' : '#ff4444',
+                }}>
+                  {battleState.status === 'won' ? '🎉 Победа!' : '💀 Поражение'}
+                </h3>
+
+                <div style={{
+                  textAlign: 'center',
+                  marginBottom: '15px',
+                  fontSize: '16px',
+                  color: '#aaa',
+                }}>
+                  {battleState.status === 'won'
+                    ? 'Вы успешно прошли подземелье!'
+                    : 'Вы погибли, но получили награды за пройденный путь:'}
+                </div>
 
                 {battleState.expGained && battleState.expGained > 0 && (
                   <div style={styles.rewardItem}>
@@ -939,15 +960,52 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                 {battleState.lootedItems && battleState.lootedItems.length > 0 && (
                   <div style={styles.lootSection}>
                     <h4 style={{ marginBottom: '10px' }}>Выпали предметы:</h4>
-                    {battleState.lootedItems.map((item, index) => (
-                      <div key={index} style={styles.lootItem}>
-                        <span style={styles.lootItemName}>
-                          {item.itemName}
-                          {item.enhancement > 0 && <span style={styles.lootEnhancement}> +{item.enhancement}</span>}
-                        </span>
-                        <span style={styles.lootItemType}>{item.itemType}</span>
-                      </div>
-                    ))}
+                    {(() => {
+                      // Группируем предметы по названию, типу и уровню заточки
+                      const groupedItems = battleState.lootedItems.reduce((acc, item) => {
+                        // Создаем уникальный ключ для группировки
+                        const key = `${item.itemName}_${item.itemType}_${item.enhancement || 0}`;
+                        
+                        if (!acc[key]) {
+                          acc[key] = {
+                            ...item,
+                            quantity: 1,
+                          };
+                        } else {
+                          acc[key].quantity += 1;
+                        }
+                        
+                        return acc;
+                      }, {} as Record<string, any>);
+
+                      // Преобразуем объект в массив для отображения
+                      const itemsArray = Object.values(groupedItems);
+
+                      return itemsArray.map((item: any, index) => (
+                        <div key={index} style={styles.lootItem}>
+                          <span style={styles.lootItemName}>
+                            {item.itemName}
+                            {item.enhancement > 0 && <span style={styles.lootEnhancement}> +{item.enhancement}</span>}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={styles.lootItemType}>{item.itemType}</span>
+                            {item.quantity > 1 && (
+                              <span style={{
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                color: '#d4af37',
+                                background: 'rgba(212, 175, 55, 0.2)',
+                                padding: '4px 10px',
+                                borderRadius: '4px',
+                                border: '1px solid rgba(212, 175, 55, 0.5)',
+                              }}>
+                                × {item.quantity}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 )}
               </div>
