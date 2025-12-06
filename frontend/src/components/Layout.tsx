@@ -3,7 +3,7 @@ import { GameViewport } from './GameViewport';
 
 const Layout = () => {
   return (
-    <GameViewport targetWidth={1366} targetHeight={768}>
+    <GameViewport targetWidth={1440} targetHeight={1080}>
       <Outlet />
     </GameViewport>
   );

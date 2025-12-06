@@ -6,9 +6,9 @@ import {
   useInitiateTelegramAuthMutation,
   useVerifyTelegramCodeMutation,
 } from '../store/api/authApi';
-import { useLazyGetMyCharacterQuery } from '../store/api/characterApi';
 import { setAccessToken } from '../store/api/baseApi';
 import { getAssetUrl } from '../utils/assetUrl';
+import { GameViewport } from '../components/GameViewport';
 
 type AuthMode = 'username' | 'telegram';
 
@@ -40,27 +40,12 @@ export default function Login() {
   const [login, { isLoading: isLoggingIn }] = useLoginMutation();
   const [initiateTelegramAuth] = useInitiateTelegramAuthMutation();
   const [verifyTelegramCode, { isLoading: isVerifying }] = useVerifyTelegramCodeMutation();
-  const [getMyCharacter] = useLazyGetMyCharacterQuery();
 
   // После успешной авторизации
   const handleAuthSuccess = async () => {
-    try {
-      // Проверяем, есть ли у пользователя персонаж
-      const { data: character } = await getMyCharacter();
-
-      if (character) {
-        // Персонаж найден - сохраняем ID и переходим на Dashboard
-        localStorage.setItem('characterId', character.id.toString());
-        navigate('/dashboard');
-      } else {
-        // Персонажа нет - переходим на создание персонажа
-        navigate('/create-character');
-      }
-    } catch (error) {
-      console.error('Error checking character:', error);
-      // В случае ошибки переходим на создание персонажа
-      navigate('/create-character');
-    }
+    // Просто переходим на Dashboard
+    // На Dashboard есть логика автосоздания персонажей и выбора активного персонажа
+    navigate('/dashboard');
   };
 
   // РЕГИСТРАЦИЯ
@@ -224,8 +209,8 @@ export default function Login() {
   };
 
   const containerStyle: React.CSSProperties = {
-    width: '100vw',
-    height: '100vh',
+    width: '100%',
+    height: '100%',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -282,25 +267,26 @@ export default function Login() {
   });
 
   return (
-    <div style={containerStyle}>
-      {/* Видео фон */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          objectFit: 'cover',
-          zIndex: 1,
-        }}
-      >
-        <source src={getAssetUrl('createCharacter/animatedBackground.mp4')} type="video/mp4" />
-      </video>
+    <GameViewport targetWidth={1440} targetHeight={1080}>
+      <div style={containerStyle}>
+        {/* Видео фон */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+          }}
+        >
+          <source src={getAssetUrl('createCharacter/animatedBackground.mp4')} type="video/mp4" />
+        </video>
 
       {/* Фоновая музыка */}
       <audio ref={audioRef} loop>
@@ -768,6 +754,7 @@ export default function Login() {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </GameViewport>
   );
 }

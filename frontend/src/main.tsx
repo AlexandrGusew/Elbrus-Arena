@@ -1,4 +1,3 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Provider } from 'react-redux'
@@ -88,11 +87,9 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Provider store={store}>
-      <RouterProvider router={router} />
-    </Provider>
-  </StrictMode>,
+  <Provider store={store}>
+    <RouterProvider router={router} />
+  </Provider>,
 )
 
 // Регистрация Service Worker для кэширования медиа
@@ -102,19 +99,6 @@ registerServiceWorker({
 
     // Список критических ресурсов для предзагрузки
     const criticalAssets = [
-      // Login/CreateCharacter страницы
-      getAssetUrl('createCharacter/animatedBackground.mp4'),
-      getAssetUrl('createCharacter/backgroundIntro.mp3'),
-      getAssetUrl('createCharacter/fonModal.png'),
-      getAssetUrl('createCharacter/inputName.png'),
-      getAssetUrl('createCharacter/buttonEnter.png'),
-      getAssetUrl('createCharacter/music.png'),
-
-      // Персонажи
-      getAssetUrl('createCharacter/warrior (1).png'),
-      getAssetUrl('createCharacter/mage (1).png'),
-      getAssetUrl('createCharacter/rogue (1).png'),
-
       // Dashboard
       getAssetUrl('dashboard/mainCity.mp3'),
       getAssetUrl('dashboard/mainCityBackground.mp4'),
