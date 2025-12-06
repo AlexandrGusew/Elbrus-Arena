@@ -54,8 +54,13 @@ export class BattleGateway {
       return;
     }
 
+    // Вычисляем turnNumber - количество ходов с текущим мобом
+    const currentMonsterRounds = battle.rounds.filter(r => r.roundNumber === battle.currentMonster);
+    const turnNumber = currentMonsterRounds.length + 1;
+
     client.emit('round-start', {
-      roundNumber: battle.rounds.length + 1,
+      roundNumber: battle.currentMonster,  // Раунд = номер моба (1-5)
+      turnNumber,  // Ход внутри раунда
       playerHp: battle.characterHp,
       monsterHp: battle.monsterHp,
       currentMonster: battle.currentMonster,
@@ -97,16 +102,32 @@ export class BattleGateway {
         // Получаем полную информацию о бое для отправки лута
         const fullBattle = await this.battleService.getBattleWithLoot(battleId);
 
-        this.server.to(battleId).emit('battle-end', {
+        const battleEndData = {
           status: battle.status,
           lootedItems: fullBattle?.lootedItems || [],
           expGained: fullBattle?.expGained || 0,
           goldGained: fullBattle?.goldGained || 0,
+        };
+
+        console.log('📤 Отправка battle-end события:', {
+          battleId,
+          status: battleEndData.status,
+          lootedItemsCount: battleEndData.lootedItems.length,
+          lootedItems: battleEndData.lootedItems,
+          expGained: battleEndData.expGained,
+          goldGained: battleEndData.goldGained,
         });
+
+        this.server.to(battleId).emit('battle-end', battleEndData);
       } else {
         setTimeout(() => {
+          // Вычисляем turnNumber для следующего хода
+          const nextMonsterRounds = battle.rounds.filter(r => r.roundNumber === battle.currentMonster);
+          const nextTurnNumber = nextMonsterRounds.length + 1;
+
           this.server.to(battleId).emit('round-start', {
-            roundNumber: battle.rounds.length + 1,
+            roundNumber: battle.currentMonster,  // Раунд = номер моба (1-5)
+            turnNumber: nextTurnNumber,  // Ход внутри раунда
             playerHp: battle.characterHp,
             monsterHp: battle.monsterHp,
             currentMonster: battle.currentMonster,

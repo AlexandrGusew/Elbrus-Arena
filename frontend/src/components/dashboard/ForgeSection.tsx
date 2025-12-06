@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Character, InventoryItem } from '../../types/api';
-import { useEnhanceItemMutation } from '../../store/api/characterApi';
+import { useEnhanceItemMutation, useEnhanceItemWithScrollMutation } from '../../store/api/characterApi';
 import { ItemIcon } from '../common/ItemIcon';
 
 interface ForgeSectionProps {
@@ -18,59 +18,115 @@ interface UpgradeHistoryEntry {
 }
 
 export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: ForgeSectionProps) {
-  const [scrollInSlot, setScrollInSlot] = useState<any | null>(null); // TODO: добавить тип ScrollItem
+  const [scrollInSlot, setScrollInSlot] = useState<InventoryItem | null>(null);
   const [upgradeHistory, setUpgradeHistory] = useState<UpgradeHistoryEntry[]>([]);
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragOverItem, setIsDragOverItem] = useState(false);
+  const [isDragOverScroll, setIsDragOverScroll] = useState(false);
 
   const [enhanceItem, { isLoading: isEnhancing }] = useEnhanceItemMutation();
+  const [enhanceItemWithScroll, { isLoading: isEnhancingWithScroll }] = useEnhanceItemWithScrollMutation();
 
-  // Drag & Drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
+  // Drag & Drop handlers для слота предмета
+  const handleItemDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    setIsDragOver(true);
+    setIsDragOverItem(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragOver(false);
+  const handleItemDragLeave = () => {
+    setIsDragOverItem(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleItemDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragOver(false);
+    setIsDragOverItem(false);
 
     const itemData = e.dataTransfer.getData('inventory-item');
     if (itemData) {
       const item: InventoryItem = JSON.parse(itemData);
-      onItemChange(item);
+      // Не позволяем класть свитки в слот предмета
+      if (item.item.type !== 'scroll') {
+        onItemChange(item);
+      }
+    }
+  };
+
+  // Drag & Drop handlers для слота свитка
+  const handleScrollDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOverScroll(true);
+  };
+
+  const handleScrollDragLeave = () => {
+    setIsDragOverScroll(false);
+  };
+
+  const handleScrollDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverScroll(false);
+
+    const itemData = e.dataTransfer.getData('inventory-item');
+    if (itemData) {
+      const item: InventoryItem = JSON.parse(itemData);
+      // Только свитки можно класть в слот свитка
+      if (item.item.type === 'scroll') {
+        setScrollInSlot(item);
+      }
     }
   };
 
   const handleUpgrade = async () => {
-    if (!itemInSlot || isEnhancing) return;
+    if (!itemInSlot || isEnhancing || isEnhancingWithScroll) return;
 
     try {
-      const result = await enhanceItem({
-        characterId: character.id,
-        itemId: itemInSlot.id,
-      }).unwrap();
+      // Если есть свиток - используем его (гарантированный успех)
+      if (scrollInSlot) {
+        const result = await enhanceItemWithScroll({
+          characterId: character.id,
+          inventoryItemId: itemInSlot.id,
+          scrollItemId: scrollInSlot.id,
+        }).unwrap();
 
-      const message = result.success
-        ? `Успешное улучшение: ${itemInSlot.item.name}+${itemInSlot.enhancement} → +${result.newEnhancement}`
-        : `Неудача: ${itemInSlot.item.name}+${itemInSlot.enhancement} не удалось улучшить`;
+        const message = `Успешное улучшение со свитком: ${result.itemName}+${itemInSlot.enhancement} → +${result.newEnhancementLevel}`;
 
-      setUpgradeHistory(prev => [
-        {
-          id: Date.now(),
-          timestamp: new Date(),
-          message,
-          success: result.success,
-        },
-        ...prev.slice(0, 9), // Храним последние 10 записей
-      ]);
+        setUpgradeHistory(prev => [
+          {
+            id: Date.now(),
+            timestamp: new Date(),
+            message,
+            success: true,
+          },
+          ...prev.slice(0, 9),
+        ]);
 
-      // Сбрасываем предмет из слота после улучшения
-      onItemChange(null);
+        // Сбрасываем предмет и свиток из слотов после улучшения
+        onItemChange(null);
+        setScrollInSlot(null);
+      } else {
+        // Если нет свитка - используем обычное улучшение за золото (20% шанс)
+        const result = await enhanceItem({
+          characterId: character.id,
+          itemId: itemInSlot.id,
+        }).unwrap();
+
+        const message = result.success
+          ? `Успешное улучшение: ${itemInSlot.item.name}+${itemInSlot.enhancement} → +${result.newEnhancement}`
+          : `Неудача: ${itemInSlot.item.name}+${itemInSlot.enhancement} не удалось улучшить`;
+
+        setUpgradeHistory(prev => [
+          {
+            id: Date.now(),
+            timestamp: new Date(),
+            message,
+            success: result.success,
+          },
+          ...prev.slice(0, 9),
+        ]);
+
+        // Сбрасываем предмет из слота после улучшения
+        onItemChange(null);
+      }
     } catch (error: any) {
       const errorMessage = error?.data?.message || 'Ошибка улучшения предмета';
       setUpgradeHistory(prev => [
@@ -104,7 +160,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
           {/* Update Scroll */}
           <div className="border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/80 to-black/90 px-4 py-2 flex items-center justify-center">
             <span className="text-amber-200 uppercase tracking-wider text-sm" style={{ fontFamily: 'serif' }}>
-              {scrollInSlot ? scrollInSlot.name : 'update scroll'}
+              {scrollInSlot ? scrollInSlot.item.name : 'update scroll'}
             </span>
           </div>
         </div>
@@ -114,12 +170,12 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
           {/* Item Slot */}
           <div
             className={`aspect-square border-2 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 hover:border-amber-600/60 transition-all relative overflow-hidden cursor-pointer ${
-              isDragOver ? 'border-green-500/80 bg-green-950/30' : 'border-amber-800/40'
+              isDragOverItem ? 'border-green-500/80 bg-green-950/30' : 'border-amber-800/40'
             }`}
             onClick={() => onItemChange(null)} // Клик убирает предмет
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
+            onDragOver={handleItemDragOver}
+            onDragLeave={handleItemDragLeave}
+            onDrop={handleItemDrop}
           >
             {itemInSlot ? (
               <div className="w-full h-full flex items-center justify-center p-2">
@@ -141,19 +197,27 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
 
           {/* Scroll Slot */}
           <div
-            className="aspect-square border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 hover:border-amber-600/60 transition-all relative overflow-hidden cursor-pointer"
-            onClick={() => setScrollInSlot(null)} // Временно - клик убирает свиток
+            className={`aspect-square border-2 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 hover:border-amber-600/60 transition-all relative overflow-hidden cursor-pointer ${
+              isDragOverScroll ? 'border-green-500/80 bg-green-950/30' : 'border-amber-800/40'
+            }`}
+            onClick={() => setScrollInSlot(null)} // Клик убирает свиток
+            onDragOver={handleScrollDragOver}
+            onDragLeave={handleScrollDragLeave}
+            onDrop={handleScrollDrop}
           >
             {scrollInSlot ? (
-              <div className="w-full h-full flex flex-col items-center justify-center p-2">
-                <span className="text-amber-300 text-sm text-center" style={{ fontFamily: 'serif' }}>
-                  {scrollInSlot.name}
-                </span>
+              <div className="w-full h-full flex items-center justify-center p-2">
+                <ItemIcon
+                  item={scrollInSlot.item}
+                  size="medium"
+                  showName={true}
+                  enhancement={scrollInSlot.enhancement}
+                />
               </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-amber-700/30 rounded-lg m-1">
                 <span className="text-amber-300/40 text-xs text-center" style={{ fontFamily: 'serif' }}>
-                  Scroll Slot
+                  Drop Scroll<br/>Here
                 </span>
               </div>
             )}
@@ -163,9 +227,9 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
         {/* Upgrade Button */}
         <button
           onClick={handleUpgrade}
-          disabled={!itemInSlot || isEnhancing}
+          disabled={!itemInSlot || isEnhancing || isEnhancingWithScroll}
           className={`border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/90 to-black/90 py-4 relative transition-all group ${
-            !itemInSlot || isEnhancing ? 'opacity-50 cursor-not-allowed' : 'hover:border-red-700/70 cursor-pointer'
+            !itemInSlot || isEnhancing || isEnhancingWithScroll ? 'opacity-50 cursor-not-allowed' : 'hover:border-red-700/70 cursor-pointer'
           }`}
         >
           <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
@@ -181,7 +245,7 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text'
           }}>
-            {isEnhancing ? 'Upgrading...' : 'Upgrade'}
+            {isEnhancing || isEnhancingWithScroll ? 'Upgrading...' : 'Upgrade'}
           </span>
         </button>
 

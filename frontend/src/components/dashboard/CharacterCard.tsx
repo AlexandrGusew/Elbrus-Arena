@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Character, InventoryItem } from '../../types/api';
-import { useEquipItemMutation, useUnequipItemMutation } from '../../store/api/characterApi';
+import { useEquipItemMutation, useUnequipItemMutation, useGetCharacterQuery, useGetLevelProgressQuery } from '../../store/api/characterApi';
 import { StatsCalculator } from '../../utils/statsCalculator';
 import { getAssetUrl } from '../../utils/assetUrl';
 import { ItemIcon } from '../common/ItemIcon';
@@ -8,6 +8,9 @@ import { ItemIcon } from '../common/ItemIcon';
 interface CharacterCardProps {
   character: Character;
   onEquipmentClick?: (slotType: string) => void;
+  onItemSelect?: (item: InventoryItem | null) => void;
+  selectedItem?: InventoryItem | null;
+  onLevelBarClick?: () => void;
 }
 
 type ItemSlotType = 'WEAPON' | 'HELMET' | 'ARMOR' | 'BOOTS' | 'BELT' | 'RING';
@@ -40,10 +43,28 @@ const getClassVideo = (classType: string): string => {
   }
 };
 
-export function CharacterCard({ character, onEquipmentClick }: CharacterCardProps) {
+export function CharacterCard({ character: characterProp, onEquipmentClick, onItemSelect, selectedItem, onLevelBarClick }: CharacterCardProps) {
   const [equipItem] = useEquipItemMutation();
   const [unequipItem] = useUnequipItemMutation();
   const [dragOverSlot, setDragOverSlot] = useState<ItemSlotType | null>(null);
+
+  // Получаем актуальные данные персонажа через RTK Query для автоматического обновления
+  const { data: characterData } = useGetCharacterQuery(characterProp.id, {
+    skip: !characterProp.id,
+  });
+
+  // Получаем прогресс уровня для прогресс-бара
+  const { data: levelProgress } = useGetLevelProgressQuery(characterProp.id, {
+    skip: !characterProp.id,
+  });
+
+  // Используем актуальные данные, если они есть, иначе используем пропс
+  const character = characterData || characterProp;
+
+  // Вычисляем процент заполнения прогресс-бара
+  const progressPercentage = levelProgress
+    ? Math.min(100, (levelProgress.currentExp / levelProgress.expForNextLevel) * 100)
+    : 0;
 
   // Получаем надетую экипировку
   const equippedItems = character.inventory?.items?.filter(item => item.isEquipped) || [];
@@ -59,7 +80,9 @@ export function CharacterCard({ character, onEquipmentClick }: CharacterCardProp
   };
 
   const handleSlotClick = (slotType: string, item?: InventoryItem) => {
-    if (onEquipmentClick) {
+    // Если есть надетый предмет - клик обрабатывается внутри предмета
+    // Если слота пуст - вызываем onEquipmentClick (если есть)
+    if (!item && onEquipmentClick) {
       onEquipmentClick(slotType);
     }
   };
@@ -90,21 +113,13 @@ export function CharacterCard({ character, onEquipmentClick }: CharacterCardProp
     // Преобразуем тип предмета к слоту и проверяем соответствие
     const itemSlot = itemTypeToSlot(item.item.type);
     if (itemSlot !== slotType) {
-      // TODO: показать уведомление об ошибке
       console.warn(`Cannot equip ${item.item.type} (slot: ${itemSlot}) into ${slotType} slot`);
       return;
     }
 
     try {
-      // Проверяем, есть ли уже предмет в этом слоте
-      const currentEquippedItem = equipmentSlots[slotType];
-
-      // Если слот занят - сначала снимаем старый предмет
-      if (currentEquippedItem) {
-        await unequipItem({ characterId: character.id, itemId: currentEquippedItem.id }).unwrap();
-      }
-
-      // Надеваем новый предмет
+      // Бэкенд автоматически снимает все предметы того же типа перед экипировкой нового
+      // Поэтому просто экипируем новый предмет
       await equipItem({ characterId: character.id, itemId: item.id }).unwrap();
     } catch (error) {
       console.error('Error equipping item:', error);
@@ -154,10 +169,24 @@ export function CharacterCard({ character, onEquipmentClick }: CharacterCardProp
             draggable={true}
             onDragStart={(e) => handleItemDragStart(e, equippedItem)}
             onClick={(e) => {
+              // Одинарный клик - выбираем предмет для просмотра
+              e.stopPropagation();
+              e.preventDefault();
+              if (onItemSelect) {
+                console.log('Selecting item:', equippedItem.item.name);
+                onItemSelect(equippedItem);
+              } else {
+                console.warn('onItemSelect is not defined');
+              }
+            }}
+            onDoubleClick={(e) => {
+              // Двойной клик - снимаем предмет
               e.stopPropagation();
               handleUnequip(equippedItem);
             }}
-            className="text-center cursor-move w-full h-full flex items-center justify-center p-1"
+            className={`text-center cursor-pointer w-full h-full flex items-center justify-center p-1 ${
+              selectedItem?.id === equippedItem.id ? 'ring-2 ring-red-500' : ''
+            }`}
           >
             <ItemIcon
               item={equippedItem.item}
@@ -214,12 +243,26 @@ export function CharacterCard({ character, onEquipmentClick }: CharacterCardProp
           </div>
 
           {/* Level Bar at the bottom */}
-          <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 overflow-hidden">
-            <div className="flex items-center">
-              <div className="bg-gradient-to-r from-amber-700 to-amber-500 px-3 py-1">
-                <span className="text-black text-sm uppercase tracking-wider" style={{ fontFamily: 'serif' }}>LVL {character.level}</span>
-              </div>
-              <div className="flex-1 h-full bg-black/40"></div>
+          <div 
+            className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 overflow-hidden relative cursor-pointer hover:border-amber-600/60 transition-all"
+            onClick={onLevelBarClick}
+            style={{ minHeight: '32px' }}
+            title="Нажмите для распределения очков"
+          >
+            {/* Background */}
+            <div className="w-full h-full bg-black/40" style={{ minHeight: '32px' }}></div>
+
+            {/* Progress Bar */}
+            <div
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-700 to-amber-500 transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+
+            {/* Text Label */}
+            <div className="absolute top-0 left-0 w-full h-full flex items-center px-3">
+              <span className="text-black text-sm uppercase tracking-wider font-bold relative z-10" style={{ fontFamily: 'serif', textShadow: '0 0 2px rgba(255,255,255,0.5)' }}>
+                LVL {character.level}
+              </span>
             </div>
           </div>
         </div>

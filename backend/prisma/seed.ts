@@ -178,15 +178,6 @@ async function main() {
     },
   });
 
-  const potion = await prisma.item.create({
-    data: {
-      name: 'Зелье HP',
-      type: 'potion',
-      price: 20,
-      minLevel: 1,
-    },
-  });
-
   // Щиты для паладина
   const woodenShield = await prisma.item.create({
     data: {
@@ -234,6 +225,37 @@ async function main() {
     },
   });
 
+  // Свитки заточки
+  const weaponScroll = await prisma.item.create({
+    data: {
+      name: 'Свиток заточки оружия',
+      type: 'scroll',
+      description: 'Гарантированно улучшает оружие на +1 уровень заточки',
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  const armorScroll = await prisma.item.create({
+    data: {
+      name: 'Свиток заточки брони',
+      type: 'scroll',
+      description: 'Гарантированно улучшает шлем, доспех или сапоги на +1 уровень заточки',
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
+  const accessoryScroll = await prisma.item.create({
+    data: {
+      name: 'Свиток заточки аксессуаров',
+      type: 'scroll',
+      description: 'Гарантированно улучшает пояс или кольцо на +1 уровень заточки',
+      price: 0,
+      minLevel: 1,
+    },
+  });
+
   // Проверяем существуют ли подземелья
   let easyDungeon = await prisma.dungeon.findFirst({ where: { difficulty: 'easy' } });
   if (!easyDungeon) {
@@ -276,6 +298,10 @@ async function main() {
 
 
   // ЛОГИКАЯ СЛЕДУЮЩАЯ Крыса → Гоблин → Крыса → Гоблин → Демон ЭТО ЛЕГКИЙ
+  // Удаляем существующих монстров перед добавлением новых (чтобы избежать дубликатов)
+  await prisma.dungeonMonster.deleteMany({
+    where: { dungeonId: easyDungeon.id },
+  });
   await prisma.dungeonMonster.createMany({
     data: [
       { dungeonId: easyDungeon.id, monsterId: rat.id, position: 1 },
@@ -287,6 +313,10 @@ async function main() {
   });
 
   // Гоблин → Скелет → Орк → Скелет → Демон СРЕДНИЙ
+  // Удаляем существующих монстров перед добавлением новых (чтобы избежать дубликатов)
+  await prisma.dungeonMonster.deleteMany({
+    where: { dungeonId: mediumDungeon.id },
+  });
   await prisma.dungeonMonster.createMany({
     data: [
       { dungeonId: mediumDungeon.id, monsterId: goblin.id, position: 1 },
@@ -298,6 +328,10 @@ async function main() {
   });
 
   // Скелет → Орк → Орк → Орк → Демон ХАРД УРОВЕНЬ
+  // Удаляем существующих монстров перед добавлением новых (чтобы избежать дубликатов)
+  await prisma.dungeonMonster.deleteMany({
+    where: { dungeonId: hardDungeon.id },
+  });
   await prisma.dungeonMonster.createMany({
     data: [
       { dungeonId: hardDungeon.id, monsterId: skeleton.id, position: 1 },
@@ -311,8 +345,7 @@ async function main() {
   // ЛУТОВЫЕ ТАБЛИЦЫ ДЛЯ МОНСТРОВ
   await prisma.monsterLoot.createMany({
     data: [
-      // Крыса - дропает зелья и простые вещи
-      { monsterId: rat.id, itemId: potion.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
+      // Крыса - дропает простые вещи
       { monsterId: rat.id, itemId: rustySword.id, dropChance: 0.15, minCount: 1, maxCount: 1 },
       { monsterId: rat.id, itemId: hat.id, dropChance: 0.2, minCount: 1, maxCount: 1 },
 
@@ -320,33 +353,44 @@ async function main() {
       { monsterId: goblin.id, itemId: rustySword.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
       { monsterId: goblin.id, itemId: leatherArmor.id, dropChance: 0.2, minCount: 1, maxCount: 1 },
       { monsterId: goblin.id, itemId: boots.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
-      { monsterId: goblin.id, itemId: potion.id, dropChance: 0.4, minCount: 1, maxCount: 2 },
 
       // Скелет - дропает среднее снаряжение
       { monsterId: skeleton.id, itemId: steelSword.id, dropChance: 0.2, minCount: 1, maxCount: 1 },
       { monsterId: skeleton.id, itemId: helmet.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
       { monsterId: skeleton.id, itemId: belt.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
-      { monsterId: skeleton.id, itemId: potion.id, dropChance: 0.5, minCount: 1, maxCount: 3 },
 
       // Орк - дропает хорошее снаряжение
       { monsterId: orc.id, itemId: steelSword.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
       { monsterId: orc.id, itemId: chainmail.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
       { monsterId: orc.id, itemId: helmet.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
       { monsterId: orc.id, itemId: belt.id, dropChance: 0.35, minCount: 1, maxCount: 1 },
-      { monsterId: orc.id, itemId: potion.id, dropChance: 0.6, minCount: 2, maxCount: 4 },
 
       // Демон (босс) - дропает лучшее снаряжение с высоким шансом
       { monsterId: demon.id, itemId: heroSword.id, dropChance: 0.5, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: chainmail.id, dropChance: 0.7, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: helmet.id, dropChance: 0.7, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: belt.id, dropChance: 0.6, minCount: 1, maxCount: 1 },
-      { monsterId: demon.id, itemId: potion.id, dropChance: 0.9, minCount: 3, maxCount: 5 },
+
+      // Свитки заточки - редкий дроп
+      // Скелет - дропает свиток оружия с малым шансом
+      { monsterId: skeleton.id, itemId: weaponScroll.id, dropChance: 0.1, minCount: 1, maxCount: 1 },
+
+      // Орк - дропает свитки брони и аксессуаров с малым шансом
+      { monsterId: orc.id, itemId: weaponScroll.id, dropChance: 0.12, minCount: 1, maxCount: 1 },
+      { monsterId: orc.id, itemId: armorScroll.id, dropChance: 0.15, minCount: 1, maxCount: 1 },
+      { monsterId: orc.id, itemId: accessoryScroll.id, dropChance: 0.12, minCount: 1, maxCount: 1 },
+
+      // Демон (босс) - дропает все свитки с хорошим шансом
+      { monsterId: demon.id, itemId: weaponScroll.id, dropChance: 0.4, minCount: 1, maxCount: 2 },
+      { monsterId: demon.id, itemId: armorScroll.id, dropChance: 0.45, minCount: 1, maxCount: 2 },
+      { monsterId: demon.id, itemId: accessoryScroll.id, dropChance: 0.4, minCount: 1, maxCount: 2 },
     ],
   });
 
   // СПЕЦИАЛИЗАЦИИ - 18 способностей (6 веток × 3 тира)
-  await prisma.specializationAbility.createMany({
-    data: [
+  try {
+    await prisma.specializationAbility.createMany({
+      data: [
       // WARRIOR - PALADIN
       {
         branch: 'PALADIN',
@@ -503,7 +547,11 @@ async function main() {
         effects: { type: 'ultimate', transform: 'demon', allStatsBonus: 100, duration: 3 },
       },
     ],
+    skipDuplicates: true,
   });
+  } catch (e) {
+    console.log('⚠️  Способности специализаций уже существуют, пропускаем...');
+  }
 
   console.log('✅ Сиды успешно загружены!');
 }

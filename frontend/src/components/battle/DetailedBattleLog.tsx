@@ -150,7 +150,7 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
                   textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
                   letterSpacing: '0.5px',
                 }}>
-                  Раунд {result.roundNumber}
+                  Раунд {result.roundNumber}, Ход {result.turnNumber}
                 </div>
 
                 {/* Атаки игрока */}

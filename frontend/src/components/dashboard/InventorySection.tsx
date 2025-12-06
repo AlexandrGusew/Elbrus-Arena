@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Character, InventoryItem } from '../../types/api';
 import { useUnequipItemMutation } from '../../store/api/characterApi';
 import { ItemIcon } from '../common/ItemIcon';
@@ -11,6 +11,8 @@ interface InventorySectionProps {
   onBack?: () => void;
   forgeItemSlot?: InventoryItem | null;
   onForgeItemSelect?: (item: InventoryItem | null) => void;
+  selectedItem?: InventoryItem | null;
+  onItemSelect?: (item: InventoryItem | null) => void;
 }
 
 export function InventorySection({
@@ -20,9 +22,31 @@ export function InventorySection({
   onNavigateToInventory,
   onBack,
   forgeItemSlot,
-  onForgeItemSelect
+  onForgeItemSelect,
+  selectedItem: selectedItemProp,
+  onItemSelect
 }: InventorySectionProps) {
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  // Используем переданный selectedItem или локальное состояние как fallback (для обратной совместимости)
+  const [localSelectedItem, setLocalSelectedItem] = useState<InventoryItem | null>(null);
+  // Если selectedItemProp передан (даже если null), используем его, иначе используем локальное состояние
+  const selectedItem = selectedItemProp !== undefined ? selectedItemProp : localSelectedItem;
+  const setSelectedItem = onItemSelect ? onItemSelect : setLocalSelectedItem;
+
+  // Helper функция для применения бонуса от заточки
+  // Формула: baseStat + (baseStat * enhancement * 0.1)
+  // +1 = +10%, +2 = +20%, +3 = +30%
+  const applyEnhancementBonus = (baseStat: number, enhancement: number): number => {
+    if (enhancement === 0 || baseStat === 0) return baseStat;
+    return Math.floor(baseStat + (baseStat * enhancement * 0.1));
+  };
+  
+  // Отладка: логируем изменения selectedItem
+  useEffect(() => {
+    console.log('InventorySection: selectedItemProp =', selectedItemProp?.item?.name || 'null/undefined');
+    console.log('InventorySection: selectedItem =', selectedItem?.item?.name || 'null');
+    console.log('InventorySection: onItemSelect =', onItemSelect ? 'defined' : 'undefined');
+  }, [selectedItemProp, selectedItem, onItemSelect]);
+  
   const [draggedItem, setDraggedItem] = useState<InventoryItem | null>(null);
   const [isInventoryDropZone, setIsInventoryDropZone] = useState(false);
 
@@ -39,6 +63,8 @@ export function InventorySection({
     setDraggedItem(invItem);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('inventory-item', JSON.stringify(invItem));
+    // Останавливаем всплытие события, чтобы клик не мешал drag & drop
+    e.stopPropagation();
   };
 
   const handleDragEnd = () => {
@@ -46,9 +72,14 @@ export function InventorySection({
   };
 
   const handleItemClick = (invItem: InventoryItem) => {
+    // Игнорируем клик, если был drag (проверяем через draggedItem)
+    if (draggedItem) {
+      return;
+    }
     setSelectedItem(invItem);
     // Если кузница открыта и есть callback - помещаем предмет в кузницу
-    if (showForge && onForgeItemSelect) {
+    // НО: свитки НЕ помещаем в слот предмета (только через drag & drop в слот свитка)
+    if (showForge && onForgeItemSelect && invItem.item.type !== 'scroll') {
       onForgeItemSelect(invItem);
     }
   };
@@ -121,7 +152,12 @@ export function InventorySection({
           lineHeight: '12px',
           whiteSpace: 'nowrap',
         }}>{'.'.repeat(50)}</span>
-        <span style={{ whiteSpace: 'nowrap' }}>{value}</span>
+        <span style={{ 
+          whiteSpace: 'nowrap',
+          fontSize: '18px',
+          fontWeight: 'bold',
+          color: '#f4d03f',
+        }}>{value}</span>
       </div>
     </div>
   );
@@ -323,11 +359,14 @@ export function InventorySection({
               </div>
 
               {/* Динамически генерируем блоки только для характеристик со значениями > 0 */}
-              {selectedItem.item.damage > 0 && renderStatBlock('DAMAGE', selectedItem.item.damage)}
-              {selectedItem.item.armor > 0 && renderStatBlock('ARMOR', selectedItem.item.armor)}
-              {selectedItem.item.bonusStr > 0 && renderStatBlock('STR', `+${selectedItem.item.bonusStr}`)}
-              {selectedItem.item.bonusAgi > 0 && renderStatBlock('AGI', `+${selectedItem.item.bonusAgi}`)}
-              {selectedItem.item.bonusInt > 0 && renderStatBlock('INT', `+${selectedItem.item.bonusInt}`)}
+              {selectedItem.item.damage > 0 && renderStatBlock('DAMAGE', applyEnhancementBonus(selectedItem.item.damage, selectedItem.enhancement))}
+              {selectedItem.item.armor > 0 && renderStatBlock('ARMOR', applyEnhancementBonus(selectedItem.item.armor, selectedItem.enhancement))}
+              {selectedItem.item.bonusStr > 0 && renderStatBlock('STR', `+${applyEnhancementBonus(selectedItem.item.bonusStr, selectedItem.enhancement)}`)}
+              {selectedItem.item.bonusAgi > 0 && renderStatBlock('AGI', `+${applyEnhancementBonus(selectedItem.item.bonusAgi, selectedItem.enhancement)}`)}
+              {selectedItem.item.bonusInt > 0 && renderStatBlock('INT', `+${applyEnhancementBonus(selectedItem.item.bonusInt, selectedItem.enhancement)}`)}
+
+              {/* Уровень использования - показываем если minLevel > 1 */}
+              {selectedItem.item.minLevel > 1 && renderStatBlock('LEVEL', selectedItem.item.minLevel)}
 
               {/* GOLD - всегда показываем если предмет выбран */}
               {renderStatBlock('GOLD', selectedItem.item.price)}
@@ -338,47 +377,138 @@ export function InventorySection({
 
       {/* Inventory Grid */}
       <div
-        className={`flex-1 border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 p-6 relative transition-all ${
+        className={`border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 p-4 relative transition-all ${
           isInventoryDropZone ? 'border-green-500/80 bg-green-950/30' : 'border-amber-700/60'
         }`}
         onDragOver={handleInventoryDragOver}
         onDragLeave={handleInventoryDragLeave}
         onDrop={handleInventoryDrop}
+        style={{ height: '560px' }}
       >
         <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/60"></div>
         <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/60"></div>
         <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/60"></div>
         <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/60"></div>
 
-        <div className="grid grid-cols-4 gap-4 h-full content-start">
-          {unequippedItems.map((invItem) => (
-            <div
-              key={invItem.id}
-              draggable={true}
-              onDragStart={(e) => handleDragStart(e, invItem)}
-              onDragEnd={handleDragEnd}
-              onClick={() => handleItemClick(invItem)}
-              className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 hover:border-amber-600/60 transition-all cursor-move flex flex-col items-center justify-center aspect-square p-2 ${
-                selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id ? 'border-red-700/80' : 'border-amber-800/40'
-              } ${draggedItem?.id === invItem.id ? 'opacity-50' : ''}`}
-            >
-              <ItemIcon
-                item={invItem.item}
-                size="small"
-                enhancement={invItem.enhancement}
-              />
-            </div>
-          ))}
+        <div className="grid grid-cols-6 gap-3 overflow-y-auto h-full pr-2" style={{ maxHeight: '100%' }}>
+          {(() => {
+            // Группируем предметы по названию, типу и уровню заточки
+            const groupedItems = unequippedItems.reduce((acc, invItem) => {
+              const key = `${invItem.item.name}_${invItem.item.type}_${invItem.enhancement || 0}`;
+              
+              if (!acc[key]) {
+                acc[key] = {
+                  items: [invItem],
+                  firstItem: invItem,
+                  totalQuantity: invItem.quantity, // Суммируем quantity
+                };
+              } else {
+                acc[key].items.push(invItem);
+                acc[key].totalQuantity += invItem.quantity; // Добавляем quantity
+              }
+              
+              return acc;
+            }, {} as Record<string, { items: InventoryItem[]; firstItem: InventoryItem; totalQuantity: number }>);
 
-          {/* Empty slots */}
-          {Array.from({ length: Math.max(0, 12 - unequippedItems.length) }).map((_, index) => (
-            <div
-              key={`empty-${index}`}
-              className="border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 flex items-center justify-center aspect-square"
-            >
-              <span className="text-amber-300/20 text-sm">{unequippedItems.length + index + 1}</span>
-            </div>
-          ))}
+            // Преобразуем объект в массив для отображения
+            const itemsArray = Object.values(groupedItems);
+            
+            // Получаем размер инвентаря (по умолчанию 36 для сетки 6x6)
+            const inventorySize = character.inventory?.size || 36;
+            const maxSlots = Math.max(inventorySize, 36); // Минимум 36 слотов (6x6)
+            
+            // Создаем массив всех слотов (заполненные + пустые)
+            const allSlots: (InventoryItem | null)[] = [];
+            
+            // Добавляем заполненные слоты
+            itemsArray.forEach(group => {
+              allSlots.push(group.firstItem);
+            });
+            
+            // Заполняем оставшиеся слоты null (пустые ячейки)
+            while (allSlots.length < maxSlots) {
+              allSlots.push(null);
+            }
+            
+            // Отладка
+            console.log('📦 InventorySection: Сетка инвентаря:', {
+              totalItems: unequippedItems.length,
+              groupedItems: itemsArray.length,
+              inventorySize,
+              maxSlots,
+              filledSlots: itemsArray.length,
+              emptySlots: maxSlots - itemsArray.length,
+              groupedItemsDetails: itemsArray.map(group => ({
+                name: group.firstItem.item.name,
+                type: group.firstItem.item.type,
+                enhancement: group.firstItem.enhancement,
+                totalQuantity: group.totalQuantity,
+                itemsCount: group.items.length,
+                itemsQuantities: group.items.map(item => item.quantity),
+              })),
+            });
+
+            return allSlots.map((slotItem, index) => {
+              // Если слот пустой
+              if (!slotItem) {
+                return (
+                  <div
+                    key={`empty-slot-${index}`}
+                    className="border-2 rounded-lg bg-gradient-to-b from-stone-950/30 to-black/30 border-amber-800/20 flex flex-col items-center justify-center aspect-square p-1 opacity-40"
+                    style={{ height: 'fit-content', minHeight: '80px' }}
+                  >
+                    {/* Пустая ячейка */}
+                  </div>
+                );
+              }
+              
+              // Если слот заполнен - находим группу для этого предмета
+              const group = groupedItems[`${slotItem.item.name}_${slotItem.item.type}_${slotItem.enhancement || 0}`];
+              
+              return (
+                <div
+                  key={`${slotItem.item.name}_${slotItem.item.type}_${slotItem.enhancement || 0}_${index}`}
+                  draggable={true}
+                  onDragStart={(e) => handleDragStart(e, slotItem)}
+                  onDragEnd={handleDragEnd}
+                  onClick={() => handleItemClick(slotItem)}
+                  className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 hover:border-amber-600/60 transition-all cursor-move flex flex-col items-center justify-center aspect-square p-1 relative ${
+                    selectedItem?.id === slotItem.id || forgeItemSlot?.id === slotItem.id ? 'border-red-700/80' : 'border-amber-800/40'
+                  } ${draggedItem?.id === slotItem.id ? 'opacity-50' : ''}`}
+                  style={{ height: 'fit-content', minHeight: '80px' }}
+                >
+                  {/* Счетчик количества в верхнем правом углу */}
+                  {group && group.totalQuantity > 1 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      background: 'linear-gradient(135deg, #d4af37 0%, #b8941f 100%)',
+                      color: '#000',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      padding: '3px 6px',
+                      borderRadius: '4px',
+                      border: '2px solid #ffd700',
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.5), 0 0 8px rgba(212, 175, 55, 0.5)',
+                      zIndex: 100,
+                      minWidth: '24px',
+                      textAlign: 'center',
+                      lineHeight: '1',
+                    }}>
+                      ×{group.totalQuantity}
+                    </div>
+                  )}
+                  
+                  <ItemIcon
+                    item={slotItem.item}
+                    size="small"
+                    enhancement={slotItem.enhancement}
+                  />
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
     </div>

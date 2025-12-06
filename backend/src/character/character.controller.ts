@@ -110,13 +110,21 @@ export class CharacterController {
   @Post(':id/distribute-stats')
   async distributeStats(
     @Param('id') id: string,
-    @Body() body: { strength: number; agility: number; intelligence: number },
+    @Body() body: { 
+      strength: number; 
+      agility: number; 
+      intelligence: number;
+      maxHp?: number;
+      stamina?: number;
+    },
   ): Promise<void> {
     return this.levelUpService.distributeStats(
       Number(id),
       body.strength,
       body.agility,
       body.intelligence,
+      body.maxHp,
+      body.stamina,
     );
   }
 
@@ -131,6 +139,18 @@ export class CharacterController {
     @Param('inventoryItemId') inventoryItemId: string,
   ) {
     return this.enhancementService.enhanceItem(Number(characterId), Number(inventoryItemId));
+  }
+
+  @Post(':characterId/enhance-with-scroll')
+  async enhanceItemWithScroll(
+    @Param('characterId') characterId: string,
+    @Body() body: { inventoryItemId: number; scrollItemId: number },
+  ) {
+    return this.enhancementService.enhanceItemWithScroll(
+      Number(characterId),
+      body.inventoryItemId,
+      body.scrollItemId,
+    );
   }
 
   @Get('enhancement-info/:inventoryItemId')

@@ -9,10 +9,14 @@ export const authApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
           const { data } = await queryFulfilled;
           setAccessToken(data.accessToken);
+          // Очищаем characterId при входе нового пользователя
+          localStorage.removeItem('characterId');
+          // Очищаем кэш предыдущего пользователя
+          dispatch(baseApi.util.resetApiState());
           localStorage.setItem('isAuthenticated', 'true');
           console.log('Telegram авторизация успешна');
         } catch (err) {
@@ -29,10 +33,14 @@ export const authApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
           const { data } = await queryFulfilled;
           setAccessToken(data.accessToken);
+          // Очищаем characterId при регистрации нового пользователя
+          localStorage.removeItem('characterId');
+          // Очищаем кэш предыдущего пользователя
+          dispatch(baseApi.util.resetApiState());
           localStorage.setItem('isAuthenticated', 'true');
           console.log('✅ Регистрация успешна');
         } catch (err) {
@@ -49,10 +57,14 @@ export const authApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
           const { data } = await queryFulfilled;
           setAccessToken(data.accessToken);
+          // Очищаем characterId при входе
+          localStorage.removeItem('characterId');
+          // Очищаем кэш предыдущего пользователя
+          dispatch(baseApi.util.resetApiState());
           localStorage.setItem('isAuthenticated', 'true');
           console.log('✅ Вход успешен');
         } catch (err) {
@@ -67,12 +79,16 @@ export const authApi = baseApi.injectEndpoints({
         url: '/auth/logout',
         method: 'POST',
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
           await queryFulfilled;
           setAccessToken(null);
+          // Очищаем characterId из localStorage
+          localStorage.removeItem('characterId');
+          // Очищаем весь кэш RTK Query
+          dispatch(baseApi.util.resetApiState());
           localStorage.setItem('isAuthenticated', 'false');
-          console.log('Logged out, access token cleared');
+          console.log('Logged out, access token and cache cleared');
         } catch (err) {
           console.error('Logout failed:', err);
         }
@@ -95,10 +111,14 @@ export const authApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
           const { data } = await queryFulfilled;
           setAccessToken(data.accessToken);
+          // Очищаем characterId при входе нового пользователя
+          localStorage.removeItem('characterId');
+          // Очищаем кэш предыдущего пользователя
+          dispatch(baseApi.util.resetApiState());
           localStorage.setItem('isAuthenticated', 'true');
           console.log('Telegram авторизация через код успешна');
         } catch (err) {

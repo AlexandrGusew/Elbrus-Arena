@@ -48,6 +48,7 @@ export function useBattle(battleId: string | null) {
     // Слушаем события от сервера
     newSocket.on('round-start', (data: {
       roundNumber: number;
+      turnNumber: number;
       playerHp: number;
       monsterHp: number;
       currentMonster: number;
@@ -57,6 +58,7 @@ export function useBattle(battleId: string | null) {
       // Отладка - выводим данные из события в консоль
       console.log('📡 round-start event received:', data);
       console.log('🏰 dungeonId from server:', data.dungeonId);
+      console.log('🎯 Раунд:', data.roundNumber, 'Ход:', data.turnNumber);
 
       setBattleState((prev) => {
         // Обновляем HP только если:
@@ -76,8 +78,8 @@ export function useBattle(battleId: string | null) {
           dungeonId: data.dungeonId,
         };
       });
-      // Сбрасываем историю при начале нового боя (раунд 1)
-      if (data.roundNumber === 1) {
+      // Сбрасываем историю при начале нового боя (раунд 1, ход 1)
+      if (data.roundNumber === 1 && data.turnNumber === 1) {
         setRoundHistory([]);
       }
     });
@@ -91,10 +93,10 @@ export function useBattle(battleId: string | null) {
       }));
       // Добавляем результат раунда в историю, избегая дубликатов
       setRoundHistory((prev) => {
-        // Проверяем, нет ли уже такого раунда в истории
-        const exists = prev.some(r => r.roundNumber === result.roundNumber);
+        // Проверяем, нет ли уже такого раунда и хода в истории
+        const exists = prev.some(r => r.roundNumber === result.roundNumber && r.turnNumber === result.turnNumber);
         if (exists) {
-          console.warn(`⚠️ Раунд ${result.roundNumber} уже есть в истории, пропускаем дубликат`);
+          console.warn(`⚠️ Раунд ${result.roundNumber}, Ход ${result.turnNumber} уже есть в истории, пропускаем дубликат`);
           return prev;
         }
         return [...prev, result];
@@ -107,13 +109,32 @@ export function useBattle(battleId: string | null) {
       expGained?: number;
       goldGained?: number;
     }) => {
-      setBattleState((prev) => ({
-        ...prev,
+      console.log('🎁 battle-end event received:', {
         status: data.status,
         lootedItems: data.lootedItems,
+        lootedItemsLength: data.lootedItems?.length || 0,
         expGained: data.expGained,
         goldGained: data.goldGained,
-      }));
+      });
+      
+      setBattleState((prev) => {
+        const newState = {
+          ...prev,
+          status: data.status,
+          lootedItems: data.lootedItems || [],
+          expGained: data.expGained || 0,
+          goldGained: data.goldGained || 0,
+        };
+        
+        console.log('📦 Updated battleState with loot:', {
+          lootedItems: newState.lootedItems,
+          lootedItemsLength: newState.lootedItems?.length || 0,
+          expGained: newState.expGained,
+          goldGained: newState.goldGained,
+        });
+        
+        return newState;
+      });
     });
 
     newSocket.on('error', (error: { message: string }) => {

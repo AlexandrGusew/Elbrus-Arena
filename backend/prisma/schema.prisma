@@ -14,9 +14,9 @@ enum ItemType {
   belt
   legs
   accessory
-  potion
   shield
   offhand
+  scroll
 }
 
 enum CharacterClass {
