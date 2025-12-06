@@ -29,6 +29,12 @@ export default function Landing() {
   const epicBattlesImage = getAssetUrl('Landing/Breath of Darkness/Battl.png');
   const abyssMagicImage = getAssetUrl('Landing/Breath of Darkness/Abys.png');
 
+  // Logo
+  const logoImage = getAssetUrl('Landing/logo.png');
+
+  // Рамка для кнопок "Узнать Больше"
+  const buttonFrameUrl = getAssetUrl('Landing/UI/Широкая рамка.png');
+
   // Debug: проверяем URL фонового видео
   console.log('[Landing] Background Video URL:', backgroundVideoUrl);
 
@@ -81,7 +87,10 @@ export default function Landing() {
       {/* Header */}
       <header className="landing-header">
         <div className="header-container">
-          <div className="logo">Nightfall-Arena</div>
+          <div className="logo">
+            <img src={logoImage} alt="Logo" className="logo-img" />
+            Nightfall-Arena
+          </div>
           <nav className="nav-menu">
             <a
               href="#home"
@@ -179,7 +188,7 @@ export default function Landing() {
               className="class-icon"
               onClick={() => setSelectedPortrait(magePortrait)}
             />
-            <h3 className="class-title">Сраный колдун</h3>
+            <h3 className="class-title">Темный маг</h3>
             <p className="class-description">
               Повелитель сил бездны, продавший душу ради обретения могущества
             </p>
@@ -215,7 +224,23 @@ export default function Landing() {
               <br />
               силу в битвах на лучшего бойца Nightfall-Arena.
             </p>
-            <button className="btn btn-outline">Узнать Больше</button>
+            <button
+              className="btn btn-outline"
+              style={{
+                background: 'transparent',
+                backgroundImage: `url(${buttonFrameUrl})`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                border: 'none',
+                padding: '15px 30px',
+                minWidth: '200px',
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              УЗНАТЬ БОЛЬШЕ
+            </button>
           </div>
           <div className="feature-image">
             <img
@@ -243,7 +268,23 @@ export default function Landing() {
               сокровищ. Каждое подземелье таит уникальные вызовы
               <br />и награды за храбрость.
             </p>
-            <button className="btn btn-outline">Узнать Больше</button>
+            <button
+              className="btn btn-outline"
+              style={{
+                background: 'transparent',
+                backgroundImage: `url(${buttonFrameUrl})`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                border: 'none',
+                padding: '15px 30px',
+                minWidth: '200px',
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              УЗНАТЬ БОЛЬШЕ
+            </button>
           </div>
         </div>
 
@@ -256,7 +297,23 @@ export default function Landing() {
               систему судьбы. Каждый выбор открывает новые способности
               <br />и возможности для развития героя.
             </p>
-            <button className="btn btn-outline">Узнать Больше</button>
+            <button
+              className="btn btn-outline"
+              style={{
+                background: 'transparent',
+                backgroundImage: `url(${buttonFrameUrl})`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                border: 'none',
+                padding: '15px 30px',
+                minWidth: '200px',
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              УЗНАТЬ БОЛЬШЕ
+            </button>
           </div>
           <div className="feature-image">
             <img
@@ -284,7 +341,23 @@ export default function Landing() {
               снаряжение. Каждый предмет имеет уникальные свойства
               <br />и может быть усилен до невероятных уровней.
             </p>
-            <button className="btn btn-outline">Узнать Больше</button>
+            <button
+              className="btn btn-outline"
+              style={{
+                background: 'transparent',
+                backgroundImage: `url(${buttonFrameUrl})`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                border: 'none',
+                padding: '15px 30px',
+                minWidth: '200px',
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              УЗНАТЬ БОЛЬШЕ
+            </button>
           </div>
         </div>
       </section>
@@ -317,15 +390,6 @@ export default function Landing() {
               className="gallery-img"
             />
           </div>
-        </div>
-
-        <div className="social-links scroll-reveal fade-up delay-4">
-          <a href="#" className="social-icon">
-            Discord
-          </a>
-          <a href="#" className="social-icon">
-            VK
-          </a>
         </div>
       </section>
 
@@ -384,12 +448,6 @@ export default function Landing() {
             <h4>Сообщество</h4>
             <ul>
               <li>
-                <a href="#">Discord</a>
-              </li>
-              <li>
-                <a href="#">VK</a>
-              </li>
-              <li>
                 <a href="#">Telegram</a>
               </li>
             </ul>
@@ -440,10 +498,7 @@ export default function Landing() {
 
       {/* Модальное окно для feature изображений */}
       {selectedFeature && (
-        <div
-          className="feature-modal"
-          onClick={() => setSelectedFeature(null)}
-        >
+        <div className="feature-modal" onClick={() => setSelectedFeature(null)}>
           <div className="feature-modal-content">
             <img
               src={selectedFeature}
