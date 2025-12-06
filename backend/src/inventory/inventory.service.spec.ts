@@ -139,19 +139,6 @@ describe('InventoryService', () => {
       });
     });
 
-    it('должен выбросить BadRequestException при попытке экипировать зелье', async () => {
-      const potionItem = {
-        ...mockInventoryItem,
-        item: {
-          ...mockItem,
-          type: 'potion',
-        },
-      };
-
-      jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(potionItem);
-
-      await expect(service.equipItem(1, 1)).rejects.toThrow(BadRequestException);
-    });
 
     it('должен выбросить ForbiddenException если предмет не принадлежит персонажу', async () => {
       jest

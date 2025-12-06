@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useGetCharacterQuery } from '../store/api/characterApi';
+import { useGetCharacterQuery, characterApi } from '../store/api/characterApi';
 import { useGetDungeonsQuery, useStartBattleMutation } from '../store/api/battleApi';
+import { useDispatch } from 'react-redux';
 import type { DungeonDifficulty } from '../types/api';
 import { useBattle } from '../hooks/useBattle';
 import { DifficultySelector } from '../components/battle/DifficultySelector';
@@ -25,7 +26,8 @@ const Dungeon = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const { data: character, isLoading: characterLoading } = useGetCharacterQuery(
+  const dispatch = useDispatch();
+  const { data: character, isLoading: characterLoading, refetch: refetchCharacter } = useGetCharacterQuery(
     Number(characterId),
     { skip: !characterId }
   );
@@ -34,6 +36,24 @@ const Dungeon = () => {
   const [startBattleMutation] = useStartBattleMutation();
 
   const { battleState, roundHistory, sendRoundActions, isConnected } = useBattle(battleId);
+
+  // Обновляем кэш персонажа после завершения боя (когда получен лут)
+  const lastBattleIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if ((battleState.status === 'won' || battleState.status === 'lost') && battleState.lootedItems && battleId) {
+      // Проверяем, что это новый бой (не обновляем повторно для того же боя)
+      if (lastBattleIdRef.current !== battleId) {
+        lastBattleIdRef.current = battleId;
+        // Инвалидируем кэш персонажа, чтобы обновить инвентарь
+        if (characterId) {
+          dispatch(characterApi.util.invalidateTags([{ type: 'Character', id: Number(characterId) }]));
+          // Также делаем refetch для немедленного обновления
+          refetchCharacter();
+          console.log('🔄 Обновление кэша персонажа после получения лута');
+        }
+      }
+    }
+  }, [battleState.status, battleState.lootedItems, battleId, characterId, dispatch, refetchCharacter]);
 
   const selectedDungeon = dungeons.find(d => d.difficulty === selectedDifficulty);
   const requiredStamina = selectedDungeon?.staminaCost || 20;

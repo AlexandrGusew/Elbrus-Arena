@@ -267,21 +267,6 @@ describe('InventoryEnhancementService', () => {
       await expect(service.getEnhancementInfo(999)).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException for potion type', async () => {
-      const potionItem = {
-        ...mockOffhandItem,
-        item: {
-          ...mockOffhandItem.item,
-          type: 'potion',
-        },
-      };
-      jest.spyOn(prisma.inventoryItem, 'findUnique').mockResolvedValue(potionItem);
-
-      await expect(service.getEnhancementInfo(1)).rejects.toThrow(BadRequestException);
-      await expect(service.getEnhancementInfo(1)).rejects.toThrow(
-        'Potions cannot be enhanced',
-      );
-    });
   });
 
   describe('enhanceItem (regular gold enhancement)', () => {
@@ -422,40 +407,5 @@ describe('InventoryEnhancementService', () => {
       await expect(service.enhanceItem(1, 2)).rejects.toThrow('Недостаточно золота');
     });
 
-    it('should throw BadRequestException for potion enhancement attempt', async () => {
-      const potionItem = {
-        id: 3,
-        itemId: 12,
-        inventoryId: 1,
-        enhancement: 0,
-        isEquipped: false,
-        item: {
-          id: 12,
-          name: 'Зелье лечения',
-          description: 'Восстанавливает HP',
-          type: 'potion',
-          damage: 0,
-          armor: 0,
-          strength: 0,
-          agility: 0,
-          intelligence: 0,
-          requiredLevel: 1,
-          sellPrice: 20,
-        },
-      };
-
-      const charWithPotion = {
-        ...mockCharacterWithOffhand,
-        inventory: {
-          ...mockCharacterWithOffhand.inventory,
-          items: [potionItem],
-        },
-      };
-
-      jest.spyOn(prisma.character, 'findUnique').mockResolvedValue(charWithPotion);
-
-      await expect(service.enhanceItem(1, 3)).rejects.toThrow(BadRequestException);
-      await expect(service.enhanceItem(1, 3)).rejects.toThrow('Cannot enhance potions');
-    });
   });
 });

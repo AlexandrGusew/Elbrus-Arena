@@ -77,6 +77,8 @@ export class CharacterLevelUpService {
     strength: number,
     agility: number,
     intelligence: number,
+    maxHp?: number,
+    stamina?: number,
   ): Promise<void> {
     const character = await this.prisma.character.findUnique({
       where: { id: characterId },
@@ -86,15 +88,25 @@ export class CharacterLevelUpService {
       throw new Error('Character not found');
     }
 
-    const totalPoints = strength + agility + intelligence;
+    // Используем 0 если параметры не переданы (для обратной совместимости)
+    const hpPoints = maxHp ?? 0;
+    const staminaPoints = stamina ?? 0;
+
+    const totalPoints = strength + agility + intelligence + hpPoints + staminaPoints;
 
     if (totalPoints > character.freePoints) {
       throw new Error('Not enough free points');
     }
 
-    if (strength < 0 || agility < 0 || intelligence < 0) {
+    if (strength < 0 || agility < 0 || intelligence < 0 || hpPoints < 0 || staminaPoints < 0) {
       throw new Error('Stat points cannot be negative');
     }
+
+    // Рассчитываем новые значения
+    // HP: +10 HP за очко
+    // Stamina: +5 Stamina за очко
+    const hpIncrease = hpPoints * 10;
+    const staminaIncrease = staminaPoints * 5;
 
     await this.prisma.character.update({
       where: { id: characterId },
@@ -102,6 +114,8 @@ export class CharacterLevelUpService {
         strength: character.strength + strength,
         agility: character.agility + agility,
         intelligence: character.intelligence + intelligence,
+        maxHp: character.maxHp + hpIncrease,
+        stamina: character.stamina + staminaIncrease,
         freePoints: character.freePoints - totalPoints,
       },
     });

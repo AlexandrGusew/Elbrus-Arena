@@ -15,10 +15,6 @@ export class InventoryService {
       throw new NotFoundException('Inventory item not found');
     }
 
-    if (inventoryItem.item.type === 'potion') {
-      throw new BadRequestException('Potions cannot be equipped');
-    }
-
     const inventory = await this.prisma.inventory.findFirst({
       where: {
         characterId,

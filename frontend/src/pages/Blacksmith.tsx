@@ -12,7 +12,9 @@ const SLOT_ICONS: Record<ItemType, string> = {
   belt: '🔗',
   legs: '👖',
   accessory: '💍',
-  potion: '🧪'
+  shield: '🛡️',
+  offhand: '🗡️',
+  scroll: '📜'
 };
 
 const SLOT_NAMES: Record<ItemType, string> = {
@@ -22,7 +24,9 @@ const SLOT_NAMES: Record<ItemType, string> = {
   belt: 'Пояс',
   legs: 'Штаны',
   accessory: 'Аксессуар',
-  potion: 'Зелье'
+  shield: 'Щит',
+  offhand: 'Левая рука',
+  scroll: 'Свиток'
 };
 
 const ENHANCEMENT_COST_BASE = 100;
@@ -78,7 +82,7 @@ const Blacksmith = () => {
     return <div style={{ padding: '20px', textAlign: 'center' }}>Персонаж не найден</div>;
   }
 
-  const equippedItems = character.inventory.items.filter(item => item.isEquipped && item.item.type !== 'potion');
+  const equippedItems = character.inventory.items.filter(item => item.isEquipped);
 
   return (
     <div style={styles.container}>

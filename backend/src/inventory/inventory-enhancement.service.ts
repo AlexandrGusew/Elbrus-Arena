@@ -54,11 +54,6 @@ export class InventoryEnhancementService {
 
     const inventoryItem = character.inventory.items[0];
 
-    // Проверка что это не зелье
-    if (inventoryItem.item.type === 'potion') {
-      throw new BadRequestException('Cannot enhance potions');
-    }
-
     // Рассчитываем стоимость на основе текущего уровня заточки
     const enhancementCost = this.calculateEnhancementCost(inventoryItem.enhancement);
 
@@ -151,9 +146,9 @@ export class InventoryEnhancementService {
       throw new BadRequestException('Selected item is not a scroll');
     }
 
-    // Проверка что это не зелье
-    if (targetInventoryItem.item.type === 'potion' || targetInventoryItem.item.type === 'scroll') {
-      throw new BadRequestException('Cannot enhance potions or scrolls');
+    // Проверка что это не свиток
+    if (targetInventoryItem.item.type === 'scroll') {
+      throw new BadRequestException('Cannot enhance scrolls');
     }
 
     // Валидация соответствия свитка и типа предмета
@@ -224,10 +219,6 @@ export class InventoryEnhancementService {
 
     if (!inventoryItem) {
       throw new NotFoundException('Inventory item not found');
-    }
-
-    if (inventoryItem.item.type === 'potion') {
-      throw new BadRequestException('Potions cannot be enhanced');
     }
 
     const statBonus = inventoryItem.enhancement * this.ENHANCEMENT_STAT_BONUS;

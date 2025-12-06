@@ -18,6 +18,7 @@ interface CharacterCardProps {
   onEquipmentClick?: (slotType: string) => void;
   onItemSelect?: (item: InventoryItem | null) => void;
   selectedItem?: InventoryItem | null;
+  onLevelBarClick?: () => void;
 }
 
 type ItemSlotType = 'WEAPON' | 'HELMET' | 'ARMOR' | 'BOOTS' | 'BELT' | 'RING';

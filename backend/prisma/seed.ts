@@ -178,15 +178,6 @@ async function main() {
     },
   });
 
-  const potion = await prisma.item.create({
-    data: {
-      name: 'Зелье HP',
-      type: 'potion',
-      price: 20,
-      minLevel: 1,
-    },
-  });
-
   // Щиты для паладина
   const woodenShield = await prisma.item.create({
     data: {
@@ -307,6 +298,10 @@ async function main() {
 
 
   // ЛОГИКАЯ СЛЕДУЮЩАЯ Крыса → Гоблин → Крыса → Гоблин → Демон ЭТО ЛЕГКИЙ
+  // Удаляем существующих монстров перед добавлением новых (чтобы избежать дубликатов)
+  await prisma.dungeonMonster.deleteMany({
+    where: { dungeonId: easyDungeon.id },
+  });
   await prisma.dungeonMonster.createMany({
     data: [
       { dungeonId: easyDungeon.id, monsterId: rat.id, position: 1 },
@@ -318,6 +313,10 @@ async function main() {
   });
 
   // Гоблин → Скелет → Орк → Скелет → Демон СРЕДНИЙ
+  // Удаляем существующих монстров перед добавлением новых (чтобы избежать дубликатов)
+  await prisma.dungeonMonster.deleteMany({
+    where: { dungeonId: mediumDungeon.id },
+  });
   await prisma.dungeonMonster.createMany({
     data: [
       { dungeonId: mediumDungeon.id, monsterId: goblin.id, position: 1 },
@@ -329,6 +328,10 @@ async function main() {
   });
 
   // Скелет → Орк → Орк → Орк → Демон ХАРД УРОВЕНЬ
+  // Удаляем существующих монстров перед добавлением новых (чтобы избежать дубликатов)
+  await prisma.dungeonMonster.deleteMany({
+    where: { dungeonId: hardDungeon.id },
+  });
   await prisma.dungeonMonster.createMany({
     data: [
       { dungeonId: hardDungeon.id, monsterId: skeleton.id, position: 1 },
@@ -342,8 +345,7 @@ async function main() {
   // ЛУТОВЫЕ ТАБЛИЦЫ ДЛЯ МОНСТРОВ
   await prisma.monsterLoot.createMany({
     data: [
-      // Крыса - дропает зелья и простые вещи
-      { monsterId: rat.id, itemId: potion.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
+      // Крыса - дропает простые вещи
       { monsterId: rat.id, itemId: rustySword.id, dropChance: 0.15, minCount: 1, maxCount: 1 },
       { monsterId: rat.id, itemId: hat.id, dropChance: 0.2, minCount: 1, maxCount: 1 },
 
@@ -351,27 +353,23 @@ async function main() {
       { monsterId: goblin.id, itemId: rustySword.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
       { monsterId: goblin.id, itemId: leatherArmor.id, dropChance: 0.2, minCount: 1, maxCount: 1 },
       { monsterId: goblin.id, itemId: boots.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
-      { monsterId: goblin.id, itemId: potion.id, dropChance: 0.4, minCount: 1, maxCount: 2 },
 
       // Скелет - дропает среднее снаряжение
       { monsterId: skeleton.id, itemId: steelSword.id, dropChance: 0.2, minCount: 1, maxCount: 1 },
       { monsterId: skeleton.id, itemId: helmet.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
       { monsterId: skeleton.id, itemId: belt.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
-      { monsterId: skeleton.id, itemId: potion.id, dropChance: 0.5, minCount: 1, maxCount: 3 },
 
       // Орк - дропает хорошее снаряжение
       { monsterId: orc.id, itemId: steelSword.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
       { monsterId: orc.id, itemId: chainmail.id, dropChance: 0.25, minCount: 1, maxCount: 1 },
       { monsterId: orc.id, itemId: helmet.id, dropChance: 0.3, minCount: 1, maxCount: 1 },
       { monsterId: orc.id, itemId: belt.id, dropChance: 0.35, minCount: 1, maxCount: 1 },
-      { monsterId: orc.id, itemId: potion.id, dropChance: 0.6, minCount: 2, maxCount: 4 },
 
       // Демон (босс) - дропает лучшее снаряжение с высоким шансом
       { monsterId: demon.id, itemId: heroSword.id, dropChance: 0.5, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: chainmail.id, dropChance: 0.7, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: helmet.id, dropChance: 0.7, minCount: 1, maxCount: 1 },
       { monsterId: demon.id, itemId: belt.id, dropChance: 0.6, minCount: 1, maxCount: 1 },
-      { monsterId: demon.id, itemId: potion.id, dropChance: 0.9, minCount: 3, maxCount: 5 },
 
       // Свитки заточки - редкий дроп
       // Скелет - дропает свиток оружия с малым шансом
