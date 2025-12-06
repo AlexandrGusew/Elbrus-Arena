@@ -12,8 +12,8 @@ export const characterApi = baseApi.injectEndpoints({
       query: () => `/character/me`,
       providesTags: (result) =>
         result && Array.isArray(result)
-          ? result.map(({ id }) => ({ type: 'Character', id }))
-          : [],
+          ? [...result.map(({ id }) => ({ type: 'Character' as const, id })), 'Character']
+          : ['Character'],
     }),
 
     getMyCharacters: builder.query<Character[], void>({

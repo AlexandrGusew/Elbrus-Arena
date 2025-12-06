@@ -11,7 +11,9 @@ import type { Character } from '../../types/api';
  */
 export function ChooseHeroPage() {
     const navigate = useNavigate();
-    const { data: characters, isLoading } = useGetMyCharacterQuery();
+    const { data: characters, isLoading } = useGetMyCharacterQuery(undefined, {
+        refetchOnMountOrArgChange: true
+    });
 
     // API возвращает массив персонажей, берем первого
     const character = characters?.[0] || null;
