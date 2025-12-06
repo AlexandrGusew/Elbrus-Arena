@@ -20,6 +20,7 @@ import { NavigationButtons } from '../components/dashboard/NavigationButtons';
 import { CharacterSelector } from '../components/CharacterSelector';
 import { Volume2, VolumeX, LogOut } from 'lucide-react';
 import type { InventoryItem } from '../types/api';
+import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, mainContainer } from '../styles/dashboard.styles';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -295,33 +296,36 @@ const Dashboard = () => {
           onClick={toggleMusic}
           style={{
             padding: '8px 16px',
-            border: '1px solid #d4af37',
-            background: 'rgba(20, 20, 20, 0.9)',
-            color: '#d4af37',
+            border: `2px solid ${dashboardColors.borderGold}`,
+            background: dashboardColors.backgroundMedium,
+            color: dashboardColors.textGold,
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            borderRadius: '4px',
+            borderRadius: '6px',
             fontSize: '12px',
             fontWeight: 'bold',
             textTransform: 'uppercase',
-            fontFamily: "'IM Fell English', serif",
+            fontFamily: dashboardFonts.secondary,
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
+            letterSpacing: '0.1em',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
             e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.borderColor = dashboardColors.borderGoldHover;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+            e.currentTarget.style.background = dashboardColors.backgroundMedium;
             e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.borderColor = dashboardColors.borderGold;
           }}
         >
           {isMusicPlaying ? (
-            <Volume2 size={14} color="#d4af37" />
+            <Volume2 size={14} color={dashboardColors.textRed} />
           ) : (
-            <VolumeX size={14} color="#d4af37" />
+            <VolumeX size={14} color={dashboardColors.textRed} />
           )}
           <span>MUSIC</span>
         </button>
@@ -331,31 +335,34 @@ const Dashboard = () => {
           <button
             onClick={handleLogout}
             style={{
-              padding: '8px 16px',
-              border: '1px solid #d4af37',
-              background: 'rgba(20, 20, 20, 0.9)',
-              color: '#d4af37',
+              padding: '10px 18px',
+              border: `2px solid ${dashboardColors.borderRed}`,
+              background: dashboardColors.backgroundMedium,
+              color: dashboardColors.textRed,
               cursor: 'pointer',
               transition: 'all 0.3s ease',
-              borderRadius: '4px',
+              borderRadius: '6px',
               fontSize: '12px',
               fontWeight: 'bold',
               textTransform: 'uppercase',
-              fontFamily: "'IM Fell English', serif",
+              fontFamily: dashboardFonts.secondary,
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '8px',
+              letterSpacing: '0.1em',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+              e.currentTarget.style.background = 'rgba(220, 20, 60, 0.2)';
               e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+              e.currentTarget.style.background = dashboardColors.backgroundMedium;
               e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = dashboardColors.borderRed;
             }}
           >
-            <LogOut size={14} color="#d4af37" />
+            <LogOut size={14} color={dashboardColors.textRed} />
             <span>EXIT</span>
           </button>
         )}
@@ -366,24 +373,27 @@ const Dashboard = () => {
             onClick={handleBack}
             style={{
               padding: '8px 16px',
-              border: '1px solid #d4af37',
-              background: 'rgba(20, 20, 20, 0.9)',
-              color: '#d4af37',
+              border: `2px solid ${dashboardColors.borderGold}`,
+              background: dashboardColors.backgroundMedium,
+              color: dashboardColors.textGold,
               cursor: 'pointer',
               transition: 'all 0.3s ease',
-              borderRadius: '4px',
+              borderRadius: '6px',
               fontSize: '12px',
               fontWeight: 'bold',
               textTransform: 'uppercase',
-              fontFamily: "'IM Fell English', serif",
+              fontFamily: dashboardFonts.secondary,
+              letterSpacing: '0.1em',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
               e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.borderColor = dashboardColors.borderGoldHover;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+              e.currentTarget.style.background = dashboardColors.backgroundMedium;
               e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = dashboardColors.borderGold;
             }}
           >
             BACK
@@ -421,19 +431,64 @@ const Dashboard = () => {
 
       {/* Если персонаж выбран - показываем контент Dashboard */}
       {character ? (
-        <div className="absolute top-4 left-4 right-4 bottom-4 z-[2]">
-          <div className="w-full h-full border-4 border-amber-700/60 rounded-2xl bg-gradient-to-b from-stone-950/95 to-black/95 backdrop-blur-md shadow-2xl shadow-black/80 p-6 relative">
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          right: '16px',
+          bottom: '16px',
+          zIndex: 2,
+        }}>
+          <div style={{
+            ...mainContainer,
+            width: '100%',
+            height: '100%',
+            border: `4px solid ${dashboardColors.borderRed}`,
+            borderRadius: '16px',
+            backdropFilter: 'blur(12px)',
+            boxShadow: dashboardEffects.boxShadow,
+            padding: '28px',
+            overflow: 'hidden',
+          }}>
             {/* Corner ornaments */}
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-red-700/60"></div>
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-red-700/60"></div>
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-red-700/60"></div>
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-red-700/60"></div>
+            <div style={{
+              ...cornerOrnaments.topLeft,
+              width: '48px',
+              height: '48px',
+              borderTop: '4px solid',
+              borderLeft: '4px solid',
+              borderColor: dashboardColors.borderRed,
+            }}></div>
+            <div style={{
+              ...cornerOrnaments.topRight,
+              width: '48px',
+              height: '48px',
+              borderTop: '4px solid',
+              borderRight: '4px solid',
+              borderColor: dashboardColors.borderRed,
+            }}></div>
+            <div style={{
+              ...cornerOrnaments.bottomLeft,
+              width: '48px',
+              height: '48px',
+              borderBottom: '4px solid',
+              borderLeft: '4px solid',
+              borderColor: dashboardColors.borderRed,
+            }}></div>
+            <div style={{
+              ...cornerOrnaments.bottomRight,
+              width: '48px',
+              height: '48px',
+              borderBottom: '4px solid',
+              borderRight: '4px solid',
+              borderColor: dashboardColors.borderRed,
+            }}></div>
 
-            <div className="grid grid-cols-[45%_55%] gap-6 h-full">
+            <div className="grid grid-cols-[45%_55%] gap-8 h-full" style={{ overflow: 'hidden' }}>
               {/* LEFT COLUMN */}
-              <div className="flex flex-col gap-4 h-full">
+              <div className="flex flex-col gap-5 h-full" style={{ overflow: 'hidden' }}>
                 {/* Character Info Card OR Forge Section - 2/3 of height */}
-                <div className="h-[66%]">
+                <div className="h-[66%]" style={{ overflow: 'hidden' }}>
                   {showForge ? (
                     <ForgeSection
                       character={character}
@@ -451,7 +506,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Chat Section - 1/3 of height */}
-                <div className="h-[33%]">
+                <div className="h-[33%]" style={{ overflow: 'hidden' }}>
                   <ChatSection characterId={character.id} characterName={character.name} />
                 </div>
               </div>

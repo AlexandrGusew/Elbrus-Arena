@@ -1,4 +1,11 @@
 import { Link } from 'react-router-dom';
+import { dashboardColors, dashboardFonts, cornerOrnaments, cardStyle } from '../../styles/dashboard.styles';
+
+// Импорт изображений кнопок из асетов
+import arenaImg from '../../assets/button-for-page/arena.png';
+import dungImg from '../../assets/button-for-page/dung.png';
+import inventoryImg from '../../assets/button-for-page/inventory.png';
+import forgeImg from '../../assets/button-for-page/forge.png';
 
 interface NavigationButtonsProps {
   onInventoryClick: () => void;
@@ -6,67 +13,127 @@ interface NavigationButtonsProps {
 }
 
 export function NavigationButtons({ onInventoryClick, onForgeClick }: NavigationButtonsProps) {
-  const buttonStyle = {
-    fontFamily: 'serif',
-    textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
-    background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
-  };
 
   return (
-    <div className="grid grid-rows-4 gap-4 h-full">
+    <div className="flex flex-col gap-4 h-full overflow-hidden">
       {/* Arena */}
       <Link
         to="/pvp"
-        className="border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/90 to-black/90 flex items-center justify-center relative hover:border-red-700/70 transition-all cursor-pointer group"
+        className="flex items-center justify-center relative transition-all cursor-pointer group overflow-hidden"
+        style={{ 
+          minHeight: 0, 
+          flex: '1 1 auto',
+          ...cardStyle,
+          border: `3px solid ${dashboardColors.borderRed}`,
+          padding: '12px',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = dashboardColors.borderRed;
+        }}
       >
-        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+        <div style={cornerOrnaments.topLeft}></div>
+        <div style={cornerOrnaments.topRight}></div>
+        <div style={cornerOrnaments.bottomLeft}></div>
+        <div style={cornerOrnaments.bottomRight}></div>
 
-        <h3 className="text-3xl uppercase tracking-[0.3em]" style={buttonStyle}>Arena</h3>
+        <img 
+          src={arenaImg} 
+          alt="Arena" 
+          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+        />
       </Link>
 
       {/* Dungeon */}
       <Link
         to="/dungeon"
-        className="border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/90 to-black/90 flex items-center justify-center relative hover:border-red-700/70 transition-all cursor-pointer group"
+        className="flex items-center justify-center relative transition-all cursor-pointer group overflow-hidden"
+        style={{ 
+          minHeight: 0, 
+          flex: '1 1 auto',
+          ...cardStyle,
+          border: `3px solid ${dashboardColors.borderRed}`,
+          padding: '12px',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = dashboardColors.borderRed;
+        }}
       >
-        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+        <div style={cornerOrnaments.topLeft}></div>
+        <div style={cornerOrnaments.topRight}></div>
+        <div style={cornerOrnaments.bottomLeft}></div>
+        <div style={cornerOrnaments.bottomRight}></div>
 
-        <h3 className="text-3xl uppercase tracking-[0.3em]" style={buttonStyle}>Dungeon</h3>
+        <img 
+          src={dungImg} 
+          alt="Dungeon" 
+          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+        />
       </Link>
 
       {/* Inventory - встроенный компонент */}
       <div
         onClick={onInventoryClick}
-        className="border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/90 to-black/90 flex items-center justify-center relative hover:border-red-700/70 transition-all cursor-pointer group"
+        className="flex items-center justify-center relative transition-all cursor-pointer group overflow-hidden"
+        style={{ 
+          minHeight: 0, 
+          flex: '1 1 auto',
+          ...cardStyle,
+          border: `3px solid ${dashboardColors.borderRed}`,
+          padding: '12px',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = dashboardColors.borderRed;
+        }}
       >
-        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+        <div style={cornerOrnaments.topLeft}></div>
+        <div style={cornerOrnaments.topRight}></div>
+        <div style={cornerOrnaments.bottomLeft}></div>
+        <div style={cornerOrnaments.bottomRight}></div>
 
-        <h3 className="text-3xl uppercase tracking-[0.3em]" style={buttonStyle}>Inventory</h3>
+        <img 
+          src={inventoryImg} 
+          alt="Inventory" 
+          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+        />
       </div>
 
       {/* Forge - встроенный компонент */}
       <div
         onClick={onForgeClick}
-        className="border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/90 to-black/90 flex items-center justify-center relative hover:border-red-700/70 transition-all cursor-pointer group"
+        className="flex items-center justify-center relative transition-all cursor-pointer group overflow-hidden"
+        style={{ 
+          minHeight: 0, 
+          flex: '1 1 auto',
+          ...cardStyle,
+          border: `3px solid ${dashboardColors.borderRed}`,
+          padding: '12px',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = dashboardColors.borderRed;
+        }}
       >
-        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+        <div style={cornerOrnaments.topLeft}></div>
+        <div style={cornerOrnaments.topRight}></div>
+        <div style={cornerOrnaments.bottomLeft}></div>
+        <div style={cornerOrnaments.bottomRight}></div>
 
-        <h3 className="text-3xl uppercase tracking-[0.3em]" style={buttonStyle}>Forge</h3>
+        <img 
+          src={forgeImg} 
+          alt="Forge" 
+          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+        />
       </div>
     </div>
   );

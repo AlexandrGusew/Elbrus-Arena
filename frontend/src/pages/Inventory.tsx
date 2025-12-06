@@ -1,10 +1,32 @@
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetCharacterQuery, useEquipItemMutation, useUnequipItemMutation, useSellItemMutation } from '../store/api/characterApi';
 import type { InventoryItem } from '../types/api';
 import type { ItemType } from '../../../shared/types/enums';
 import { styles } from './Inventory.styles';
 import { StatsCalculator } from '../utils/statsCalculator';
+
+// Импорт изображений для слотов
+import weaponImg from '../assets/inventory-pers/weapon.png';
+import helmetImg from '../assets/inventory-pers/helmet.png';
+import armorImg from '../assets/inventory-pers/armor.png';
+import beltsImg from '../assets/inventory-pers/belt.png';
+import bootsImg from '../assets/inventory-pers/boots.png';
+import ringImg from '../assets/inventory-pers/ring.png';
+
+const SLOT_BACKGROUNDS: Record<ItemType, string> = {
+  weapon: weaponImg,
+  helmet: helmetImg,
+  armor: armorImg,
+  belt: beltsImg,
+  legs: bootsImg,
+  accessory: ringImg,
+  potion: ringImg, // используем ring как заглушку
+  shield: weaponImg, // используем weapon как заглушку
+  offhand: weaponImg, // используем weapon как заглушку
+  scroll: ringImg // используем ring как заглушку
+};
 
 const SLOT_ICONS: Record<ItemType, string> = {
   weapon: '⚔️',
@@ -15,7 +37,8 @@ const SLOT_ICONS: Record<ItemType, string> = {
   accessory: '💍',
   potion: '🧪',
   shield: '🛡️',
-  offhand: '🗡️'
+  offhand: '🗡️',
+  scroll: '📜'
 };
 
 const SLOT_NAMES: Record<ItemType, string> = {
@@ -27,7 +50,8 @@ const SLOT_NAMES: Record<ItemType, string> = {
   accessory: 'Аксессуар',
   potion: 'Зелье',
   shield: 'Щит',
-  offhand: 'Левая рука'
+  offhand: 'Левая рука',
+  scroll: 'Свиток'
 };
 
 const Inventory = () => {
@@ -231,8 +255,13 @@ const Inventory = () => {
                   key={slotType}
                   style={{
                     ...styles.equipmentSlot,
+                    backgroundImage: `url(${SLOT_BACKGROUNDS[slotType]})`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    minHeight: '100px',
+                    position: 'relative',
                     ...(isHighlighted && {
-                      background: 'linear-gradient(135deg, #4a5a4e 0%, #3a4a3e 100%)',
                       border: '2px solid #4CAF50',
                       transform: 'scale(1.02)',
                       transition: 'all 0.2s ease'
@@ -242,26 +271,40 @@ const Inventory = () => {
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, slotType)}
                 >
-                  <div style={styles.slotIcon}>{SLOT_ICONS[slotType]}</div>
-                  <div style={styles.slotContent}>
-                    <div style={styles.slotName}>{SLOT_NAMES[slotType]}</div>
-                    {equippedItem ? (
-                      <div
-                        style={styles.slotItem}
-                        onClick={() => handleEquip(equippedItem)}
-                      >
-                        <div style={styles.slotItemName}>
-                          {equippedItem.item.name}
-                          {equippedItem.enhancement > 0 && ` +${equippedItem.enhancement}`}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.2)',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '12px',
+                    gap: '12px'
+                  }}>
+                    <div style={{...styles.slotIcon, textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>{SLOT_ICONS[slotType]}</div>
+                    <div style={styles.slotContent}>
+                      <div style={{...styles.slotName, textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>{SLOT_NAMES[slotType]}</div>
+                      {equippedItem ? (
+                        <div
+                          style={styles.slotItem}
+                          onClick={() => handleEquip(equippedItem)}
+                        >
+                          <div style={styles.slotItemName}>
+                            {equippedItem.item.name}
+                            {equippedItem.enhancement > 0 && ` +${equippedItem.enhancement}`}
+                          </div>
+                          <div style={styles.slotItemStats}>
+                            {equippedItem.item.damage > 0 && `Урон: ${equippedItem.item.damage} `}
+                            {equippedItem.item.armor > 0 && `Броня: ${equippedItem.item.armor}`}
+                          </div>
                         </div>
-                        <div style={styles.slotItemStats}>
-                          {equippedItem.item.damage > 0 && `Урон: ${equippedItem.item.damage} `}
-                          {equippedItem.item.armor > 0 && `Броня: ${equippedItem.item.armor}`}
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={styles.slotEmpty}>Пусто</div>
-                    )}
+                      ) : (
+                        <div style={{...styles.slotEmpty, textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>Пусто</div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -288,8 +331,13 @@ const Inventory = () => {
                 <div
                   style={{
                     ...styles.equipmentSlot,
+                    backgroundImage: `url(${SLOT_BACKGROUNDS[offhandSlotType]})`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    minHeight: '100px',
+                    position: 'relative',
                     ...(isOffhandHighlighted && {
-                      background: 'linear-gradient(135deg, #5a4a6e 0%, #4a3a5e 100%)',
                       border: '2px solid #9C27B0',
                       transform: 'scale(1.02)',
                       transition: 'all 0.2s ease'
@@ -299,32 +347,46 @@ const Inventory = () => {
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, offhandSlotType)}
                 >
-                  <div style={styles.slotIcon}>
-                    {offhandItem ? SLOT_ICONS[offhandItem.item.type] : '🔒'}
-                  </div>
-                  <div style={styles.slotContent}>
-                    <div style={styles.slotName}>
-                      {offhandItem ? SLOT_NAMES[offhandItem.item.type] : 'Левая рука'}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.2)',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '12px',
+                    gap: '12px'
+                  }}>
+                    <div style={{...styles.slotIcon, textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>
+                      {offhandItem ? SLOT_ICONS[offhandItem.item.type] : '🔒'}
                     </div>
-                    {offhandItem ? (
-                      <div
-                        style={styles.slotItem}
-                        onClick={() => handleEquip(offhandItem)}
-                      >
-                        <div style={styles.slotItemName}>
-                          {offhandItem.item.name}
-                          {offhandItem.enhancement > 0 && ` +${offhandItem.enhancement}`}
-                        </div>
-                        <div style={styles.slotItemStats}>
-                          {offhandItem.item.damage > 0 && `Урон: ${offhandItem.item.damage} `}
-                          {offhandItem.item.armor > 0 && `Броня: ${offhandItem.item.armor}`}
-                        </div>
+                    <div style={styles.slotContent}>
+                      <div style={{...styles.slotName, textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>
+                        {offhandItem ? SLOT_NAMES[offhandItem.item.type] : 'Левая рука'}
                       </div>
-                    ) : (
-                      <div style={styles.slotEmpty}>
-                        {character.specialization ? 'Пусто' : 'Заблокирован'}
-                      </div>
-                    )}
+                      {offhandItem ? (
+                        <div
+                          style={styles.slotItem}
+                          onClick={() => handleEquip(offhandItem)}
+                        >
+                          <div style={styles.slotItemName}>
+                            {offhandItem.item.name}
+                            {offhandItem.enhancement > 0 && ` +${offhandItem.enhancement}`}
+                          </div>
+                          <div style={styles.slotItemStats}>
+                            {offhandItem.item.damage > 0 && `Урон: ${offhandItem.item.damage} `}
+                            {offhandItem.item.armor > 0 && `Броня: ${offhandItem.item.armor}`}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{...styles.slotEmpty, textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>
+                          {character.specialization ? 'Пусто' : 'Заблокирован'}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

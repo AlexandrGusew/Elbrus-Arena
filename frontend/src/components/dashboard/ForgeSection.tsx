@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Character, InventoryItem } from '../../types/api';
 import { useEnhanceItemMutation, useEnhanceItemWithScrollMutation } from '../../store/api/characterApi';
 import { ItemIcon } from '../common/ItemIcon';
+import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, cardStyle, gradientTextStyle } from '../../styles/dashboard.styles';
 
 interface ForgeSectionProps {
   character: Character;
@@ -142,36 +143,92 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
   };
 
   return (
-    <div className="border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/90 to-black/90 p-6 relative h-full flex flex-col">
-      <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/60"></div>
-      <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/60"></div>
-      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/60"></div>
-      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/60"></div>
+    <div 
+      style={{
+        ...cardStyle,
+        border: `3px solid ${dashboardColors.borderRed}`,
+        padding: '24px',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={cornerOrnaments.topLeft}></div>
+      <div style={cornerOrnaments.topRight}></div>
+      <div style={cornerOrnaments.bottomLeft}></div>
+      <div style={cornerOrnaments.bottomRight}></div>
 
       <div className="flex flex-col gap-4 h-full">
         {/* Top Row - Name Item and Update Scroll */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-5" style={{ overflow: 'hidden' }}>
           {/* Name Item */}
-          <div className="border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/80 to-black/90 px-4 py-2 flex items-center justify-center">
-            <span className="text-amber-200 uppercase tracking-wider text-sm" style={{ fontFamily: 'serif' }}>
+          <div 
+            style={{
+              ...cardStyle,
+              padding: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span style={{
+              color: dashboardColors.textRed,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              fontSize: '13px',
+              fontFamily: dashboardFonts.primary,
+            }}>
               {itemInSlot ? `${itemInSlot.item.name} +${itemInSlot.enhancement}` : 'name item'}
             </span>
           </div>
           {/* Update Scroll */}
-          <div className="border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/80 to-black/90 px-4 py-2 flex items-center justify-center">
-            <span className="text-amber-200 uppercase tracking-wider text-sm" style={{ fontFamily: 'serif' }}>
+          <div 
+            style={{
+              ...cardStyle,
+              padding: '12px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            <span style={{
+              color: dashboardColors.textRed,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              fontSize: '13px',
+              fontFamily: dashboardFonts.primary,
+            }}>
               {scrollInSlot ? scrollInSlot.item.name : 'update scroll'}
             </span>
           </div>
         </div>
 
         {/* Middle Row - Item Slot and Scroll Slot */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-5" style={{ overflow: 'hidden' }}>
           {/* Item Slot */}
           <div
-            className={`aspect-square border-2 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 hover:border-amber-600/60 transition-all relative overflow-hidden cursor-pointer ${
-              isDragOverItem ? 'border-green-500/80 bg-green-950/30' : 'border-amber-800/40'
-            }`}
+            style={{
+              aspectRatio: '1',
+              border: `2px solid ${isDragOverItem ? 'rgba(34, 197, 94, 0.8)' : dashboardColors.borderAmber}`,
+              borderRadius: '8px',
+              background: isDragOverItem ? 'rgba(20, 83, 45, 0.3)' : cardStyle.background,
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              if (!isDragOverItem) {
+                e.currentTarget.style.borderColor = dashboardColors.borderRed;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isDragOverItem) {
+                e.currentTarget.style.borderColor = dashboardColors.borderAmber;
+              }
+            }}
             onClick={() => onItemChange(null)} // Клик убирает предмет
             onDragOver={handleItemDragOver}
             onDragLeave={handleItemDragLeave}
@@ -187,8 +244,23 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
                 />
               </div>
             ) : (
-              <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-amber-700/30 rounded-lg m-1">
-                <span className="text-amber-300/40 text-xs text-center" style={{ fontFamily: 'serif' }}>
+              <div style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: `2px dashed ${dashboardColors.borderGold}`,
+                borderRadius: '8px',
+                margin: '4px',
+                opacity: 0.3,
+              }}>
+                <span style={{
+                  color: dashboardColors.textRed,
+                  fontSize: '11px',
+                  textAlign: 'center',
+                  fontFamily: dashboardFonts.primary,
+                }}>
                   Drop Item<br/>Here
                 </span>
               </div>
@@ -197,9 +269,26 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
 
           {/* Scroll Slot */}
           <div
-            className={`aspect-square border-2 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 hover:border-amber-600/60 transition-all relative overflow-hidden cursor-pointer ${
-              isDragOverScroll ? 'border-green-500/80 bg-green-950/30' : 'border-amber-800/40'
-            }`}
+            style={{
+              aspectRatio: '1',
+              border: `2px solid ${isDragOverScroll ? 'rgba(34, 197, 94, 0.8)' : dashboardColors.borderAmber}`,
+              borderRadius: '8px',
+              background: isDragOverScroll ? 'rgba(20, 83, 45, 0.3)' : cardStyle.background,
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              if (!isDragOverScroll) {
+                e.currentTarget.style.borderColor = dashboardColors.borderRed;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isDragOverScroll) {
+                e.currentTarget.style.borderColor = dashboardColors.borderAmber;
+              }
+            }}
             onClick={() => setScrollInSlot(null)} // Клик убирает свиток
             onDragOver={handleScrollDragOver}
             onDragLeave={handleScrollDragLeave}
@@ -215,8 +304,23 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
                 />
               </div>
             ) : (
-              <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-amber-700/30 rounded-lg m-1">
-                <span className="text-amber-300/40 text-xs text-center" style={{ fontFamily: 'serif' }}>
+              <div style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: `2px dashed ${dashboardColors.borderGold}`,
+                borderRadius: '8px',
+                margin: '4px',
+                opacity: 0.3,
+              }}>
+                <span style={{
+                  color: dashboardColors.textRed,
+                  fontSize: '11px',
+                  textAlign: 'center',
+                  fontFamily: dashboardFonts.primary,
+                }}>
                   Drop Scroll<br/>Here
                 </span>
               </div>
@@ -228,22 +332,37 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
         <button
           onClick={handleUpgrade}
           disabled={!itemInSlot || isEnhancing || isEnhancingWithScroll}
-          className={`border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/90 to-black/90 py-4 relative transition-all group ${
-            !itemInSlot || isEnhancing || isEnhancingWithScroll ? 'opacity-50 cursor-not-allowed' : 'hover:border-red-700/70 cursor-pointer'
-          }`}
+          style={{
+            ...cardStyle,
+            border: `3px solid ${dashboardColors.borderRed}`,
+            padding: '18px',
+            position: 'relative',
+            transition: 'all 0.3s ease',
+            opacity: (!itemInSlot || isEnhancing || isEnhancingWithScroll) ? 0.5 : 1,
+            cursor: (!itemInSlot || isEnhancing || isEnhancingWithScroll) ? 'not-allowed' : 'pointer',
+            overflow: 'hidden',
+          }}
+          onMouseEnter={(e) => {
+            if (itemInSlot && !isEnhancing && !isEnhancingWithScroll) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (itemInSlot && !isEnhancing && !isEnhancingWithScroll) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRed;
+            }
+          }}
         >
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-          <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+          <div style={cornerOrnaments.topLeft}></div>
+          <div style={cornerOrnaments.topRight}></div>
+          <div style={cornerOrnaments.bottomLeft}></div>
+          <div style={cornerOrnaments.bottomRight}></div>
 
-          <span className="text-3xl uppercase tracking-[0.3em]" style={{
-            fontFamily: 'serif',
-            textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
-            background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
+          <span style={{
+            fontSize: '28px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.3em',
+            ...gradientTextStyle,
           }}>
             {isEnhancing || isEnhancingWithScroll ? 'Upgrading...' : 'Upgrade'}
           </span>
@@ -252,27 +371,65 @@ export function ForgeSection({ character, onClose, itemInSlot, onItemChange }: F
         {/* History Section */}
         <div className="flex-1 flex flex-col gap-2 min-h-0">
           {/* History Header */}
-          <div className="border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/80 to-black/90 px-4 py-2">
-            <h3 className="text-amber-200 uppercase tracking-wider text-center text-xs" style={{ fontFamily: 'serif' }}>
+          <div 
+            style={{
+              ...cardStyle,
+              padding: '12px 18px',
+              overflow: 'hidden',
+            }}
+          >
+            <h3 style={{
+              color: dashboardColors.textRed,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              textAlign: 'center',
+              fontSize: '11px',
+              fontFamily: dashboardFonts.primary,
+            }}>
               История улучшений
             </h3>
           </div>
 
           {/* History List */}
-          <div className="flex-1 border-2 border-amber-800/40 rounded-lg bg-gradient-to-b from-stone-950/60 to-black/80 p-3 overflow-y-auto min-h-0">
+          <div 
+            style={{
+              ...cardStyle,
+              flex: 1,
+              padding: '14px',
+              overflowY: 'auto',
+              minHeight: 0,
+            }}
+          >
             {upgradeHistory.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <span className="text-amber-200/40 text-xs" style={{ fontFamily: 'serif' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+              }}>
+                <span style={{
+                  color: dashboardColors.textRed,
+                  opacity: 0.4,
+                  fontSize: '11px',
+                  fontFamily: dashboardFonts.primary,
+                }}>
                   История пуста
                 </span>
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}>
                 {upgradeHistory.map((entry) => (
                   <div
                     key={entry.id}
-                    className={`text-xs ${entry.success ? 'text-green-400' : 'text-red-400'}`}
-                    style={{ fontFamily: 'serif' }}
+                    style={{
+                      fontSize: '11px',
+                      color: entry.success ? '#4ade80' : '#f87171',
+                      fontFamily: dashboardFonts.primary,
+                    }}
                   >
                     {entry.message}
                   </div>

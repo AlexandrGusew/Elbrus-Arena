@@ -60,7 +60,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
   const [isMonsterAttacking, setIsMonsterAttacking] = useState(false);
   const [monsterInitialHp, setMonsterInitialHp] = useState<Map<number, number>>(new Map());
   const lastMonsterRef = useRef<number | undefined>(undefined);
-  const [timeLeft, setTimeLeft] = useState<number>(15);
+  const [timeLeft, setTimeLeft] = useState<number>(1);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Используем dungeonId из battleState, или fallback если не пришло с сервера
@@ -287,11 +287,11 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     }
   }, [battleState.lastRoundResult, waitingForResult]);
 
-  // Таймер на 15 секунд для автоматического выбора зон
+  // Таймер на 1 секунду для автоматического выбора зон
   useEffect(() => {
     // Сбрасываем таймер при начале нового раунда
     if (battleState.status === 'active' && !waitingForResult) {
-      setTimeLeft(15);
+      setTimeLeft(1);
       
       // Очищаем предыдущий таймер если есть
       if (timerRef.current) {
@@ -336,8 +336,8 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
             setSelectedAttacks([]);
             setSelectedDefenses([]);
             setWaitingForResult(true);
-            
-            return 15; // Сбрасываем для следующего раунда
+
+            return 1; // Сбрасываем для следующего раунда
           }
           return prev - 1;
         });
@@ -356,7 +356,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      setTimeLeft(15);
+      setTimeLeft(1);
     }
   }, [battleState.status, battleState.roundNumber, waitingForResult, ZONES, onSubmitActions]);
 
@@ -397,7 +397,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    setTimeLeft(15);
+    setTimeLeft(1);
 
     // Запускаем анимацию атаки персонажа
     setIsAttacking(true);

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, cardStyle } from '../../styles/dashboard.styles';
 
 interface ChatSectionProps {
   characterId: number;
@@ -11,61 +12,92 @@ export function ChatSection({ characterId, characterName }: ChatSectionProps) {
   const [activeTab, setActiveTab] = useState<ChatTab>('all');
 
   return (
-    <div className="border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/90 to-black/90 flex flex-col relative h-full">
-      <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/60"></div>
-      <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/60"></div>
-      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/60"></div>
-      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/60"></div>
+    <div 
+      style={{
+        ...cardStyle,
+        border: `3px solid ${dashboardColors.borderRed}`,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        padding: '20px',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={cornerOrnaments.topLeft}></div>
+      <div style={cornerOrnaments.topRight}></div>
+      <div style={cornerOrnaments.bottomLeft}></div>
+      <div style={cornerOrnaments.bottomRight}></div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <h3 className="text-4xl uppercase tracking-[0.3em] text-amber-300/40" style={{ fontFamily: 'serif' }}>
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        overflow: 'hidden',
+      }}>
+        <h3 style={{
+          fontSize: '36px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.3em',
+          color: dashboardColors.textRed,
+          opacity: 0.4,
+          fontFamily: dashboardFonts.primary,
+          textShadow: dashboardEffects.textShadow,
+        }}>
           CHAT
         </h3>
       </div>
 
       {/* Chat Tabs - 4 equal buttons at the bottom */}
-      <div className="grid grid-cols-4 gap-2 p-3 border-t border-amber-800/40">
-        <button
-          onClick={() => setActiveTab('all')}
-          className={`px-2 py-2 rounded text-xs uppercase tracking-wider transition-all ${
-            activeTab === 'all'
-              ? 'border-2 border-red-700/60 bg-gradient-to-b from-red-950/60 to-red-900/60 text-amber-200 shadow-inner'
-              : 'border border-amber-800/40 bg-stone-950/40 text-amber-300/60 hover:text-amber-200 hover:border-amber-700/60'
-          }`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setActiveTab('private')}
-          className={`px-2 py-2 rounded text-xs uppercase tracking-wider transition-all ${
-            activeTab === 'private'
-              ? 'border-2 border-red-700/60 bg-gradient-to-b from-red-950/60 to-red-900/60 text-amber-200 shadow-inner'
-              : 'border border-amber-800/40 bg-stone-950/40 text-amber-300/60 hover:text-amber-200 hover:border-amber-700/60'
-          }`}
-        >
-          Private
-        </button>
-        <button
-          onClick={() => setActiveTab('banlist')}
-          className={`px-2 py-2 rounded text-xs uppercase tracking-wider transition-all ${
-            activeTab === 'banlist'
-              ? 'border-2 border-red-700/60 bg-gradient-to-b from-red-950/60 to-red-900/60 text-amber-200 shadow-inner'
-              : 'border border-amber-800/40 bg-stone-950/40 text-amber-300/60 hover:text-amber-200 hover:border-amber-700/60'
-          }`}
-        >
-          Banlist
-        </button>
-        <button
-          onClick={() => setActiveTab('friendlist')}
-          className={`px-2 py-2 rounded text-xs uppercase tracking-wider transition-all ${
-            activeTab === 'friendlist'
-              ? 'border-2 border-red-700/60 bg-gradient-to-b from-red-950/60 to-red-900/60 text-amber-200 shadow-inner'
-              : 'border border-amber-800/40 bg-stone-950/40 text-amber-300/60 hover:text-amber-200 hover:border-amber-700/60'
-          }`}
-        >
-          Friendlist
-        </button>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '8px',
+        padding: '12px',
+        borderTop: `1px solid ${dashboardColors.borderAmber}`,
+      }}>
+        {(['all', 'private', 'banlist', 'friendlist'] as ChatTab[]).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: '8px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              transition: 'all 0.3s ease',
+              fontFamily: dashboardFonts.primary,
+              border: activeTab === tab 
+                ? `2px solid ${dashboardColors.borderRed}` 
+                : `1px solid ${dashboardColors.borderAmber}`,
+              background: activeTab === tab
+                ? 'linear-gradient(to bottom, rgba(139, 0, 0, 0.6) 0%, rgba(139, 0, 0, 0.9) 100%)'
+                : dashboardColors.backgroundMedium,
+              color: activeTab === tab 
+                ? dashboardColors.textRed 
+                : dashboardColors.textMuted,
+              boxShadow: activeTab === tab ? 'inset 0 2px 4px rgba(0, 0, 0, 0.5)' : 'none',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== tab) {
+                e.currentTarget.style.color = dashboardColors.textRed;
+                e.currentTarget.style.borderColor = dashboardColors.borderRed;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== tab) {
+                e.currentTarget.style.color = dashboardColors.textMuted;
+                e.currentTarget.style.borderColor = dashboardColors.borderAmber;
+              }
+            }}
+          >
+            {tab === 'all' ? 'All' : tab === 'private' ? 'Private' : tab === 'banlist' ? 'Banlist' : 'Friendlist'}
+          </button>
+        ))}
       </div>
     </div>
   );

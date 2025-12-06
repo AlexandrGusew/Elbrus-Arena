@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Character, InventoryItem } from '../../types/api';
 import { useUnequipItemMutation } from '../../store/api/characterApi';
 import { ItemIcon } from '../common/ItemIcon';
+import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, cardStyle, gradientTextStyle, dashboardBorders } from '../../styles/dashboard.styles';
 
 interface InventorySectionProps {
   character: Character;
@@ -126,16 +127,16 @@ export function InventorySection({
   // Функция для генерации блока характеристики
   const renderStatBlock = (label: string, value: number | string) => (
     <div style={{
-      border: '1px solid rgba(139, 69, 19, 0.8)',
+      border: `1px solid ${dashboardColors.borderAmber}`,
       borderRadius: '8px',
-      background: 'rgba(10, 10, 10, 0.5)',
+      background: dashboardColors.backgroundDark,
       padding: '10px 12px',
       minHeight: '40px',
     }}>
       <div style={{
-        color: '#d4af37',
+        color: dashboardColors.textGold,
         fontSize: '12px',
-        fontFamily: "'Courier New', monospace",
+        fontFamily: dashboardFonts.secondary,
         letterSpacing: '0.5px',
         display: 'flex',
         width: '100%',
@@ -156,7 +157,7 @@ export function InventorySection({
           whiteSpace: 'nowrap',
           fontSize: '18px',
           fontWeight: 'bold',
-          color: '#f4d03f',
+          color: dashboardColors.textRedLight,
         }}>{value}</span>
       </div>
     </div>
@@ -169,64 +170,105 @@ export function InventorySection({
         {onBack && (
           <button
             onClick={onBack}
-            className="border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 px-6 py-4 relative transition-all group flex items-center gap-2 border-amber-700/60 hover:border-red-700/70"
+          style={{
+            ...cardStyle,
+            border: `3px solid ${dashboardColors.borderRed}`,
+            padding: '14px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            overflow: 'hidden',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = dashboardColors.borderRed;
+          }}
           >
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div style={cornerOrnaments.topLeft}></div>
+            <div style={cornerOrnaments.topRight}></div>
+            <div style={cornerOrnaments.bottomLeft}></div>
+            <div style={cornerOrnaments.bottomRight}></div>
 
-            <span className="text-2xl" style={{
-              fontFamily: 'serif',
-              textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
-              background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+            <span style={{
+              fontSize: '24px',
+              ...gradientTextStyle,
             }}>←</span>
           </button>
         )}
 
         <button
           onClick={onNavigateToInventory}
-          className={`border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 px-6 py-4 relative transition-all group flex items-center gap-2 ${
-            !showForge ? 'border-red-700/60' : 'border-amber-700/60 hover:border-red-700/70'
-          }`}
+          style={{
+            ...cardStyle,
+            border: `3px solid ${!showForge ? dashboardColors.borderRedHover : dashboardColors.borderRed}`,
+            padding: '14px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            overflow: 'hidden',
+          }}
+          onMouseEnter={(e) => {
+            if (showForge) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (showForge) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRed;
+            }
+          }}
         >
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-          <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+          <div style={cornerOrnaments.topLeft}></div>
+          <div style={cornerOrnaments.topRight}></div>
+          <div style={cornerOrnaments.bottomLeft}></div>
+          <div style={cornerOrnaments.bottomRight}></div>
 
-          <span className="text-xl uppercase tracking-[0.2em]" style={{
-            fontFamily: 'serif',
-            textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
-            background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
+          <span style={{
+            fontSize: '18px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.2em',
+            ...gradientTextStyle,
           }}>Inventory</span>
         </button>
 
         {onNavigateToForge && (
           <button
             onClick={onNavigateToForge}
-            className={`border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 px-8 py-4 relative transition-all group ${
-              showForge ? 'border-red-700/60' : 'border-amber-700/60 hover:border-red-700/70'
-            }`}
+          style={{
+            ...cardStyle,
+            border: `3px solid ${showForge ? dashboardColors.borderRedHover : dashboardColors.borderRed}`,
+            padding: '14px 36px',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            overflow: 'hidden',
+          }}
+          onMouseEnter={(e) => {
+            if (!showForge) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!showForge) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRed;
+            }
+          }}
           >
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div style={cornerOrnaments.topLeft}></div>
+            <div style={cornerOrnaments.topRight}></div>
+            <div style={cornerOrnaments.bottomLeft}></div>
+            <div style={cornerOrnaments.bottomRight}></div>
 
-            <span className="text-xl uppercase tracking-[0.2em]" style={{
-              fontFamily: 'serif',
-              textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
-              background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+            <span style={{
+              fontSize: '18px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.2em',
+              ...gradientTextStyle,
             }}>Forge</span>
           </button>
         )}
@@ -234,50 +276,24 @@ export function InventorySection({
 
       {/* Item Details Section - в стиле референса */}
       <div style={{
-        border: '1px solid rgba(139, 69, 19, 0.8)',
-        borderRadius: '8px',
-        background: 'rgba(20, 20, 20, 0.5)',
+        ...cardStyle,
+        border: `2px solid ${dashboardColors.borderAmber}`,
         padding: '16px',
         display: 'flex',
         gap: '16px',
-        position: 'relative',
       }}>
         {/* Декоративные уголки */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '24px',
-          height: '24px',
-          borderTop: '2px solid rgba(220, 38, 38, 0.8)',
-          borderLeft: '2px solid rgba(220, 38, 38, 0.8)',
-        }}></div>
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '24px',
-          height: '24px',
-          borderBottom: '2px solid rgba(220, 38, 38, 0.8)',
-          borderLeft: '2px solid rgba(220, 38, 38, 0.8)',
-        }}></div>
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          right: 0,
-          width: '24px',
-          height: '24px',
-          borderBottom: '2px solid rgba(220, 38, 38, 0.8)',
-          borderRight: '2px solid rgba(220, 38, 38, 0.8)',
-        }}></div>
+        <div style={cornerOrnaments.topLeft}></div>
+        <div style={cornerOrnaments.bottomLeft}></div>
+        <div style={cornerOrnaments.bottomRight}></div>
         <div style={{
           position: 'absolute',
           top: 0,
           right: 0,
-          width: '24px',
-          height: '24px',
-          borderTop: '2px solid rgba(139, 69, 19, 0.8)',
-          borderRight: '2px solid rgba(139, 69, 19, 0.8)',
+          width: dashboardBorders.cornerSize,
+          height: dashboardBorders.cornerSize,
+          borderTop: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderAmber}`,
+          borderRight: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderAmber}`,
         }}></div>
 
         {/* Левая панель - изображение предмета */}
@@ -285,9 +301,9 @@ export function InventorySection({
           width: '150px',
           height: '150px',
           minWidth: '150px',
-          border: '1px solid rgba(139, 69, 19, 0.8)',
+          border: `1px solid ${dashboardColors.borderAmber}`,
           borderRadius: '8px',
-          background: 'rgba(10, 10, 10, 0.5)',
+          background: dashboardColors.backgroundDark,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -300,11 +316,11 @@ export function InventorySection({
             />
           ) : (
             <span style={{
-              color: '#d4af37',
+              color: dashboardColors.textRed,
               fontSize: '11px',
               textTransform: 'uppercase',
               textAlign: 'center',
-              fontFamily: "'IM Fell English', serif",
+              fontFamily: dashboardFonts.secondary,
               opacity: 0.4,
             }}>
               IMAGE<br/>ITEM
@@ -322,17 +338,17 @@ export function InventorySection({
           {!selectedItem ? (
             // Placeholder когда предмет не выбран
             <div style={{
-              border: '1px solid rgba(139, 69, 19, 0.8)',
+              border: `1px solid ${dashboardColors.borderAmber}`,
               borderRadius: '8px',
-              background: 'rgba(10, 10, 10, 0.5)',
+              background: dashboardColors.backgroundDark,
               padding: '20px 12px',
               textAlign: 'center',
             }}>
               <span style={{
-                color: '#d4af37',
+                color: dashboardColors.textRed,
                 fontSize: '13px',
                 textTransform: 'uppercase',
-                fontFamily: "'IM Fell English', serif",
+                fontFamily: dashboardFonts.secondary,
                 opacity: 0.5,
               }}>
                 Выберите предмет
@@ -342,16 +358,16 @@ export function InventorySection({
             <>
               {/* Название предмета - всегда показываем если предмет выбран */}
               <div style={{
-                border: '1px solid rgba(139, 69, 19, 0.8)',
+                border: `1px solid ${dashboardColors.borderAmber}`,
                 borderRadius: '8px',
-                background: 'rgba(10, 10, 10, 0.5)',
+                background: dashboardColors.backgroundDark,
                 padding: '10px 12px',
               }}>
                 <span style={{
-                  color: '#d4af37',
+                  color: dashboardColors.textRed,
                   fontSize: '13px',
                   textTransform: 'uppercase',
-                  fontFamily: "'IM Fell English', serif",
+                  fontFamily: dashboardFonts.secondary,
                 }}>
                   {selectedItem.item.name}
                   {selectedItem.enhancement > 0 && ` +${selectedItem.enhancement}`}
@@ -377,20 +393,25 @@ export function InventorySection({
 
       {/* Inventory Grid */}
       <div
-        className={`border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 p-4 relative transition-all ${
-          isInventoryDropZone ? 'border-green-500/80 bg-green-950/30' : 'border-amber-700/60'
-        }`}
         onDragOver={handleInventoryDragOver}
         onDragLeave={handleInventoryDragLeave}
         onDrop={handleInventoryDrop}
-        style={{ height: '560px' }}
+        style={{ 
+          ...cardStyle,
+          border: `3px solid ${isInventoryDropZone ? 'rgba(34, 197, 94, 0.8)' : dashboardColors.borderRed}`,
+          background: isInventoryDropZone ? 'rgba(20, 83, 45, 0.3)' : cardStyle.background,
+          height: '560px',
+          padding: '20px',
+          transition: 'all 0.3s ease',
+          overflow: 'hidden',
+        }}
       >
-        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/60"></div>
-        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/60"></div>
-        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/60"></div>
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/60"></div>
+        <div style={cornerOrnaments.topLeft}></div>
+        <div style={cornerOrnaments.topRight}></div>
+        <div style={cornerOrnaments.bottomLeft}></div>
+        <div style={cornerOrnaments.bottomRight}></div>
 
-        <div className="grid grid-cols-8 gap-2 overflow-y-auto h-full pr-2" style={{ maxHeight: '100%' }}>
+        <div className="grid grid-cols-8 gap-3 overflow-y-auto h-full" style={{ maxHeight: '100%', paddingRight: '8px' }}>
           {unequippedItems.map((invItem) => (
             <div
               key={invItem.id}
@@ -398,9 +419,30 @@ export function InventorySection({
               onDragStart={(e) => handleDragStart(e, invItem)}
               onDragEnd={handleDragEnd}
               onClick={() => handleItemClick(invItem)}
-              className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 hover:border-amber-600/60 transition-all cursor-move flex flex-col items-center justify-center aspect-square p-1 ${
-                selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id ? 'border-red-700/80' : 'border-amber-800/40'
-              } ${draggedItem?.id === invItem.id ? 'opacity-50' : ''}`}
+              style={{
+                border: `2px solid ${selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id ? dashboardColors.borderRed : dashboardColors.borderAmber}`,
+                borderRadius: '8px',
+                background: cardStyle.background,
+                transition: 'all 0.3s ease',
+                cursor: 'move',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                aspectRatio: '1',
+                padding: '4px',
+                opacity: draggedItem?.id === invItem.id ? 0.5 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (selectedItem?.id !== invItem.id && forgeItemSlot?.id !== invItem.id) {
+                  e.currentTarget.style.borderColor = dashboardColors.borderRed;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedItem?.id !== invItem.id && forgeItemSlot?.id !== invItem.id) {
+                  e.currentTarget.style.borderColor = dashboardColors.borderAmber;
+                }
+              }}
               style={{ height: 'fit-content' }}
             >
               <ItemIcon
