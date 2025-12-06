@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import enterButton from '../images/enterButton.png';
+import { getAssetUrl } from '../../../utils/assetUrl';
 
 interface LoginFormProps {
     onSubmit: (username: string, password: string) => void;
@@ -177,7 +177,7 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
                     className="relative px-20 py-4 rounded bg-gradient-to-b from-red-950/90 to-red-900/90 hover:from-red-900/90 hover:to-red-800/90 text-amber-200 transition-all tracking-[0.2em] uppercase shadow-[0_0_30px_rgba(127,29,29,0.5)] hover:shadow-[0_0_40px_rgba(127,29,29,0.7)] group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                         fontFamily: 'serif',
-                        backgroundImage: `url(${enterButton})`,
+                        backgroundImage: `url(${getAssetUrl('login/enterButton.png')})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat'
