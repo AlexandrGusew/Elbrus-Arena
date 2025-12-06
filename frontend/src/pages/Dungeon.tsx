@@ -177,132 +177,106 @@ const Dungeon = () => {
           <source src={getAssetUrl('dungeon/selection/enterDungeonMusic.mp3')} type="audio/mpeg" />
         </audio>
 
-        {/* Кнопка музыки - правый верхний угол - фиксированная */}
-        <button
-          onClick={toggleMusic}
-          style={{
-            position: 'fixed',
-            top: '40px',
-            right: '40px',
-            padding: '0',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            width: '200px',
-            height: '200px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.filter = 'brightness(1.2)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.filter = isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)';
-          }}
-        >
-          <img
-            src={getAssetUrl('dungeon/selection/music.png')}
-            alt="Music"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              borderRadius: '8px',
-              filter: isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)',
-            }}
-          />
-        </button>
-
-        {/* Кнопка чата - между музыкой и выходом справа - фиксированная */}
-        <button
-          onClick={() => setIsChatOpen(true)}
-          style={{
-            position: 'fixed',
-            top: '50%',
-            right: '40px',
-            transform: 'translateY(-50%)',
-            padding: '0',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            width: '200px',
-            height: '200px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
-            e.currentTarget.style.filter = 'brightness(1.2)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
-            e.currentTarget.style.filter = 'brightness(1)';
-          }}
-        >
-          <img
-            src={getAssetUrl('dungeon/buttonChat.png')}
-            alt="Chat"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              borderRadius: '8px',
-            }}
-          />
-        </button>
-
-        {/* Кнопка выхода - правый нижний угол - фиксированная */}
-        <Link to="/dashboard" style={{ textDecoration: 'none' }}>
+        {/* Навигационные кнопки - правый верхний угол в ряд */}
+        <div style={{
+          position: 'absolute',
+          top: '24px',
+          right: '24px',
+          display: 'flex',
+          gap: '8px',
+          zIndex: 1000,
+        }}>
+          {/* Кнопка музыки */}
           <button
+            onClick={toggleMusic}
             style={{
-              position: 'fixed',
-              bottom: '40px',
-              right: '40px',
-              padding: '0',
-              border: 'none',
-              background: 'transparent',
+              padding: '8px 16px',
+              border: '2px solid #2C2D33',
+              borderRadius: '6px',
+              background: '#111215',
+              color: '#E6E6E6',
               cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              width: '200px',
-              height: '200px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 1000,
+              fontFamily: 'serif',
+              fontSize: '12px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+              transition: 'all 0.2s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
+              e.currentTarget.style.background = '#1A1B21';
+              e.currentTarget.style.borderColor = '#B21E2C';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
+              e.currentTarget.style.background = '#111215';
+              e.currentTarget.style.borderColor = '#2C2D33';
             }}
           >
-            <img
-              src={getAssetUrl('dungeon/selection/exit.png')}
-              alt="Exit"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                borderRadius: '8px',
-              }}
-            />
+            Music
           </button>
-        </Link>
+
+          {/* Кнопка FAQ */}
+          <button
+            style={{
+              padding: '8px 16px',
+              border: '2px solid #2C2D33',
+              borderRadius: '6px',
+              background: '#111215',
+              color: '#E6E6E6',
+              cursor: 'pointer',
+              fontFamily: 'serif',
+              fontSize: '12px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#1A1B21';
+              e.currentTarget.style.borderColor = '#B21E2C';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#111215';
+              e.currentTarget.style.borderColor = '#2C2D33';
+            }}
+          >
+            FAQ
+          </button>
+
+          {/* Кнопка выхода */}
+          <Link to="/dashboard" style={{ textDecoration: 'none' }}>
+            <button
+              style={{
+                padding: '8px 16px',
+                border: '2px solid #2C2D33',
+                borderRadius: '6px',
+                background: '#111215',
+                color: '#E6E6E6',
+                cursor: 'pointer',
+                fontFamily: 'serif',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#1A1B21';
+                e.currentTarget.style.borderColor = '#B21E2C';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#111215';
+                e.currentTarget.style.borderColor = '#2C2D33';
+              }}
+            >
+              Back
+            </button>
+          </Link>
+        </div>
 
         {/* Контент - фиксированный, как в Dashboard */}
         <div style={{
-          position: 'fixed',
+          position: 'absolute',
           top: '40%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
