@@ -2,22 +2,25 @@
 
 /* Dark Fantasy Font Declarations */
 :root {
-  --font-gothic: 'UnifrakturMaguntia', cursive; /* Готический основной */
-  --font-epic: 'Cinzel', serif; /* Эпичный для заголовков */
-  --font-descriptions: 'Merriweather', serif; /* Читаемый для описаний */
-  --font-interface: 'Roboto', sans-serif; /* Простой для интерфейса */
-  --font-ui: 'Raleway', sans-serif; /* Минималистичный для UI */
+  --font-heading: 'Ruslan Display', cursive; /* Готический для заголовков */
+  --font-body: 'EB Garamond', serif; /* Читаемый для основного текста */
+
+  /* Цветовая палитра */
+  --color-gold: #FFCC66; /* Золотистый для заголовков */
+  --color-text: #EEEEEE; /* Светло-серый для текста */
+  --color-accent: #C70039; /* Ярко-красный для кнопок */
+  --color-hover: #FF9900; /* Оранжевый для hover */
 }
 
 .landing {
   width: 100%;
   min-height: 100vh;
-  color: #ffffff;
+  color: var(--color-text);
   overflow-x: hidden;
   position: relative;
   background: transparent;
   isolation: isolate; /* Создает новый stacking context */
-  font-family: var(--font-descriptions); /* Основной текст - Merriweather */
+  font-family: var(--font-body); /* Основной текст - EB Garamond */
 }
 
 /* Фиксированное видео на весь экран */
@@ -65,11 +68,11 @@
 }
 
 .logo {
-  font-family: var(--font-gothic); /* UnifrakturMaguntia - готический */
+  font-family: var(--font-heading); /* Ruslan Display - готический */
   font-size: 1.8rem;
   font-weight: bold;
-  color: #ffd700;
-  text-shadow: 0 0 15px rgba(255, 215, 0, 0.7), 0 0 30px rgba(139, 0, 0, 0.5);
+  color: var(--color-gold);
+  text-shadow: 0 0 15px rgba(255, 204, 102, 0.7), 0 0 30px rgba(139, 0, 0, 0.5);
   letter-spacing: 2px;
   display: flex;
   align-items: center;
@@ -95,8 +98,8 @@
 }
 
 .nav-menu a {
-  font-family: var(--font-ui); /* Raleway - минималистичный */
-  color: #ffffff;
+  font-family: var(--font-heading); /* Ruslan Display - готический */
+  color: var(--color-gold);
   text-decoration: none;
   font-size: 0.95rem;
   font-weight: 500;
@@ -114,16 +117,17 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: #ffd700;
+  background: var(--color-gold);
   transition: width 0.3s ease;
 }
 
 .nav-menu a:hover {
-  color: #ffd700;
+  color: var(--color-hover);
 }
 
 .nav-menu a:hover::after {
   width: 100%;
+  background: var(--color-hover);
 }
 
 /* Hero Section */
@@ -134,11 +138,11 @@
   align-items: center;
   justify-content: center;
   margin: 25px; /* Отступы от края экрана */
-  background: rgba(0, 0, 0, 0.2); /* Прозрачность -2 пункта (блок 1) */
+  background: rgba(0, 0, 0, 0.4); /* Прозрачность как у футера */
   border-radius: 15px; /* Скругление углов */
   overflow: hidden;
   z-index: 1;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
 }
 
 .hero-overlay {
@@ -163,11 +167,11 @@
 }
 
 .hero-title {
-  font-family: var(--font-gothic); /* UnifrakturMaguntia - готический */
+  font-family: var(--font-heading); /* UnifrakturMaguntia - готический */
   font-size: 3.5rem;
   font-weight: bold;
   margin-bottom: 1.5rem;
-  color: #ffd700;
+  color: var(--color-gold);
   text-shadow:
     0 0 20px rgba(255, 215, 0, 0.8),
     0 0 40px rgba(139, 0, 0, 0.5),
@@ -216,27 +220,27 @@
 }
 
 .btn-primary {
-  color: #ffd700;
+  color: var(--color-accent); /* Ярко-красный */
   text-shadow:
-    0 0 10px rgba(255, 215, 0, 0.8),
+    0 0 10px rgba(199, 0, 57, 0.8),
     2px 2px 4px rgba(0, 0, 0, 0.9);
-  filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.3));
+  filter: drop-shadow(0 4px 20px rgba(199, 0, 57, 0.4));
 }
 
 .btn-primary:hover {
-  color: #ffffff;
+  color: var(--color-hover); /* Горящий оранжевый */
   text-shadow:
-    0 0 15px rgba(255, 255, 255, 1),
-    0 0 25px rgba(255, 215, 0, 0.9),
+    0 0 15px rgba(255, 153, 0, 1),
+    0 0 25px rgba(255, 153, 0, 0.9),
     2px 2px 4px rgba(0, 0, 0, 0.9);
   filter:
-    brightness(1.2)
-    drop-shadow(0 6px 30px rgba(255, 215, 0, 0.6));
-  transform: translateY(-3px) scale(1.02);
+    brightness(1.3)
+    drop-shadow(0 6px 30px rgba(255, 153, 0, 0.7));
+  transform: translateY(-3px) scale(1.05);
 }
 
 .btn-outline {
-  color: #ffd700;
+  color: var(--color-gold);
   text-shadow:
     0 0 8px rgba(255, 215, 0, 0.6),
     2px 2px 4px rgba(0, 0, 0, 0.8);
@@ -276,14 +280,14 @@
 
 .section-icon {
   font-size: 2rem;
-  color: #ffd700;
+  color: var(--color-gold);
 }
 
 .section-title {
-  font-family: var(--font-gothic); /* UnifrakturMaguntia - готический как в хедере */
+  font-family: var(--font-heading); /* UnifrakturMaguntia - готический как в хедере */
   font-size: 2.5rem;
   font-weight: bold;
-  color: #ffd700;
+  color: var(--color-gold);
   text-align: center;
   text-shadow: 0 0 15px rgba(255, 215, 0, 0.7), 0 0 30px rgba(139, 0, 0, 0.5);
   letter-spacing: 2px;
@@ -335,13 +339,13 @@
 }
 
 .class-card.featured {
-  border-color: #ffd700;
+  border-color: var(--color-gold);
   box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
 }
 
 .class-card:hover {
   transform: translateY(-10px);
-  border-color: #ffd700;
+  border-color: var(--color-gold);
   box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
 }
 
@@ -358,15 +362,15 @@
 }
 
 .class-icon:hover {
-  border-color: #ffd700;
+  border-color: var(--color-gold);
   filter: brightness(1.1) drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
   transform: scale(1.1);
 }
 
 .class-title {
-  font-family: var(--font-epic); /* Cinzel - эпичный */
+  font-family: var(--font-heading); /* Cinzel - эпичный */
   font-size: 1.6rem;
-  color: #ffd700;
+  color: var(--color-gold);
   margin-bottom: 1rem;
   font-weight: 600;
   letter-spacing: 2px;
@@ -385,19 +389,19 @@
 .features-section {
   padding: 6rem 2rem;
   margin: 25px; /* Отступы от края экрана */
-  background: rgba(0, 0, 0, 0.2); /* Прозрачность -2 пункта (блок 3) */
+  background: rgba(0, 0, 0, 0.4); /* Прозрачность как у футера */
   border-radius: 15px; /* Скругление углов */
   position: relative;
   z-index: 1;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
 }
 
 .section-title-alt {
-  font-family: var(--font-medieval); /* MedievalSharp - H2 */
+  font-family: var(--font-heading); /* MedievalSharp - H2 */
   font-size: 2rem;
   font-weight: bold;
   text-align: center;
-  color: #ffd700;
+  color: var(--color-gold);
   margin-bottom: 4rem;
   text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
   letter-spacing: 2px;
@@ -421,15 +425,15 @@
 }
 
 .feature-content h3 {
-  font-family: var(--font-medieval); /* MedievalSharp - H3 */
+  font-family: var(--font-heading); /* MedievalSharp - H3 */
   font-size: 1.5rem;
-  color: #ffd700;
+  color: var(--color-gold);
   margin-bottom: 1.5rem;
 }
 
 .feature-content p {
   font-family: var(--font-body); /* Junicode - основной текст */
-  color: #cccccc;
+  color: var(--color-text);
   line-height: 1.8;
   margin-bottom: 2rem;
   font-size: 1.05rem;
@@ -451,7 +455,7 @@
 }
 
 .feature-image:hover {
-  border-color: #ffd700;
+  border-color: var(--color-gold);
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
@@ -512,7 +516,7 @@
 
 .gallery-item:hover {
   transform: scale(1.05);
-  border-color: #ffd700;
+  border-color: var(--color-gold);
   box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
 }
 
@@ -552,7 +556,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffd700;
+  color: var(--color-gold);
   text-decoration: none;
   transition: all 0.3s ease;
   font-size: 0.9rem;
@@ -570,53 +574,27 @@
 .parchment-section {
   padding: 6rem 2rem;
   margin: 25px; /* Отступы от края экрана */
-  background: rgba(0, 0, 0, 0.2); /* Прозрачность -2 пункта (блок 5) */
+  background: rgba(0, 0, 0, 0.4); /* Прозрачность как у футера */
   border-radius: 15px; /* Скругление углов */
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   z-index: 1;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
 }
 
 .parchment {
   max-width: 900px;
-  /* Эффект старинной бумаги */
-  background:
-    /* Шум и текстура */
-    repeating-linear-gradient(
-      0deg,
-      rgba(139, 115, 85, 0.03) 0px,
-      transparent 1px,
-      transparent 2px,
-      rgba(139, 115, 85, 0.03) 3px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(139, 115, 85, 0.03) 0px,
-      transparent 1px,
-      transparent 2px,
-      rgba(139, 115, 85, 0.03) 3px
-    ),
-    /* Пятна старения */
-    radial-gradient(circle at 20% 30%, rgba(101, 67, 33, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(101, 67, 33, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(101, 67, 33, 0.12) 0%, transparent 40%),
-    /* Основной фон старой бумаги */
-    linear-gradient(135deg,
-      rgba(42, 35, 20, 0.8) 0%,
-      rgba(26, 26, 10, 0.7) 50%,
-      rgba(35, 30, 15, 0.8) 100%
-    );
-  border: 3px solid #8b7355;
+  /* Прозрачность как у футера */
+  background: rgba(0, 0, 0, 0.4);
+  border: 3px solid rgba(139, 0, 0, 0.5);
   border-radius: 8px;
   padding: 4rem 3rem;
   position: relative;
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.5),
-    inset 0 0 20px rgba(139, 115, 85, 0.1),
-    inset 2px 2px 10px rgba(101, 67, 33, 0.3);
+    0 0 20px rgba(139, 0, 0, 0.3);
   backdrop-filter: blur(5px);
 }
 
@@ -644,19 +622,20 @@
 }
 
 .parchment-title {
-  font-family: var(--font-medieval); /* MedievalSharp - H2 */
+  font-family: var(--font-heading); /* MedievalSharp - H2 */
   font-size: 2rem;
-  color: #ffd700;
+  color: var(--color-gold);
   margin-bottom: 2rem;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
 .parchment-text {
-  font-family: var(--font-accents); /* Gabriela - описание квеста */
-  color: #d4c5a9;
+  font-family: var(--font-heading); /* MedievalSharp - готический шрифт */
+  color: #8B0000; /* Темно-бордовый */
   line-height: 2;
   margin-bottom: 2.5rem;
   font-size: 1.1rem;
+  text-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
 }
 
 /* Footer */
@@ -681,7 +660,7 @@
 
 .footer-column h4 {
   font-family: var(--font-ui); /* Cinzel - UI элементы */
-  color: #ffd700;
+  color: var(--color-gold);
   font-size: 1.2rem;
   margin-bottom: 1.5rem;
   font-weight: bold;
@@ -712,7 +691,7 @@
 }
 
 .footer-column ul li a:hover {
-  color: #ffd700;
+  color: var(--color-gold);
 }
 
 .footer-bottom {
@@ -740,7 +719,7 @@
 }
 
 .footer-social a:hover {
-  color: #ffd700;
+  color: var(--color-gold);
   transform: translateY(-3px);
 }
 

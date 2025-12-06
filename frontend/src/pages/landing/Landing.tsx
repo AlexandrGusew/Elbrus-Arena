@@ -145,12 +145,8 @@ export default function Landing() {
       <section id="home" className="hero-section">
         <div className="hero-overlay"></div>
         <div className="hero-content">
-          <h1 className="hero-title">Судьба выбирает павших</h1>
-          <p className="hero-subtitle">
-            Шагните в Бездну и докажите, что только
-            <br />
-            павшие герои могут достичь бессмертия и силы
-          </p>
+          <h1 className="hero-title">Твоя легенда начинается здесь</h1>
+          <p className="hero-subtitle">Пивнуха закрывается в 21-00</p>
           <div className="hero-buttons">
             <button className="btn btn-primary" onClick={handleLoginClick}>
               НАЧАТЬ ПУТЬ БЕССМЕРТИЯ
