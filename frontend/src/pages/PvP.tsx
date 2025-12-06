@@ -59,8 +59,8 @@ const PvP = () => {
   };
 
   const containerStyle: React.CSSProperties = {
-    width: '100vw',
-    height: '100vh',
+    width: '100%',
+    height: '100%',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -134,11 +134,11 @@ const PvP = () => {
         muted
         playsInline
         style={{
-          position: 'fixed',
+          position: 'absolute',
           top: 0,
           left: 0,
-          width: '100vw',
-          height: '100vh',
+          width: '100%',
+          height: '100%',
           objectFit: 'cover',
           zIndex: 1,
         }}
@@ -211,7 +211,6 @@ const PvP = () => {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000,
-          position: 'relative',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';

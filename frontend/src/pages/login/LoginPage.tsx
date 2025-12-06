@@ -73,7 +73,7 @@ export function LoginPage() {
     ];
 
     return (
-        <AuthLayout>
+        <AuthLayout showLoginBackground={true}>
             {/* Title */}
             <div className="mb-12">
                 <h1 className="text-7xl tracking-[0.15em] uppercase text-gradient-gold-intense font-serif">
@@ -101,14 +101,6 @@ export function LoginPage() {
                         {error}
                     </div>
                 )}
-
-                <div className="text-center mb-6 relative">
-                    <div className="inline-block px-6 py-1 border-y border-amber-800/40">
-                        <h2 className="text-amber-400/90 tracking-[0.2em] uppercase text-xs font-serif">
-                            Enter the Game
-                        </h2>
-                    </div>
-                </div>
 
                 {/* Render component based on authMode */}
                 {authMode === 'login' && <LoginForm onSubmit={handleLogin} isLoading={isLoginLoading} />}

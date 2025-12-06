@@ -19,7 +19,8 @@ export interface RoundActions {
 }
 
 export interface RoundResult {
-  roundNumber: number;
+  roundNumber: number;  // Номер раунда = номер моба (1-5)
+  turnNumber: number;   // Номер хода внутри раунда (1, 2, 3, ...)
   playerActions: RoundActions;
   monsterActions: RoundActions;
   playerDamage: number;  // урон игроку

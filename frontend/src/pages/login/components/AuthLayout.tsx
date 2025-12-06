@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, ReactNode } from 'react';
 import { Volume2, VolumeX, ArrowLeft } from 'lucide-react';
 import { getAssetUrl } from '../../../utils/assetUrl';
+import loginBackground from '../images/login-background.png';
 
 interface AuthLayoutProps {
     children: ReactNode;
@@ -8,17 +9,18 @@ interface AuthLayoutProps {
     onBack?: () => void;
     showExitButton?: boolean;
     onExit?: () => void;
+    showLoginBackground?: boolean;
 }
 
 /**
  * Общая обертка для страниц авторизации
  * Содержит видео фон, музыку и декоративные элементы
  */
-export function AuthLayout({ children, showBackButton = false, onBack, showExitButton = false, onExit }: AuthLayoutProps) {
+export function AuthLayout({ children, showBackButton = false, onBack, showExitButton = false, onExit, showLoginBackground = false }: AuthLayoutProps) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [musicOn, setMusicOn] = useState(() => {
         const savedMusicState = localStorage.getItem('musicPlaying');
-        return savedMusicState !== null ? savedMusicState === 'true' : true;
+        return savedMusicState !== null ? savedMusicState === 'true' : false;
     });
 
     // Управление музыкой
@@ -46,7 +48,7 @@ export function AuthLayout({ children, showBackButton = false, onBack, showExitB
     };
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center px-16 py-8 relative">
+        <div className="w-screen h-screen flex flex-col items-center justify-center relative overflow-hidden">
             {/* Видео фон */}
             <video
                 autoPlay
@@ -102,7 +104,15 @@ export function AuthLayout({ children, showBackButton = false, onBack, showExitB
             <div className="absolute top-12 left-1/2 -translate-x-1/2 w-64 h-1 bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" style={{ zIndex: 5 }}></div>
 
             {/* Content */}
-            <div className="relative z-[5] w-full flex flex-col items-center">
+            <div
+                className="relative z-[5] w-screen h-screen flex flex-col items-center justify-center"
+                style={showLoginBackground ? {
+                    backgroundImage: `url(${loginBackground})`,
+                    backgroundSize: '66%',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                } : {}}
+            >
                 {children}
             </div>
 

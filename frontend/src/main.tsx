@@ -1,4 +1,3 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Provider } from 'react-redux'
@@ -7,8 +6,10 @@ import './index.css'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Landing from './pages/landing'
-import Login from './pages/Login'
-import CreateCharacter from './pages/CreateCharacter'
+import { LoginPage } from './pages/login/LoginPage'
+import { RegisterPage } from './pages/login/RegisterPage'
+import { ChooseHeroPage } from './pages/chooseHero/ChooseHeroPage'
+import { CreateCharacterPage } from './pages/createCharacter/CreateCharacterPage'
 import Dashboard from './pages/Dashboard'
 import PvP from './pages/PvP'
 import Dungeon from './pages/Dungeon'
@@ -26,8 +27,20 @@ const router = createBrowserRouter([
     element: <Landing />
   },
   {
-    path: '/auth',
-    element: <Login />
+    path: '/login',
+    element: <LoginPage />
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />
+  },
+  {
+    path: '/choose-hero',
+    element: <ProtectedRoute><ChooseHeroPage /></ProtectedRoute>
+  },
+  {
+    path: '/create-character',
+    element: <ProtectedRoute><CreateCharacterPage /></ProtectedRoute>
   },
   {
     element: <Layout />,
@@ -73,11 +86,9 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Provider store={store}>
-      <RouterProvider router={router} />
-    </Provider>
-  </StrictMode>,
+  <Provider store={store}>
+    <RouterProvider router={router} />
+  </Provider>,
 )
 
 // Регистрация Service Worker для кэширования медиа

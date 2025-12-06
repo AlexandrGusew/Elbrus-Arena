@@ -8,8 +8,8 @@ describe('LootService', () => {
 
   const mockItem = {
     id: 1,
-    name: 'Зелье Здоровья',
-    type: 'potion',
+    name: 'Ржавый меч',
+    type: 'weapon',
     description: 'Восстанавливает HP',
     rarity: 'common',
     damage: 0,

@@ -1,39 +1,142 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useGetCharacterQuery, useGetStaminaInfoQuery, useTestLevelBoostMutation } from '../store/api/characterApi';
-import { styles } from './Dashboard.styles';
+import { useNavigate } from 'react-router-dom';
+import {
+  useGetCharacterQuery,
+  useGetStaminaInfoQuery,
+  useTestLevelBoostMutation,
+  useGetMyCharacterQuery,
+  useAutoCreateCharactersMutation,
+  useUpdateCharacterNameMutation,
+} from '../store/api/characterApi';
+import { useLogoutMutation } from '../store/api/authApi';
+import { setAccessToken } from '../store/api/baseApi';
+import { store } from '../store';
+import { baseApi } from '../store/api/baseApi';
 import { useState, useEffect, useRef } from 'react';
 import { getAssetUrl } from '../utils/assetUrl';
+import borderPattern from '../assets/border/pattern.svg';
 import { ChatWindow } from '../components/ChatWindow';
+import { CharacterCard } from '../components/dashboard/CharacterCard';
+import { ChatSection } from '../components/dashboard/ChatSection';
+import { InventorySection } from '../components/dashboard/InventorySection';
+import { ForgeSection } from '../components/dashboard/ForgeSection';
+import { NavigationButtons } from '../components/dashboard/NavigationButtons';
+import { LevelUpSection } from '../components/dashboard/LevelUpSection';
+import { CharacterSelector } from '../components/CharacterSelector';
+import { Volume2, VolumeX, LogOut } from 'lucide-react';
+import type { InventoryItem } from '../types/api';
+import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, mainContainer } from '../styles/dashboard.styles';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const characterId = localStorage.getItem('characterId');
-  const [boostMessage, setBoostMessage] = useState<string | null>(null);
+  const characterIdFromStorage = localStorage.getItem('characterId');
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Состояние для управления секциями
+  const [activeSection, setActiveSection] = useState<'main' | 'inventory' | 'levelup'>('main');
+  const [showForge, setShowForge] = useState(false);
+
+  // Состояние для слотов кузницы
+  const [forgeItemSlot, setForgeItemSlot] = useState<any | null>(null); // TODO: типизировать
+
+  // Состояние для выбранного предмета (для Item Details Section)
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   // Загружаем настройку музыки из localStorage
   const [isMusicPlaying, setIsMusicPlaying] = useState(() => {
     const savedMusicState = localStorage.getItem('musicPlaying');
-    return savedMusicState !== null ? savedMusicState === 'true' : true;
+    return savedMusicState !== null ? savedMusicState === 'true' : false;
   });
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioRef2 = useRef<HTMLAudioElement>(null);
 
+  // Получаем персонажа из localStorage
+  const [characterId, setCharacterId] = useState<number | null>(
+    characterIdFromStorage ? Number(characterIdFromStorage) : null
+  );
+
+  // Синхронизируем characterId с localStorage при изменении
+  useEffect(() => {
+    if (characterId) {
+      localStorage.setItem('characterId', characterId.toString());
+    } else {
+      localStorage.removeItem('characterId');
+    }
+  }, [characterId]);
+
   const { data: character, isLoading, error } = useGetCharacterQuery(
-    Number(characterId),
+    characterId!,
     { skip: !characterId }
   );
 
   const { data: staminaInfo } = useGetStaminaInfoQuery(
-    Number(characterId),
+    characterId!,
     {
       skip: !characterId || !character || !!error,
       pollingInterval: 1000,
     }
   );
 
+  const [logout] = useLogoutMutation();
   const [testLevelBoost, { isLoading: isBoostLoading }] = useTestLevelBoostMutation();
+  const [boostMessage, setBoostMessage] = useState<string | null>(null);
+
+  // Получаем список персонажей пользователя
+  const { data: myCharacters = [], isLoading: isLoadingCharacters } = useGetMyCharacterQuery();
+  const [autoCreateCharacters, { isLoading: isCreatingCharacters }] = useAutoCreateCharactersMutation();
+  const [updateCharacterName] = useUpdateCharacterNameMutation();
+
+  // Автоматически создаем персонажей, если их нет
+  useEffect(() => {
+    if (!isLoadingCharacters && myCharacters.length === 0) {
+      autoCreateCharacters().catch((error) => {
+        console.error('Error auto-creating characters:', error);
+      });
+    }
+  }, [isLoadingCharacters, myCharacters.length, autoCreateCharacters]);
+
+  // Автоматически выбираем первого персонажа, если есть персонажи, но не выбран
+  useEffect(() => {
+    if (myCharacters.length > 0 && !characterId) {
+      const firstCharacter = myCharacters[0];
+      setCharacterId(firstCharacter.id);
+    }
+  }, [myCharacters, characterId]);
+
+  // Обработчик выбора персонажа
+  const handleSelectCharacter = (newCharacterId: number) => {
+    setCharacterId(newCharacterId);
+  };
+
+  // Обработчик обновления имени персонажа
+  const handleUpdateName = async (characterId: number, newName: string) => {
+    await updateCharacterName({ characterId, name: newName }).unwrap();
+  };
+
+  // Обработчик выхода
+  const handleLogout = async () => {
+    try {
+      // Вызываем logout API для очистки refresh token в cookie
+      await logout().unwrap();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Очищаем access token из памяти
+      setAccessToken(null);
+      // Очищаем состояние персонажа
+      setCharacterId(null);
+      // Очищаем localStorage
+      localStorage.removeItem('characterId');
+      localStorage.removeItem('isAuthenticated');
+      // Очищаем весь кэш RTK Query
+      store.dispatch(baseApi.util.resetApiState());
+      // Переходим на страницу входа
+      navigate('/');
+    }
+  };
+
+  // Если нет персонажа, просто не показываем контент
+  // CharacterSelector или логика выбора персонажа может быть добавлена позже
 
   // Управление музыкой с crossfade
   useEffect(() => {
@@ -118,10 +221,21 @@ const Dashboard = () => {
     localStorage.setItem('musicPlaying', String(newState));
   };
 
+  // Обработчик навигации назад
+  const handleBack = () => {
+    if (showForge) {
+      // Если открыт forge - сначала закрываем его
+      setShowForge(false);
+    } else if (activeSection === 'inventory' || activeSection === 'levelup') {
+      // Если открыт инвентарь или levelup - возвращаемся на главную секцию
+      setActiveSection('main');
+    }
+  };
+
   const handleLevelBoost = async () => {
     if (!characterId) return;
     try {
-      const result = await testLevelBoost(Number(characterId)).unwrap();
+      const result = await testLevelBoost(characterId).unwrap();
       setBoostMessage(result.message);
       setTimeout(() => setBoostMessage(null), 5000);
     } catch (error: any) {
@@ -130,193 +244,150 @@ const Dashboard = () => {
     }
   };
 
-  if (!characterId) {
-    navigate('/');
-    return null;
-  }
-
-  if (isLoading) {
-    return <div style={styles.loadingContainer}>Загрузка...</div>;
-  }
-
-  if (error || !character) {
-    return (
-      <div style={styles.errorContainer}>
-        Ошибка: {error ? 'error' in error ? error.error : 'Ошибка загрузки' : 'Персонаж не найден'}
-        <br />
-        <Link to="/">Создать персонажа</Link>
-      </div>
-    );
-  }
-
-  const hpPercent = (character.currentHp / character.maxHp) * 100;
-
-  const currentStamina = staminaInfo?.currentStamina ?? character.stamina;
-  const maxStamina = staminaInfo?.maxStamina ?? 100;
-  const staminaPercent = (currentStamina / maxStamina) * 100; // Максимум стамины 100
 
   // Выбор видео героя по классу
-  const getHeroVideo = () => {
-    if (!character) return '';
-    const classLower = character.class.toLowerCase();
-    if (classLower === 'warrior') return getAssetUrl('dashboard/warrior.mp4');
-    if (classLower === 'mage') return getAssetUrl('dashboard/mag.mp4');
-    if (classLower === 'rogue') return getAssetUrl('dashboard/sin.mp4');
-    return getAssetUrl('dashboard/warrior.mp4'); // fallback
-  };
-
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      {/* Видео фон */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          objectFit: 'cover',
-          zIndex: 1,
-        }}
-      >
-        <source src={getAssetUrl('dashboard/mainCityBackground.mp4')} type="video/mp4" />
-      </video>
+    <div style={{ position: 'relative', width: '1440px', height: '1080px', overflow: 'hidden' }}>
 
       {/* Фоновая музыка - два трека для crossfade */}
-      <audio ref={audioRef}>
+      <audio 
+        ref={audioRef}
+        onError={(e) => {
+          console.warn('[Dashboard] Audio file not found, music will be disabled');
+          setIsMusicPlaying(false);
+        }}
+      >
         <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
-      <audio ref={audioRef2}>
+      <audio 
+        ref={audioRef2}
+        onError={(e) => {
+          console.warn('[Dashboard] Audio file not found, music will be disabled');
+          setIsMusicPlaying(false);
+        }}
+      >
         <source src={getAssetUrl('dashboard/mainCity.mp3')} type="audio/mpeg" />
       </audio>
 
-      {/* Кнопка музыки - правый верхний угол */}
-      <button
-        onClick={toggleMusic}
-        style={{
-          position: 'fixed',
-          top: '40px',
-          right: '40px',
-          padding: '0',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          width: '200px',
-          height: '200px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.filter = 'brightness(1.2)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.filter = 'brightness(1)';
-        }}
-      >
-        <img
-          src={getAssetUrl('dashboard/music.png')}
-          alt="Music"
+      {/* Кнопки управления - верхний правый угол */}
+      <div style={{
+        position: 'absolute',
+        top: '15px',
+        right: '15px',
+        display: 'flex',
+        gap: '8px',
+        zIndex: 1000,
+        alignItems: 'flex-start',
+      }}>
+        {/* Кнопка музыки */}
+        <button
+          onClick={toggleMusic}
           style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            borderRadius: '8px',
+            padding: '8px 16px',
+            border: `2px solid ${dashboardColors.borderGold}`,
+            background: dashboardColors.backgroundMedium,
+            color: dashboardColors.textGold,
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            borderRadius: '6px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            fontFamily: dashboardFonts.secondary,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            letterSpacing: '0.1em',
           }}
-        />
-      </button>
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.borderColor = dashboardColors.borderBronze;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = dashboardColors.backgroundMedium;
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.borderColor = dashboardColors.borderGold;
+          }}
+        >
+          {isMusicPlaying ? (
+            <Volume2 size={14} color={dashboardColors.textGold} />
+          ) : (
+            <VolumeX size={14} color={dashboardColors.textGold} />
+          )}
+          <span>MUSIC</span>
+        </button>
 
-      {/* Кнопка чата - между музыкой и выходом справа */}
-      <button
-        onClick={() => setIsChatOpen(true)}
-        style={{
-          position: 'fixed',
-          top: '50%',
-          right: '40px',
-          transform: 'translateY(-50%)',
-          padding: '0',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          width: '200px',
-          height: '200px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
-          e.currentTarget.style.filter = 'brightness(1.2)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
-          e.currentTarget.style.filter = 'brightness(1)';
-        }}
-      >
-        <img
-          src={getAssetUrl('dashboard/buttonChat.png')}
-          alt="Chat"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            borderRadius: '8px',
-          }}
-        />
-      </button>
+        {/* Кнопка выхода - показываем только на главной секции */}
+        {(activeSection === 'main' || activeSection === 'levelup') && (
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '10px 18px',
+              border: `2px solid ${dashboardColors.borderGold}`,
+              background: dashboardColors.buttonBackground,
+              color: dashboardColors.textGold,
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              fontFamily: dashboardFonts.secondary,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              letterSpacing: '0.1em',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = dashboardColors.buttonHover;
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.borderColor = dashboardColors.borderBronze;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = dashboardColors.buttonBackground;
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = dashboardColors.borderGold;
+            }}
+          >
+            <LogOut size={14} color={dashboardColors.textGold} />
+            <span>EXIT</span>
+          </button>
+        )}
 
-      {/* Кнопка выхода - правый нижний угол */}
-      <button
-        onClick={() => {
-          localStorage.removeItem('characterId');
-          navigate('/');
-        }}
-        style={{
-          position: 'fixed',
-          bottom: '40px',
-          right: '40px',
-          padding: '0',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          width: '200px',
-          height: '200px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.filter = 'brightness(1.2)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.filter = 'brightness(1)';
-        }}
-      >
-        <img
-          src={getAssetUrl('dashboard/exit.png')}
-          alt="Exit"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            borderRadius: '8px',
-          }}
-        />
-      </button>
+        {/* Кнопка назад - показываем только если не на главной секции */}
+        {(activeSection === 'inventory' || showForge) && (
+          <button
+            onClick={handleBack}
+            style={{
+              padding: '8px 16px',
+              border: `2px solid ${dashboardColors.borderGold}`,
+              background: dashboardColors.backgroundMedium,
+              color: dashboardColors.textGold,
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              fontFamily: dashboardFonts.secondary,
+              letterSpacing: '0.1em',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.borderColor = dashboardColors.borderBronze;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = dashboardColors.backgroundMedium;
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = dashboardColors.borderGold;
+            }}
+          >
+            BACK
+          </button>
+        )}
+      </div>
 
       <div style={{
         display: 'none',
@@ -327,16 +398,16 @@ const Dashboard = () => {
           onClick={handleLevelBoost}
           disabled={isBoostLoading}
           style={{
-            padding: '10px',
-            border: '2px solid #fff',
+            padding: '5px',
+            border: '1px solid #fff',
             background: isBoostLoading ? 'rgba(128, 128, 128, 0.8)' : 'rgba(255, 152, 0, 0.8)',
             color: '#fff',
-            fontSize: '20px',
+            fontSize: '10px',
             cursor: isBoostLoading ? 'not-allowed' : 'pointer',
-            borderRadius: '8px',
+            borderRadius: '2px',
             transition: 'all 0.3s ease',
-            width: '50px',
-            height: '50px',
+            width: '25px',
+            height: '25px',
             display: 'none', // Скрыто
             alignItems: 'center',
             justifyContent: 'center',
@@ -346,654 +417,174 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Навигационные кнопки - в ряд снизу по центру */}
-      <div style={{
-        position: 'fixed',
-        bottom: '40px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        gap: '5px',
-        zIndex: 1000,
-      }}>
-        <Link to="/dungeon" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/dungeons.png')}
-            alt="Подземелье"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '8px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/inventory" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/inventory.png')}
-            alt="Инвентарь"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '8px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/blacksmith" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/blacksmith.png')}
-            alt="Кузница"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '8px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/pvp" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/pvp.png')}
-            alt="PvP"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '8px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/specialization" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/specialization.png')}
-            alt="Специализация"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '8px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-        <Link to="/class-mentor" style={{ display: 'block' }}>
-          <img
-            src={getAssetUrl('dashboard/mentor.png')}
-            alt="Наставник"
-            style={{
-              width: '450px',
-              height: '240px',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              background: 'transparent',
-              borderRadius: '8px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-      </div>
-
-      {/* Портрет героя - центр экрана */}
-      <div style={{
-        position: 'fixed',
-        top: '40%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '680px',
-        height: '680px',
-        borderRadius: '20px',
-        overflow: 'hidden',
-        zIndex: 1000,
-        pointerEvents: 'none',
-      }}>
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-          onError={(e) => {
-            console.error('Hero video failed to load');
-            console.log('Video URL:', getHeroVideo());
-            console.log('Character class:', character?.class);
-          }}
-        >
-          <source src={getHeroVideo()} type="video/mp4" />
-        </video>
-      </div>
-
-
-      {/* Кнопка Level Up - появляется только когда есть свободные очки */}
-      {character.freePoints > 0 && (
-        <Link to="/inventory" style={{
-          position: 'fixed',
-          top: '285px', // Сразу под портретом
-          left: '40px',
-          width: '150px',
-          height: '60px',
-          zIndex: 1000,
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          display: 'none', // Скрыто
-        }}>
-          <img
-            src={getAssetUrl('dashboard/lvlup.png')}
-            alt="Level Up"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: '8px',
-              boxShadow: '0 4px 15px rgba(255, 215, 0, 0.6)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
-            }}
-          />
-        </Link>
-      )}
-
-      {/* Имя, класс и уровень персонажа */}
-      <div style={{
-        position: 'fixed',
-        top: '40px',
-        left: '40px',
-        width: '480px',
-        height: '96px',
-        zIndex: 1000,
-      }}>
-        {/* Фоновое изображение */}
-        <img
-          src={getAssetUrl('dashboard/name.png')}
-          alt="Character Info Background"
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 1,
-            display: 'none',
-          }}
-        />
-
-        {/* Контент поверх фона */}
+      {/* Если персонаж выбран - показываем контент Dashboard */}
+      {character ? (
         <div style={{
-          position: 'relative',
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          right: '16px',
+          bottom: '16px',
           zIndex: 2,
-          display: 'flex',
-          gap: '12px',
-          padding: '16px',
-          height: '100%',
-          alignItems: 'center',
-          justifyContent: 'space-around',
         }}>
-          {/* Имя персонажа */}
           <div style={{
-            textAlign: 'center',
-          }}>
-            <div style={{
-              fontSize: '13px',
-              color: '#d4af37',
-              marginBottom: '3px',
-              fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.5px',
-            }}>
-              Имя
-            </div>
-            <div style={{
-              fontSize: '21px',
-              fontWeight: 'bold',
-              color: '#ffd700',
-              fontFamily: "'IM Fell English', serif",
-              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
-              letterSpacing: '1px',
-            }}>
-              {character.name}
-            </div>
-          </div>
-
-          {/* Класс персонажа */}
-          <div style={{
-            textAlign: 'center',
-          }}>
-            <div style={{
-              fontSize: '13px',
-              color: '#d4af37',
-              marginBottom: '3px',
-              fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.5px',
-            }}>
-              Класс
-            </div>
-            <div style={{
-              fontSize: '21px',
-              fontWeight: 'bold',
-              color: '#ffd700',
-              fontFamily: "'IM Fell English', serif",
-              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
-              letterSpacing: '1px',
-            }}>
-              {character.class}
-            </div>
-          </div>
-
-          {/* Уровень персонажа */}
-          <div style={{
-            textAlign: 'center',
-          }}>
-            <div style={{
-              fontSize: '13px',
-              color: '#d4af37',
-              marginBottom: '3px',
-              fontFamily: "'IM Fell English', serif",
-              letterSpacing: '0.5px',
-            }}>
-              Уровень
-            </div>
-            <div style={{
-              fontSize: '21px',
-              fontWeight: 'bold',
-              color: '#ffd700',
-              fontFamily: "'IM Fell English', serif",
-              textShadow: '0 0 10px rgba(255, 215, 0, 0.6)',
-              letterSpacing: '1px',
-            }}>
-              {character.level}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* HP и Stamina бары */}
-      <div style={{
-        position: 'fixed',
-        top: '180px',
-        left: '40px',
-        width: '480px',
-        height: '160px',
-        zIndex: 1000,
-      }}>
-        {/* Фоновое изображение */}
-        <img
-          src={getAssetUrl('dashboard/hp.png')}
-          alt="Health and Stamina Background"
-          style={{
-            position: 'absolute',
+            ...mainContainer,
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
-            zIndex: 1,
-            display: 'none',
-          }}
-        />
-
-        {/* Контент поверх фона */}
-        <div style={{
-          position: 'relative',
-          zIndex: 2,
-          padding: '16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-          height: '100%',
-          justifyContent: 'center',
-        }}>
-          {/* HP Bar */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <span style={{
-                color: '#ff6b6b',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                fontFamily: "'IM Fell English', serif",
-                textShadow: '0 0 8px rgba(255, 68, 68, 0.6)',
-                letterSpacing: '1px',
-              }}>HP</span>
-              <span style={{
-                color: '#fff',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                fontFamily: "'IM Fell English', serif",
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
-              }}>
-                {character.currentHp} / {character.maxHp}
-              </span>
-            </div>
+            // SVG-рамка со всех 4 сторон через border-image
+            borderWidth: '24px',
+            borderStyle: 'solid',
+            borderColor: 'transparent',
+            borderRadius: '16px',
+            borderImageSource: `url(${borderPattern})`,
+            borderImageSlice: 30,
+            borderImageRepeat: 'round',
+            backdropFilter: 'blur(12px)',
+            boxShadow: dashboardEffects.boxShadow,
+            padding: '20px 12px 20px 20px',
+            overflow: 'hidden',
+          }}>
+            {/* Corner ornaments */}
             <div style={{
-              width: '100%',
-              height: '20px',
-              background: '#1a1a1a',
-              borderRadius: '10px',
-              overflow: 'hidden',
-              border: '2px solid #cc0000',
-              boxShadow: '0 0 10px rgba(204, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
-            }}>
-              <div style={{
-                width: `${hpPercent}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, #ff4444, #cc0000)',
-                transition: 'width 0.3s ease',
-                boxShadow: '0 0 10px rgba(255, 68, 68, 0.5)',
-              }} />
-            </div>
-          </div>
-
-          {/* Stamina Bar */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <span style={{
-                color: '#66bb6a',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                fontFamily: "'IM Fell English', serif",
-                textShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
-                letterSpacing: '1px',
-              }}>Выносливость</span>
-              <span style={{
-                color: '#fff',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                fontFamily: "'IM Fell English', serif",
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
-              }}>
-                {currentStamina} / {maxStamina}
-              </span>
-            </div>
+              ...cornerOrnaments.topLeft,
+              width: '48px',
+              height: '48px',
+              borderTop: '4px solid',
+              borderLeft: '4px solid',
+              borderColor: dashboardColors.borderGold,
+            }}></div>
             <div style={{
-              width: '100%',
-              height: '20px',
-              background: '#1a1a1a',
-              borderRadius: '10px',
-              overflow: 'hidden',
-              border: '2px solid #2E7D32',
-              boxShadow: '0 0 10px rgba(46, 125, 50, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5)',
-            }}>
-              <div style={{
-                width: `${staminaPercent}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, #4CAF50, #2E7D32)',
-                transition: 'width 0.3s ease',
-                boxShadow: '0 0 10px rgba(76, 175, 80, 0.5)',
-              }} />
-            </div>
+              ...cornerOrnaments.topRight,
+              width: '48px',
+              height: '48px',
+              borderTop: '4px solid',
+              borderRight: '4px solid',
+              borderColor: dashboardColors.borderGold,
+            }}></div>
             <div style={{
-              fontSize: '13px',
-              color: '#d4af37',
-              marginTop: '6px',
-              fontFamily: "'IM Fell English', serif",
-            }}>
-              Восстанавливается: 1/сек
-              {staminaInfo?.secondsToFull && staminaInfo.secondsToFull > 0 && (
-                <span> • Полная через {Math.ceil(staminaInfo.secondsToFull)}с</span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ ...styles.container, position: 'relative', zIndex: 2, height: '100vh', overflowY: 'auto' }}>
-      {boostMessage && (
-        <div style={{
-          marginTop: '10px',
-          marginBottom: '20px',
-          padding: '10px',
-          background: '#4caf50',
-          borderRadius: '4px',
-          fontSize: '14px',
-          textAlign: 'center',
-        }}>
-          {boostMessage}
-        </div>
-      )}
-
-      {/* Объединённый блок: Золото + Характеристики */}
-      <div style={{
-        position: 'fixed',
-        top: '400px',
-        left: '40px',
-        width: '480px',
-        height: '256px',
-        zIndex: 1000,
-      }}>
-        {/* Фоновое изображение */}
-        <img
-          src={getAssetUrl('dashboard/charaktery.png')}
-          alt="Stats and Gold Background"
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 1,
-            display: 'none',
-          }}
-        />
-
-        {/* Контент поверх фона */}
-        <div style={{
-          position: 'relative',
-          zIndex: 2,
-          padding: '12px',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}>
-          {/* Характеристики */}
-          <div style={{ marginBottom: '20px' }}>
+              ...cornerOrnaments.bottomLeft,
+              width: '48px',
+              height: '48px',
+              borderBottom: '4px solid',
+              borderLeft: '4px solid',
+              borderColor: dashboardColors.borderGold,
+            }}></div>
             <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '12px',
-            }}>
-              <h3 style={{
-                margin: 0,
-                color: '#ffd700',
-                fontSize: '19px',
-                fontFamily: "'IM Fell English', serif",
-                fontWeight: 700,
-                textShadow: '0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3)',
-                letterSpacing: '1px',
-              }}>
-                Характеристики
-              </h3>
-              {character.freePoints > 0 && (
-                <Link to="/levelup" style={{ textDecoration: 'none' }}>
-                  <button style={{
-                    padding: '6px 13px',
-                    fontSize: '11px',
-                    background: 'linear-gradient(135deg, #4CAF50, #45a049)',
-                    color: '#fff',
-                    border: '1px solid #66bb6a',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontFamily: "'IM Fell English', serif",
-                    boxShadow: '0 0 10px rgba(76, 175, 80, 0.4)',
-                    transition: 'all 0.3s ease',
-                  }}>
-                    Прокачка ({character.freePoints})
-                  </button>
-                </Link>
-              )}
-            </div>
-            <div style={{
-              display: 'grid',
-              gap: '10px',
-              color: '#fff',
-              fontSize: '18px',
-              fontFamily: "'IM Fell English', serif",
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
-              }}>
-                <span style={{ marginRight: '8px' }}>⚔️</span>
-                <span>Сила:</span>
-                <span style={{
-                  color: '#ffd700',
-                  fontWeight: 'bold',
-                  marginLeft: '8px',
-                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
-                }}>{character.strength}</span>
-              </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
-              }}>
-                <span style={{ marginRight: '8px' }}>🏹</span>
-                <span>Ловкость:</span>
-                <span style={{
-                  color: '#ffd700',
-                  fontWeight: 'bold',
-                  marginLeft: '8px',
-                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
-                }}>{character.agility}</span>
-              </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)',
-              }}>
-                <span style={{ marginRight: '8px' }}>🔮</span>
-                <span>Интеллект:</span>
-                <span style={{
-                  color: '#ffd700',
-                  fontWeight: 'bold',
-                  marginLeft: '8px',
-                  textShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
-                }}>{character.intelligence}</span>
-              </div>
-              {character.freePoints > 0 && (
-                <div style={{
-                  marginTop: '6px',
-                  padding: '6px',
-                  background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))',
-                  borderRadius: '5px',
-                  textAlign: 'center',
-                  fontSize: '14px',
-                  border: '1px solid rgba(76, 175, 80, 0.3)',
-                  boxShadow: '0 0 10px rgba(76, 175, 80, 0.2)',
-                }}>
-                  Свободных очков: <span style={{
-                    color: '#4CAF50',
-                    fontWeight: 'bold',
-                    textShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
-                  }}>{character.freePoints}</span>
+              ...cornerOrnaments.bottomRight,
+              width: '48px',
+              height: '48px',
+              borderBottom: '4px solid',
+              borderRight: '4px solid',
+              borderColor: dashboardColors.borderGold,
+            }}></div>
+
+            <div className="grid grid-cols-[40%_60%] gap-5 h-full" style={{ overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
+              {/* LEFT COLUMN */}
+              <div className="flex flex-col gap-4 h-full" style={{ overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
+                {/* Character Info Card OR Forge Section - больше места под слоты */}
+                <div className="h-[75%]" style={{ overflow: 'hidden' }}>
+                  {showForge ? (
+                    <ForgeSection
+                      character={character}
+                      onClose={() => setShowForge(false)}
+                      itemInSlot={forgeItemSlot}
+                      onItemChange={setForgeItemSlot}
+                    />
+                  ) : (
+                    <CharacterCard 
+                      character={character}
+                      selectedItem={selectedItem}
+                      onItemSelect={setSelectedItem}
+                      onLevelBarClick={() => {
+                        setActiveSection('levelup');
+                        setShowForge(false);
+                      }}
+                    />
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Золото */}
-          <div style={{
-            borderTop: '1px solid rgba(255, 215, 0, 0.2)',
-            paddingTop: '12px',
-          }}>
-            <div style={{
-              fontSize: '14px',
-              color: '#d4af37',
-              marginBottom: '6px',
-              fontFamily: "'IM Fell English', serif",
-              letterSpacing: '1px',
-              textShadow: '0 0 5px rgba(212, 175, 55, 0.3)',
-            }}>
-              Золото
-            </div>
-            <div style={{
-              fontSize: '32px',
-              fontWeight: 'bold',
-              fontFamily: "'IM Fell English', serif",
-              background: 'linear-gradient(135deg, #FFD700, #FFA500, #FFD700)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.5)',
-              filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
-              letterSpacing: '2px',
-            }}>
-              {character.gold.toLocaleString()}
+                {/* Chat Section - меньше высота */}
+                <div className="h-[25%]" style={{ overflow: 'hidden' }}>
+                  <ChatSection characterId={character.id} characterName={character.name} />
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN */}
+              <div style={{ width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box', paddingRight: '4px' }}>
+              {activeSection === 'main' ? (
+                <NavigationButtons
+                  onInventoryClick={() => {
+                    setActiveSection('inventory');
+                    setShowForge(false);
+                  }}
+                  onForgeClick={() => {
+                    // При клике на Forge из главного меню - открываем инвентарь + кузницу
+                    setActiveSection('inventory');
+                    setShowForge(true);
+                  }}
+                />
+              ) : activeSection === 'inventory' ? (
+                <InventorySection
+                  character={character}
+                  onNavigateToForge={() => {
+                    // Оставляем activeSection='inventory', только показываем кузницу
+                    setShowForge(true);
+                  }}
+                  showForge={showForge}
+                  onNavigateToInventory={() => setShowForge(false)}
+                  onBack={() => {
+                    setActiveSection('main');
+                    setShowForge(false);
+                  }}
+                  forgeItemSlot={forgeItemSlot}
+                  onForgeItemSelect={setForgeItemSlot}
+                  selectedItem={selectedItem}
+                  onItemSelect={setSelectedItem}
+                />
+              ) : activeSection === 'levelup' ? (
+                <LevelUpSection
+                  character={character}
+                  onBack={() => {
+                    setActiveSection('main');
+                    setShowForge(false);
+                  }}
+                />
+              ) : null}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      </div>
+      ) : isLoadingCharacters || isCreatingCharacters ? (
+        /* Показываем загрузку при создании персонажей */
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 1000,
+          color: '#fff',
+          fontSize: '24px',
+          fontFamily: "'IM Fell English', serif",
+        }}>
+          {isCreatingCharacters ? 'Создание персонажей...' : 'Загрузка...'}
+        </div>
+      ) : myCharacters.length > 0 ? (
+        /* Показываем выбор персонажа, если персонажи есть, но не выбран */
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 1000,
+        }}>
+          <CharacterSelector
+            characters={myCharacters}
+            selectedCharacterId={characterId}
+            onSelectCharacter={handleSelectCharacter}
+            onUpdateName={handleUpdateName}
+          />
+        </div>
+      ) : null}
 
       {/* Окно чата */}
       {character && (

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useGetCharacterQuery } from '../store/api/characterApi';
+import { useGetCharacterQuery, characterApi } from '../store/api/characterApi';
 import { useGetDungeonsQuery, useStartBattleMutation } from '../store/api/battleApi';
+import { useDispatch } from 'react-redux';
 import type { DungeonDifficulty } from '../types/api';
 import { useBattle } from '../hooks/useBattle';
 import { DifficultySelector } from '../components/battle/DifficultySelector';
@@ -25,7 +26,8 @@ const Dungeon = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const { data: character, isLoading: characterLoading } = useGetCharacterQuery(
+  const dispatch = useDispatch();
+  const { data: character, isLoading: characterLoading, refetch: refetchCharacter } = useGetCharacterQuery(
     Number(characterId),
     { skip: !characterId }
   );
@@ -34,6 +36,24 @@ const Dungeon = () => {
   const [startBattleMutation] = useStartBattleMutation();
 
   const { battleState, roundHistory, sendRoundActions, isConnected } = useBattle(battleId);
+
+  // Обновляем кэш персонажа после завершения боя (когда получен лут)
+  const lastBattleIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if ((battleState.status === 'won' || battleState.status === 'lost') && battleState.lootedItems && battleId) {
+      // Проверяем, что это новый бой (не обновляем повторно для того же боя)
+      if (lastBattleIdRef.current !== battleId) {
+        lastBattleIdRef.current = battleId;
+        // Инвалидируем кэш персонажа, чтобы обновить инвентарь
+        if (characterId) {
+          dispatch(characterApi.util.invalidateTags([{ type: 'Character', id: Number(characterId) }]));
+          // Также делаем refetch для немедленного обновления
+          refetchCharacter();
+          console.log('🔄 Обновление кэша персонажа после получения лута');
+        }
+      }
+    }
+  }, [battleState.status, battleState.lootedItems, battleId, characterId, dispatch, refetchCharacter]);
 
   const selectedDungeon = dungeons.find(d => d.difficulty === selectedDifficulty);
   const requiredStamina = selectedDungeon?.staminaCost || 20;
@@ -124,14 +144,14 @@ const Dungeon = () => {
   if (!battleId) {
     return (
       <div style={{
-        width: '100vw',
-        height: '100vh',
+        width: '100%',
+        height: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: '#000',
+        backgroundColor: 'transparent', // Прозрачный, чтобы видеть глобальный dark fantasy фон
       }}>
         {/* Видео фон для экрана выбора - фиксированное */}
         <video
@@ -140,11 +160,11 @@ const Dungeon = () => {
           muted
           playsInline
           style={{
-            position: 'fixed',
+            position: 'absolute',
             top: 0,
             left: 0,
-            width: '100vw',
-            height: '100vh',
+            width: '100%',
+            height: '100%',
             objectFit: 'cover',
             zIndex: 1,
           }}
@@ -157,132 +177,106 @@ const Dungeon = () => {
           <source src={getAssetUrl('dungeon/selection/enterDungeonMusic.mp3')} type="audio/mpeg" />
         </audio>
 
-        {/* Кнопка музыки - правый верхний угол - фиксированная */}
-        <button
-          onClick={toggleMusic}
-          style={{
-            position: 'fixed',
-            top: '40px',
-            right: '40px',
-            padding: '0',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            width: '200px',
-            height: '200px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.filter = 'brightness(1.2)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.filter = isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)';
-          }}
-        >
-          <img
-            src={getAssetUrl('dungeon/selection/music.png')}
-            alt="Music"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              borderRadius: '8px',
-              filter: isMusicPlaying ? 'brightness(1)' : 'brightness(0.7)',
-            }}
-          />
-        </button>
-
-        {/* Кнопка чата - между музыкой и выходом справа - фиксированная */}
-        <button
-          onClick={() => setIsChatOpen(true)}
-          style={{
-            position: 'fixed',
-            top: '50%',
-            right: '40px',
-            transform: 'translateY(-50%)',
-            padding: '0',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            width: '200px',
-            height: '200px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
-            e.currentTarget.style.filter = 'brightness(1.2)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
-            e.currentTarget.style.filter = 'brightness(1)';
-          }}
-        >
-          <img
-            src={getAssetUrl('dungeon/buttonChat.png')}
-            alt="Chat"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              borderRadius: '8px',
-            }}
-          />
-        </button>
-
-        {/* Кнопка выхода - правый нижний угол - фиксированная */}
-        <Link to="/dashboard" style={{ textDecoration: 'none' }}>
+        {/* Навигационные кнопки - правый верхний угол в ряд */}
+        <div style={{
+          position: 'absolute',
+          top: '24px',
+          right: '24px',
+          display: 'flex',
+          gap: '8px',
+          zIndex: 1000,
+        }}>
+          {/* Кнопка музыки */}
           <button
+            onClick={toggleMusic}
             style={{
-              position: 'fixed',
-              bottom: '40px',
-              right: '40px',
-              padding: '0',
-              border: 'none',
-              background: 'transparent',
+              padding: '8px 16px',
+              border: '2px solid #2C2D33',
+              borderRadius: '6px',
+              background: '#111215',
+              color: '#E6E6E6',
               cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              width: '200px',
-              height: '200px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 1000,
+              fontFamily: 'serif',
+              fontSize: '12px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+              transition: 'all 0.2s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.filter = 'brightness(1.2)';
+              e.currentTarget.style.background = '#1A1B21';
+              e.currentTarget.style.borderColor = '#B21E2C';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'brightness(1)';
+              e.currentTarget.style.background = '#111215';
+              e.currentTarget.style.borderColor = '#2C2D33';
             }}
           >
-            <img
-              src={getAssetUrl('dungeon/selection/exit.png')}
-              alt="Exit"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                borderRadius: '8px',
-              }}
-            />
+            Music
           </button>
-        </Link>
+
+          {/* Кнопка FAQ */}
+          <button
+            style={{
+              padding: '8px 16px',
+              border: '2px solid #2C2D33',
+              borderRadius: '6px',
+              background: '#111215',
+              color: '#E6E6E6',
+              cursor: 'pointer',
+              fontFamily: 'serif',
+              fontSize: '12px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#1A1B21';
+              e.currentTarget.style.borderColor = '#B21E2C';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#111215';
+              e.currentTarget.style.borderColor = '#2C2D33';
+            }}
+          >
+            FAQ
+          </button>
+
+          {/* Кнопка выхода */}
+          <Link to="/dashboard" style={{ textDecoration: 'none' }}>
+            <button
+              style={{
+                padding: '8px 16px',
+                border: '2px solid #2C2D33',
+                borderRadius: '6px',
+                background: '#111215',
+                color: '#E6E6E6',
+                cursor: 'pointer',
+                fontFamily: 'serif',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#1A1B21';
+                e.currentTarget.style.borderColor = '#B21E2C';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#111215';
+                e.currentTarget.style.borderColor = '#2C2D33';
+              }}
+            >
+              Back
+            </button>
+          </Link>
+        </div>
 
         {/* Контент - фиксированный, как в Dashboard */}
         <div style={{
-          position: 'fixed',
+          position: 'absolute',
           top: '40%',
           left: '50%',
           transform: 'translate(-50%, -50%)',

@@ -14,9 +14,9 @@ enum ItemType {
   belt
   legs
   accessory
-  potion
   shield
   offhand
+  scroll
 }
 
 enum CharacterClass {
@@ -45,14 +45,14 @@ model User {
 
   firstName  String?
   createdAt  DateTime   @default(now())
-  character  Character?
+  characters Character[]
 
   @@map("users")
 }
 
 model Character {
   id                 Int                @id @default(autoincrement())
-  userId             Int                @unique
+  userId             Int
   name               String             @unique
   class              String
   level              Int                @default(1)
@@ -87,6 +87,7 @@ model Character {
   friends            Friendship[]       @relation("CharacterFriends")
   friendOf           Friendship[]       @relation("FriendOf")
 
+  @@index([userId])
   @@map("characters")
 }
 

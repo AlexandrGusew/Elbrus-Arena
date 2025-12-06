@@ -1,10 +1,33 @@
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetCharacterQuery, useEquipItemMutation, useUnequipItemMutation, useSellItemMutation } from '../store/api/characterApi';
 import type { InventoryItem } from '../types/api';
 import type { ItemType } from '../../../shared/types/enums';
 import { styles } from './Inventory.styles';
 import { StatsCalculator } from '../utils/statsCalculator';
+import { getAssetUrl } from '../utils/assetUrl';
+
+// Импорт изображений для слотов
+import weaponImg from '../assets/inventory-pers/weapon.png';
+import helmetImg from '../assets/inventory-pers/helmet.png';
+import armorImg from '../assets/inventory-pers/armor.png';
+import beltsImg from '../assets/inventory-pers/belt.png';
+import bootsImg from '../assets/inventory-pers/boots.png';
+import ringImg from '../assets/inventory-pers/ring.png';
+
+const SLOT_BACKGROUNDS: Record<ItemType, string> = {
+  weapon: weaponImg,
+  helmet: helmetImg,
+  armor: armorImg,
+  belt: beltsImg,
+  legs: bootsImg,
+  accessory: ringImg,
+  potion: ringImg, // используем ring как заглушку
+  shield: weaponImg, // используем weapon как заглушку
+  offhand: weaponImg, // используем weapon как заглушку
+  scroll: ringImg // используем ring как заглушку
+};
 
 const SLOT_ICONS: Record<ItemType, string> = {
   weapon: '⚔️',
@@ -13,9 +36,9 @@ const SLOT_ICONS: Record<ItemType, string> = {
   belt: '🔗',
   legs: '👖',
   accessory: '💍',
-  potion: '🧪',
   shield: '🛡️',
-  offhand: '🗡️'
+  offhand: '🗡️',
+  scroll: '📜'
 };
 
 const SLOT_NAMES: Record<ItemType, string> = {
@@ -25,10 +48,20 @@ const SLOT_NAMES: Record<ItemType, string> = {
   belt: 'Пояс',
   legs: 'Штаны',
   accessory: 'Аксессуар',
-  potion: 'Зелье',
   shield: 'Щит',
-  offhand: 'Левая рука'
+  offhand: 'Левая рука',
+  scroll: 'Свиток'
 };
+
+// Тестовые предметы для визуализации слотов и арта из assets/items
+const PREVIEW_ITEMS: Array<{ id: string; type: ItemType; name: string; artPath: string }> = [
+  { id: 'preview-weapon-1', type: 'weapon', name: 'Ржавый меч', artPath: 'items/swords/sword1.png' },
+  { id: 'preview-helmet-1', type: 'helmet', name: 'Старый шлем', artPath: 'items/helmets/helmet1.png' },
+  { id: 'preview-armor-1', type: 'armor', name: 'Потрёпанная броня', artPath: 'items/armors/armor1.png' },
+  { id: 'preview-belt-1', type: 'belt', name: 'Пояс авантюриста', artPath: 'items/belts/belts1.png' },
+  { id: 'preview-legs-1', type: 'legs', name: 'Поношенные поножи', artPath: 'items/legs/legs1.png' },
+  { id: 'preview-accessory-1', type: 'accessory', name: 'Кольцо странника', artPath: 'items/accessorys/ring1.png' },
+];
 
 const Inventory = () => {
   const navigate = useNavigate();
@@ -231,8 +264,13 @@ const Inventory = () => {
                   key={slotType}
                   style={{
                     ...styles.equipmentSlot,
+                    backgroundImage: `url(${SLOT_BACKGROUNDS[slotType]})`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    minHeight: '100px',
+                    position: 'relative',
                     ...(isHighlighted && {
-                      background: 'linear-gradient(135deg, #4a5a4e 0%, #3a4a3e 100%)',
                       border: '2px solid #4CAF50',
                       transform: 'scale(1.02)',
                       transition: 'all 0.2s ease'
@@ -242,26 +280,40 @@ const Inventory = () => {
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, slotType)}
                 >
-                  <div style={styles.slotIcon}>{SLOT_ICONS[slotType]}</div>
-                  <div style={styles.slotContent}>
-                    <div style={styles.slotName}>{SLOT_NAMES[slotType]}</div>
-                    {equippedItem ? (
-                      <div
-                        style={styles.slotItem}
-                        onClick={() => handleEquip(equippedItem)}
-                      >
-                        <div style={styles.slotItemName}>
-                          {equippedItem.item.name}
-                          {equippedItem.enhancement > 0 && ` +${equippedItem.enhancement}`}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.2)',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '12px',
+                    gap: '12px'
+                  }}>
+                    <div style={{...styles.slotIcon, textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>{SLOT_ICONS[slotType]}</div>
+                    <div style={styles.slotContent}>
+                      <div style={{...styles.slotName, textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>{SLOT_NAMES[slotType]}</div>
+                      {equippedItem ? (
+                        <div
+                          style={styles.slotItem}
+                          onClick={() => handleEquip(equippedItem)}
+                        >
+                          <div style={styles.slotItemName}>
+                            {equippedItem.item.name}
+                            {equippedItem.enhancement > 0 && ` +${equippedItem.enhancement}`}
+                          </div>
+                          <div style={styles.slotItemStats}>
+                            {equippedItem.item.damage > 0 && `Урон: ${equippedItem.item.damage} `}
+                            {equippedItem.item.armor > 0 && `Броня: ${equippedItem.item.armor}`}
+                          </div>
                         </div>
-                        <div style={styles.slotItemStats}>
-                          {equippedItem.item.damage > 0 && `Урон: ${equippedItem.item.damage} `}
-                          {equippedItem.item.armor > 0 && `Броня: ${equippedItem.item.armor}`}
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={styles.slotEmpty}>Пусто</div>
-                    )}
+                      ) : (
+                        <div style={{...styles.slotEmpty, textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>Пусто</div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -288,8 +340,13 @@ const Inventory = () => {
                 <div
                   style={{
                     ...styles.equipmentSlot,
+                    backgroundImage: `url(${SLOT_BACKGROUNDS[offhandSlotType]})`,
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    minHeight: '100px',
+                    position: 'relative',
                     ...(isOffhandHighlighted && {
-                      background: 'linear-gradient(135deg, #5a4a6e 0%, #4a3a5e 100%)',
                       border: '2px solid #9C27B0',
                       transform: 'scale(1.02)',
                       transition: 'all 0.2s ease'
@@ -299,32 +356,46 @@ const Inventory = () => {
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, offhandSlotType)}
                 >
-                  <div style={styles.slotIcon}>
-                    {offhandItem ? SLOT_ICONS[offhandItem.item.type] : '🔒'}
-                  </div>
-                  <div style={styles.slotContent}>
-                    <div style={styles.slotName}>
-                      {offhandItem ? SLOT_NAMES[offhandItem.item.type] : 'Левая рука'}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.2)',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '12px',
+                    gap: '12px'
+                  }}>
+                    <div style={{...styles.slotIcon, textShadow: '2px 2px 4px rgba(0,0,0,0.8)'}}>
+                      {offhandItem ? SLOT_ICONS[offhandItem.item.type] : '🔒'}
                     </div>
-                    {offhandItem ? (
-                      <div
-                        style={styles.slotItem}
-                        onClick={() => handleEquip(offhandItem)}
-                      >
-                        <div style={styles.slotItemName}>
-                          {offhandItem.item.name}
-                          {offhandItem.enhancement > 0 && ` +${offhandItem.enhancement}`}
-                        </div>
-                        <div style={styles.slotItemStats}>
-                          {offhandItem.item.damage > 0 && `Урон: ${offhandItem.item.damage} `}
-                          {offhandItem.item.armor > 0 && `Броня: ${offhandItem.item.armor}`}
-                        </div>
+                    <div style={styles.slotContent}>
+                      <div style={{...styles.slotName, textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>
+                        {offhandItem ? SLOT_NAMES[offhandItem.item.type] : 'Левая рука'}
                       </div>
-                    ) : (
-                      <div style={styles.slotEmpty}>
-                        {character.specialization ? 'Пусто' : 'Заблокирован'}
-                      </div>
-                    )}
+                      {offhandItem ? (
+                        <div
+                          style={styles.slotItem}
+                          onClick={() => handleEquip(offhandItem)}
+                        >
+                          <div style={styles.slotItemName}>
+                            {offhandItem.item.name}
+                            {offhandItem.enhancement > 0 && ` +${offhandItem.enhancement}`}
+                          </div>
+                          <div style={styles.slotItemStats}>
+                            {offhandItem.item.damage > 0 && `Урон: ${offhandItem.item.damage} `}
+                            {offhandItem.item.armor > 0 && `Броня: ${offhandItem.item.armor}`}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{...styles.slotEmpty, textShadow: '1px 1px 2px rgba(0,0,0,0.8)'}}>
+                          {character.specialization ? 'Пусто' : 'Заблокирован'}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -336,75 +407,183 @@ const Inventory = () => {
           <h2>Предметы ({unequippedItems.length} / {character.inventory.size})</h2>
 
           {unequippedItems.length === 0 ? (
-            <div style={styles.inventoryEmpty}>
-              Инвентарь пуст. Пройдите подземелье, чтобы получить предметы!
+            <div>
+              <div style={styles.inventoryEmpty}>
+                Инвентарь пуст. Пройдите подземелье, чтобы получить предметы!
+              </div>
+              {/* Превью слотов и предметов из assets/items для теста */}
+              <h3 style={{ marginTop: '16px', marginBottom: '8px' }}>Пример предметов</h3>
+              <div style={styles.inventoryGrid}>
+                {PREVIEW_ITEMS.map((item) => {
+                  const slotBg = SLOT_BACKGROUNDS[item.type];
+                  const artUrl = getAssetUrl(item.artPath);
+
+                  return (
+                    <div
+                      key={item.id}
+                      style={{
+                        ...styles.inventoryItem,
+                        padding: '8px',
+                        borderRadius: '10px',
+                        background: '#141418',
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'relative',
+                          borderRadius: '10px',
+                          backgroundImage: `url(${slotBg})`,
+                          backgroundSize: 'cover',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'center',
+                          aspectRatio: '1',
+                          padding: '8px',
+                          marginBottom: '8px',
+                          boxShadow: '0 0 10px rgba(0, 0, 0, 0.6)',
+                        }}
+                      >
+                        <img
+                          src={artUrl}
+                          alt={item.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            filter: 'drop-shadow(0 0 6px rgba(0,0,0,0.8))',
+                          }}
+                        />
+                      </div>
+                      <div style={styles.itemName}>{item.name}</div>
+                      <div style={styles.itemStats}>Тип: {SLOT_NAMES[item.type]}</div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div style={styles.inventoryGrid}>
-              {unequippedItems.map((invItem) => {
-                const sellPrice = Math.floor(invItem.item.price * 0.5);
-                return (
-                  <div
-                    key={invItem.id}
-                    style={{
-                      ...styles.inventoryItem,
-                      ...(draggedItem?.id === invItem.id && {
-                        opacity: 0.5,
-                        transform: 'scale(0.95)',
-                      })
-                    }}
-                    draggable={true}
-                    onDragStart={(e) => handleDragStart(e, invItem)}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <div style={styles.itemHeader}>
-                      <div style={styles.itemIcon}>{SLOT_ICONS[invItem.item.type]}</div>
-                      <div style={styles.itemBadge}>{SLOT_NAMES[invItem.item.type]}</div>
-                    </div>
+              {(() => {
+                // Группируем предметы по названию, типу и уровню заточки
+                const groupedItems = unequippedItems.reduce((acc, invItem) => {
+                  const key = `${invItem.item.name}_${invItem.item.type}_${invItem.enhancement || 0}`;
+                  
+                  if (!acc[key]) {
+                    acc[key] = {
+                      items: [invItem],
+                      firstItem: invItem,
+                    };
+                  } else {
+                    acc[key].items.push(invItem);
+                  }
+                  
+                  return acc;
+                }, {} as Record<string, { items: InventoryItem[]; firstItem: InventoryItem }>);
 
-                    <div style={styles.itemName}>
-                      {invItem.item.name}
-                      {invItem.enhancement > 0 && <span style={styles.enhancement}> +{invItem.enhancement}</span>}
-                    </div>
+                // Преобразуем объект в массив для отображения
+                const itemsArray = Object.values(groupedItems);
+                
+                // Отладка: выводим информацию о группировке
+                console.log('📦 Группировка предметов:', {
+                  totalItems: unequippedItems.length,
+                  groupedItems: itemsArray.length,
+                  groups: itemsArray.map(g => ({
+                    name: g.firstItem.item.name,
+                    count: g.items.length,
+                    enhancement: g.firstItem.enhancement
+                  }))
+                });
 
-                    <div style={styles.itemStats}>
-                      {invItem.item.damage > 0 && <div>Урон: {invItem.item.damage}</div>}
-                      {invItem.item.armor > 0 && <div>Броня: {invItem.item.armor}</div>}
-                      {invItem.item.bonusStr > 0 && <div>Сила: +{invItem.item.bonusStr}</div>}
-                      {invItem.item.bonusAgi > 0 && <div>Ловк: +{invItem.item.bonusAgi}</div>}
-                      {invItem.item.bonusInt > 0 && <div>Инт: +{invItem.item.bonusInt}</div>}
-                      {(invItem.item.minLevel > 1 || invItem.item.minStrength > 0 || invItem.item.minAgility > 0 || invItem.item.minIntelligence > 0) && (
-                        <div style={{ color: '#f44336', marginTop: '5px', fontSize: '11px', borderTop: '1px solid #444', paddingTop: '5px' }}>
-                          <div style={{ fontWeight: 'bold' }}>Требования:</div>
-                          {invItem.item.minLevel > 1 && <div>Уровень: {invItem.item.minLevel}</div>}
-                          {invItem.item.minStrength > 0 && <div>Сила: {invItem.item.minStrength}</div>}
-                          {invItem.item.minAgility > 0 && <div>Ловкость: {invItem.item.minAgility}</div>}
-                          {invItem.item.minIntelligence > 0 && <div>Интеллект: {invItem.item.minIntelligence}</div>}
+                return itemsArray.map((group, index) => {
+                  const invItem = group.firstItem;
+                  const sellPrice = Math.floor(invItem.item.price * 0.5);
+                  
+                  return (
+                    <div
+                      key={`${invItem.item.name}_${invItem.item.type}_${invItem.enhancement || 0}_${index}`}
+                      style={{
+                        ...styles.inventoryItem,
+                        position: 'relative',
+                        ...(draggedItem?.id === invItem.id && {
+                          opacity: 0.5,
+                          transform: 'scale(0.95)',
+                        })
+                      }}
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, invItem)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      {/* Счетчик количества в верхнем правом углу */}
+                      {group.items.length > 1 && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          background: 'linear-gradient(135deg, #d4af37 0%, #b8941f 100%)',
+                          color: '#000',
+                          fontSize: '16px',
+                          fontWeight: 'bold',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '2px solid #ffd700',
+                          boxShadow: '0 3px 8px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.5)',
+                          zIndex: 100,
+                          minWidth: '32px',
+                          textAlign: 'center',
+                          lineHeight: '1',
+                        }}>
+                          ×{group.items.length}
                         </div>
                       )}
-                    </div>
 
-                    <div style={styles.sellPrice as CSSProperties}>
-                      Продажа: {sellPrice} золота
-                    </div>
+                      <div style={styles.itemHeader}>
+                        <div style={styles.itemIcon}>{SLOT_ICONS[invItem.item.type]}</div>
+                        <div style={styles.itemBadge}>{SLOT_NAMES[invItem.item.type]}</div>
+                      </div>
 
-                    <div style={styles.buttonContainer as CSSProperties}>
-                      <button
-                        style={styles.equipButton}
-                        onClick={() => handleEquip(invItem)}
-                      >
-                        Надеть
-                      </button>
-                      <button
-                        style={styles.sellButton}
-                        onClick={(e) => handleSell(invItem, e)}
-                      >
-                        Продать
-                      </button>
+                      <div style={styles.itemName}>
+                        {invItem.item.name}
+                        {invItem.enhancement > 0 && <span style={styles.enhancement}> +{invItem.enhancement}</span>}
+                      </div>
+
+                      <div style={styles.itemStats}>
+                        {invItem.item.damage > 0 && <div>Урон: {invItem.item.damage}</div>}
+                        {invItem.item.armor > 0 && <div>Броня: {invItem.item.armor}</div>}
+                        {invItem.item.bonusStr > 0 && <div>Сила: +{invItem.item.bonusStr}</div>}
+                        {invItem.item.bonusAgi > 0 && <div>Ловк: +{invItem.item.bonusAgi}</div>}
+                        {invItem.item.bonusInt > 0 && <div>Инт: +{invItem.item.bonusInt}</div>}
+                        {(invItem.item.minLevel > 1 || invItem.item.minStrength > 0 || invItem.item.minAgility > 0 || invItem.item.minIntelligence > 0) && (
+                          <div style={{ color: '#f44336', marginTop: '5px', fontSize: '11px', borderTop: '1px solid #444', paddingTop: '5px' }}>
+                            <div style={{ fontWeight: 'bold' }}>Требования:</div>
+                            {invItem.item.minLevel > 1 && <div>Уровень: {invItem.item.minLevel}</div>}
+                            {invItem.item.minStrength > 0 && <div>Сила: {invItem.item.minStrength}</div>}
+                            {invItem.item.minAgility > 0 && <div>Ловкость: {invItem.item.minAgility}</div>}
+                            {invItem.item.minIntelligence > 0 && <div>Интеллект: {invItem.item.minIntelligence}</div>}
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={styles.sellPrice as CSSProperties}>
+                        Продажа: {sellPrice} золота
+                      </div>
+
+                      <div style={styles.buttonContainer as CSSProperties}>
+                        <button
+                          style={styles.equipButton}
+                          onClick={() => handleEquip(invItem)}
+                        >
+                          Надеть
+                        </button>
+                        <button
+                          style={styles.sellButton}
+                          onClick={(e) => handleSell(invItem, e)}
+                        >
+                          Продать
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           )}
         </div>

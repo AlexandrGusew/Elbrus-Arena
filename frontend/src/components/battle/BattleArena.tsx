@@ -1,20 +1,13 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import type { Zone, RoundActions, BattleState } from '../../hooks/useBattle';
 import type { Character } from '../../types/api';
-import { ZoneSelector } from './ZoneSelector';
-import { DungeonProgress } from './DungeonProgress';
+import { ZoneBlocks } from './ZoneBlocks';
 import { DetailedBattleLog } from './DetailedBattleLog';
-import { EnemyActions } from './EnemyActions';
+import { ChatStub } from './ChatStub';
 import { styles } from '../../pages/Dungeon.styles';
 import { getAssetUrl } from '../../utils/assetUrl';
 
-// Изображения для боя
-const fightBackground = getAssetUrl('dungeon/battle/PvE-arena.png');
-
-// Изображения персонажей
-const warriorImg = getAssetUrl('dungeon/battle/warrior_character.png');
-const mageImg = getAssetUrl('dungeon/battle/mage_character.png');
-const rogueImg = getAssetUrl('dungeon/battle/rogue_character.png');
+// Изображения персонажей (используются в getCharacterImage)
 
 // Изображения мобов для Данжа 1 (Катакомбы)
 const mob1 = getAssetUrl('dungeon/mobs/mob-1-skeleton.png');
@@ -58,6 +51,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
   const [waitingForResult, setWaitingForResult] = useState(false);
   const [isAttacking, setIsAttacking] = useState(false);
   const [isMonsterAttacking, setIsMonsterAttacking] = useState(false);
+  const [attackVideoKey, setAttackVideoKey] = useState(0);
   const [monsterInitialHp, setMonsterInitialHp] = useState<Map<number, number>>(new Map());
   const lastMonsterRef = useRef<number | undefined>(undefined);
   const [timeLeft, setTimeLeft] = useState<number>(15);
@@ -168,23 +162,74 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
   };
 
   // Выбор видео атаки персонажа по классу
+  // Для MinIO: dungeon/battle/char-atack-animation/...
+  // Для локальных файлов: char-atack-animation/...
   const getAttackVideo = () => {
+    const basePath = import.meta.env.VITE_USE_MINIO === 'true' 
+      ? 'dungeon/battle/char-atack-animation' 
+      : 'char-atack-animation';
+    
     switch (character.class) {
-      case 'warrior': return getAssetUrl('dungeon/battle/attake/atakeWar.mp4');
-      case 'mage': return getAssetUrl('dungeon/battle/attake/attakeMage.mp4');
-      case 'rogue': return getAssetUrl('dungeon/battle/attake/atakeRogue.mp4');
-      default: return getAssetUrl('dungeon/battle/attake/atakeWar.mp4');
+      case 'warrior':
+        return getAssetUrl(`${basePath}/warrior-atack.mp4`);
+      case 'mage':
+        return getAssetUrl(`${basePath}/wizzard-atack.mp4`);
+      case 'rogue':
+        return getAssetUrl(`${basePath}/assasin-atack.mp4`);
+      default:
+        return getAssetUrl(`${basePath}/warrior-atack.mp4`);
     }
   };
 
-  // Выбор видео атаки моба по уровню
-  const getMobAttackVideo = (mobNumber: number) => {
-    switch (mobNumber) {
-      case 1: return getAssetUrl('dungeon/battle/attake/dange1mob1atake.mp4');
-      case 2: return getAssetUrl('dungeon/battle/attake/dange1mob2atake.mp4');
-      case 4: return getAssetUrl('dungeon/battle/attake/mob4dange1atake.mp4');
-      default: return getAssetUrl('dungeon/battle/attake/dange1mob1atake.mp4');
+  // Выбор видео атаки моба по номеру и данжу
+  // Для MinIO: dungeon/battle/atack-mobs-dang-*/...
+  // Для локальных файлов: atack-mobs-dang-*/...
+  const getMobAttackVideo = (mobNumber: number, dungeonId?: number) => {
+    const currentDungeonId = dungeonId || battleState.dungeonId || 1;
+    const basePath = import.meta.env.VITE_USE_MINIO === 'true' 
+      ? 'dungeon/battle' 
+      : '';
+    
+    // Данж 1 - Катакомбы
+    if (currentDungeonId === 1) {
+      const folder = basePath ? `${basePath}/atack-mobs-dang-1` : 'atack-mobs-dang-1';
+      switch (mobNumber) {
+        case 1: return getAssetUrl(`${folder}/dang1mob1.mp4`);
+        case 2: return getAssetUrl(`${folder}/dang1mob2.mp4`);
+        case 3: return getAssetUrl(`${folder}/dang1mob3.mp4`);
+        case 4: return getAssetUrl(`${folder}/dang1mob4.mp4`);
+        case 5: return getAssetUrl(`${folder}/dang1mob5.mp4`);
+        default: return getAssetUrl(`${folder}/dang1mob1.mp4`);
+      }
     }
+    // Данж 2 - Болото
+    else if (currentDungeonId === 2) {
+      const folder = basePath ? `${basePath}/atack-mobs-dang-2` : 'atack-mobs-dang-2';
+      switch (mobNumber) {
+        case 1: return getAssetUrl(`${folder}/dange2mob1.mp4`);
+        case 2: return getAssetUrl(`${folder}/dange2mob2.mp4`);
+        case 3: return getAssetUrl(`${folder}/dange2mob3.mp4`);
+        case 4: return getAssetUrl(`${folder}/dange2mob4.mp4`);
+        case 5: return getAssetUrl(`${folder}/dange2mob5.mp4`);
+        default: return getAssetUrl(`${folder}/dange2mob1.mp4`);
+      }
+    }
+    // Данж 3
+    else if (currentDungeonId === 3) {
+      const folder = basePath ? `${basePath}/atack-mobs-dang-3` : 'atack-mobs-dang-3';
+      switch (mobNumber) {
+        case 1: return getAssetUrl(`${folder}/dange3mob1.mp4`);
+        case 2: return getAssetUrl(`${folder}/dange3mob2.mp4`);
+        case 3: return getAssetUrl(`${folder}/dange3mob3.mp4`);
+        case 4: return getAssetUrl(`${folder}/dange3mob4.mp4`);
+        case 5: return getAssetUrl(`${folder}/dange3mob5.mp4`);
+        default: return getAssetUrl(`${folder}/dange3mob1.mp4`);
+      }
+    }
+    
+    // Fallback для неизвестного данжа
+    const folder = basePath ? `${basePath}/atack-mobs-dang-1` : 'atack-mobs-dang-1';
+    return getAssetUrl(`${folder}/dang1mob1.mp4`);
   };
 
   // Получить изображение моба по номеру и dungeonId
@@ -249,14 +294,14 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     return 'Монстр';
   };
 
-  // Анализ результатов последнего раунда
+  // Анализ результатов последнего раунда для ZoneBlocks
   const lastRoundResults = useMemo(() => {
     if (!battleState.lastRoundResult) {
       return {
-        playerHits: [],
-        playerMisses: [],
-        monsterBlocked: [],
-        monsterHits: [],
+        defendedSuccessfully: [],
+        notAttacked: [],
+        playerHits: [], // игрок попал (монстр не защитил)
+        playerMisses: [], // игрок промахнулся (монстр защитил)
         damageDealt: 0,
         damageTaken: 0,
       };
@@ -264,16 +309,27 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
 
     const { playerActions, monsterActions, monsterDamage, playerDamage } = battleState.lastRoundResult;
 
-    const playerHits = playerActions.attacks.filter(zone => !monsterActions.defenses.includes(zone));
-    const playerMisses = playerActions.attacks.filter(zone => monsterActions.defenses.includes(zone));
-    const monsterBlocked = playerActions.defenses.filter(zone => monsterActions.attacks.includes(zone));
-    const monsterHits = monsterActions.attacks.filter(zone => !playerActions.defenses.includes(zone));
+    // Для блоков защиты
+    const defendedSuccessfully = playerActions.defenses.filter(zone =>
+      monsterActions.attacks.includes(zone)
+    );
+    const notAttacked = playerActions.defenses.filter(zone =>
+      !monsterActions.attacks.includes(zone)
+    );
+
+    // Для блоков атаки - показываем результаты атак ИГРОКА
+    const playerHits = playerActions.attacks.filter(zone =>
+      !monsterActions.defenses.includes(zone)
+    );
+    const playerMisses = playerActions.attacks.filter(zone =>
+      monsterActions.defenses.includes(zone)
+    );
 
     return {
+      defendedSuccessfully,
+      notAttacked,
       playerHits,
       playerMisses,
-      monsterBlocked,
-      monsterHits,
       damageDealt: monsterDamage,
       damageTaken: playerDamage,
     };
@@ -321,22 +377,16 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
               timerRef.current = null;
             }
             
-            // Запускаем анимацию атаки персонажа
+            // Запускаем анимацию атаки персонажа и монстра одновременно
+            setAttackVideoKey(prev => prev + 1); // Принудительно обновляем ключ видео для перезагрузки
             setIsAttacking(true);
-            
-            // Запускаем анимацию моба только для первого данжа (dungeonId === 1) и мобов с готовой анимацией (1, 2, 4)
-            // Для остальных данжей и мобов (3, 5) анимация не запускается, показывается только картинка
-            const currentMonster = battleState.currentMonster || 1;
-            const currentDungeonId = battleState.dungeonId || dungeonId;
-            if (currentDungeonId === 1 && (currentMonster === 1 || currentMonster === 2 || currentMonster === 4)) {
-              setIsMonsterAttacking(true);
-            }
+            setIsMonsterAttacking(true);
             
             onSubmitActions(actions);
             setSelectedAttacks([]);
             setSelectedDefenses([]);
             setWaitingForResult(true);
-            
+
             return 15; // Сбрасываем для следующего раунда
           }
           return prev - 1;
@@ -383,9 +433,11 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     if (actions) {
       finalActions = actions;
     } else {
+      // Требуем выбор и атак, и защит
       if (selectedAttacks.length !== 2 || selectedDefenses.length !== 3) {
         return;
       }
+      
       finalActions = {
         attacks: [selectedAttacks[0], selectedAttacks[1]],
         defenses: [selectedDefenses[0], selectedDefenses[1], selectedDefenses[2]],
@@ -399,16 +451,10 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     }
     setTimeLeft(15);
 
-    // Запускаем анимацию атаки персонажа
+    // Запускаем анимацию атаки персонажа и монстра одновременно
+    setAttackVideoKey(prev => prev + 1); // Принудительно обновляем ключ видео для перезагрузки
     setIsAttacking(true);
-    
-    // Запускаем анимацию моба только для первого данжа (dungeonId === 1) и мобов с готовой анимацией (1, 2, 4)
-    // Для остальных данжей и мобов (3, 5) анимация не запускается, показывается только картинка
-    const currentMonster = battleState.currentMonster || 1;
-    const currentDungeonId = battleState.dungeonId || dungeonId;
-    if (currentDungeonId === 1 && (currentMonster === 1 || currentMonster === 2 || currentMonster === 4)) {
-      setIsMonsterAttacking(true);
-    }
+    setIsMonsterAttacking(true);
 
     onSubmitActions(finalActions);
     setSelectedAttacks([]);
@@ -420,11 +466,11 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
       {/* Фоновое изображение для боя - фиксированное */}
       <div style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
-        width: '100vw',
-        height: '100vh',
+        width: '100%',
+        height: '100%',
         zIndex: 0,
         backgroundImage: `url(${getAssetUrl('dungeon/battle/PvE-arena.png')})`,
         backgroundSize: 'cover',
@@ -432,477 +478,483 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
         backgroundRepeat: 'no-repeat',
       }} />
 
-      {/* Верхняя часть - прогресс подземелья - фиксированная */}
+      {/* Навигация - ДОБАВЛЯЕМ */}
+      <div style={{
+        position: 'absolute',
+        top: '24px',
+        right: '24px',
+        zIndex: 1000,
+        display: 'flex',
+        gap: '8px',
+      }}>
+        <button
+          style={{
+            padding: '8px 16px',
+            border: '2px solid #2C2D33',
+            borderRadius: '6px',
+            background: '#111215',
+            color: '#E6E6E6',
+            cursor: 'pointer',
+            fontFamily: 'serif',
+            fontSize: '12px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#1A1B21';
+            e.currentTarget.style.borderColor = '#B21E2C';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#111215';
+            e.currentTarget.style.borderColor = '#2C2D33';
+          }}
+        >
+          Music
+        </button>
+        <button
+          style={{
+            padding: '8px 16px',
+            border: '2px solid #2C2D33',
+            borderRadius: '6px',
+            background: '#111215',
+            color: '#E6E6E6',
+            cursor: 'pointer',
+            fontFamily: 'serif',
+            fontSize: '12px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#1A1B21';
+            e.currentTarget.style.borderColor = '#B21E2C';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#111215';
+            e.currentTarget.style.borderColor = '#2C2D33';
+          }}
+        >
+          FAQ
+        </button>
+        <button
+          onClick={onReset}
+          style={{
+            padding: '8px 16px',
+            border: '2px solid #2C2D33',
+            borderRadius: '6px',
+            background: '#111215',
+            color: '#E6E6E6',
+            cursor: 'pointer',
+            fontFamily: 'serif',
+            fontSize: '12px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#1A1B21';
+            e.currentTarget.style.borderColor = '#B21E2C';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#111215';
+            e.currentTarget.style.borderColor = '#2C2D33';
+          }}
+        >
+          Back
+        </button>
+      </div>
+
+      {/* Бейдж уровня сверху по центру */}
       {battleState.currentMonster && battleState.totalMonsters && (
         <div style={{
-          position: 'fixed',
+          position: 'absolute',
           top: '20px',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 2,
         }}>
           <div style={{
-            background: 'rgba(0, 0, 0, 0.85)',
-            padding: '12px 20px',
-            borderRadius: '10px',
-            border: '2px solid rgba(76, 175, 80, 0.5)',
-            minWidth: '250px',
-            fontFamily: '"Cinzel", "MedievalSharp", "UnifrakturMaguntia", "IM Fell English", serif',
+            background: '#111215',
+            padding: '8px 20px',
+            borderRadius: '6px',
+            border: '3px solid #2C2D33',
+            fontFamily: 'serif',
+            color: '#E6E6E6',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
           }}>
-            <div style={{ 
-              color: '#4CAF50', 
-              fontSize: '14px', 
-              fontWeight: '600',
-              marginBottom: '8px',
-              textAlign: 'center',
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase',
-            }}>
-              Прогресс подземелья
-            </div>
-            <div style={{ 
-              marginBottom: '8px', 
-              fontSize: '12px', 
-              fontWeight: 'bold',
-              color: '#d4af37',
-              textAlign: 'center',
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
-              letterSpacing: '0.5px',
-            }}>
-              Монстр {battleState.currentMonster} / {battleState.totalMonsters}
-            </div>
-            <div
-              style={{
-                width: '100%',
-                height: '14px',
-                backgroundColor: '#333',
-                borderRadius: '7px',
-                overflow: 'hidden',
-                border: '2px solid #555',
-                boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.5)',
-              }}
-            >
-              <div
-                style={{
-                  height: '100%',
-                  width: `${(battleState.currentMonster / battleState.totalMonsters) * 100}%`,
-                  background: 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%)',
-                  transition: 'width 0.3s ease',
-                  boxShadow: '0 0 8px rgba(76, 175, 80, 0.6)',
-                }}
-              />
-            </div>
+            LEVEL DANGE {battleState.currentMonster}/{battleState.totalMonsters}
           </div>
         </div>
       )}
 
-        {/* Нижняя часть - 3 блока */}
-        {battleState.status === 'active' ? (
-          <>
-            {/* Левый блок - Лог боя - фиксированный */}
-            <div style={{
-              position: 'fixed',
-              top: 0,
-              left: '15px',
-              width: '300px',
-              height: '100vh',
-              zIndex: 1,
-            }}>
-              <DetailedBattleLog roundResults={roundHistory} />
-            </div>
-
-            {/* Средний блок - Персонаж, зоны атаки/защиты, моб - фиксированный */}
-            <div style={{
-              position: 'fixed',
-              top: '140px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '600px',
-              zIndex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '15px',
-              alignItems: 'center',
-            }}>
-              {/* Персонаж, кнопка и моб в одну строку */}
+      {/* Основной контент - 3 КОЛОНКИ */}
+      {battleState.status === 'active' ? (
+        <div style={{
+          position: 'absolute',
+          top: '80px',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'flex',
+          gap: '24px',
+          padding: '0 24px 24px 24px',
+          zIndex: 1,
+        }}>
+          {/* ЛЕВАЯ КОЛОНКА - Игрок + Чат */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* ИГРОК - flex-1 чтобы занять верхнюю часть */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {/* Инфо панель */}
               <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                width: '100%',
-                gap: '15px',
+                background: '#111215',
+                border: '3px solid #2C2D33',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontFamily: 'serif',
+                color: '#E6E6E6',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
               }}>
-                {/* Персонаж */}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
-                  {/* Полоска HP персонажа */}
-                  <div style={{
-                    width: '220px',
-                    position: 'relative',
-                    height: '20px',
-                    background: 'rgba(0, 0, 0, 0.8)',
-                    borderRadius: '6px',
-                    border: '2px solid rgba(76, 175, 80, 0.5)',
-                    overflow: 'hidden',
-                  }}>
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      height: '100%',
-                      width: `${Math.max(0, Math.min(100, (battleState.playerHp / character.maxHp) * 100))}%`,
-                      background: battleState.playerHp / character.maxHp > 0.5
-                        ? 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%)'
-                        : battleState.playerHp / character.maxHp > 0.25
-                        ? 'linear-gradient(90deg, #FFA726 0%, #FFB74D 100%)'
-                        : 'linear-gradient(90deg, #f44336 0%, #EF5350 100%)',
-                      transition: 'width 0.5s ease',
-                    }} />
-                    <div style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                      color: '#fff',
-                      textShadow: '1px 1px 2px rgba(0, 0, 0, 1)',
-                      zIndex: 2,
-                    }}>
-                      {battleState.playerHp} / {character.maxHp}
-                    </div>
-                  </div>
-                  
-                  <div style={{
-                    width: '220px',
-                    height: '220px',
-                    background: '#000',
-                    border: '2px solid rgba(76, 175, 80, 0.5)',
-                    borderRadius: '11px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 0 23px rgba(76, 175, 80, 0.3)',
-                    overflow: 'hidden',
-                    position: 'relative',
-                  }}>
-                    {isAttacking ? (
-                      <video
-                        key={`attack-${battleState.roundNumber}`}
-                        src={getAttackVideo()}
-                        autoPlay
-                        muted
-                        playsInline
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                        }}
-                        onEnded={() => setIsAttacking(false)}
-                      />
-                    ) : (
-                      <img
-                        src={getCharacterImage()}
-                        alt={character.class}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                        }}
-                      />
-                    )}
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '8px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      background: 'rgba(0, 0, 0, 0.8)',
-                      color: '#4CAF50',
-                      padding: '4px 11px',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                      border: '2px solid rgba(76, 175, 80, 0.5)',
-                      zIndex: 10,
-                    }}>
-                      {character.name}
-                    </div>
-                  </div>
-                </div>
+                CLASS: {character.class.toUpperCase()} | NAME: {character.name} | LVL: {character.level}
+              </div>
 
-                {/* Кнопка "Атаковать" */}
+              {/* HP бар */}
+              <div style={{
+                width: '286px', // Увеличено пропорционально квадрату персонажа
+                position: 'relative',
+                height: '20px',
+                background: '#111215',
+                borderRadius: '6px',
+                border: '3px solid #2C2D33',
+                overflow: 'hidden',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+              }}>
                 <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: '10px',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  height: '100%',
+                  width: `${Math.max(0, Math.min(100, (battleState.playerHp / character.maxHp) * 100))}%`,
+                  background: battleState.playerHp / character.maxHp > 0.5
+                    ? 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%)'
+                    : battleState.playerHp / character.maxHp > 0.25
+                    ? 'linear-gradient(90deg, #FFA726 0%, #FFB74D 100%)'
+                    : 'linear-gradient(90deg, #f44336 0%, #EF5350 100%)',
+                  transition: 'width 0.5s ease',
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  color: '#fff',
+                  textShadow: '1px 1px 2px rgba(0, 0, 0, 1)',
+                  zIndex: 2,
                 }}>
-                  {/* Таймер */}
-                  {battleState.status === 'active' && !waitingForResult && (
-                    <div style={{
-                      background: timeLeft <= 5 
-                        ? 'rgba(244, 67, 54, 0.9)' 
-                        : timeLeft <= 10 
-                        ? 'rgba(255, 152, 0, 0.9)' 
-                        : 'rgba(0, 0, 0, 0.8)',
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      border: `2px solid ${timeLeft <= 5 ? 'rgba(244, 67, 54, 1)' : timeLeft <= 10 ? 'rgba(255, 152, 0, 1)' : 'rgba(212, 175, 55, 0.5)'}`,
-                      color: '#fff',
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                      minWidth: '60px',
-                      textAlign: 'center',
-                      transition: 'all 0.3s ease',
-                    }}>
-                      ⏱️ {timeLeft}с
-                    </div>
-                  )}
-                  <button
-                    onClick={() => submitActions()}
-                    disabled={selectedAttacks.length !== 2 || selectedDefenses.length !== 3}
+                  {battleState.playerHp} / {character.maxHp}
+                </div>
+              </div>
+
+              {/* Квадрат с персонажем */}
+              <div style={{
+                width: '286px', // Увеличено на 30% (220 * 1.3 = 286)
+                height: '286px', // Увеличено на 30%
+                background: '#000',
+                border: '3px solid #2C2D33',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+                overflow: 'hidden',
+                position: 'relative',
+              }}>
+                {isAttacking ? (
+                  <video
+                    key={`attack-${battleState.roundNumber}-${attackVideoKey}`}
+                    src={getAttackVideo()}
+                    autoPlay
+                    muted
+                    playsInline
                     style={{
-                      width: '180px',
-                      padding: '12px 20px',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      color: '#fff',
-                      background: selectedAttacks.length === 2 && selectedDefenses.length === 3
-                        ? 'linear-gradient(135deg, #8b2c2f 0%, #dc143c 100%)'
-                        : '#555',
-                      border: 'none',
-                      borderRadius: '9px',
-                      cursor: selectedAttacks.length === 2 && selectedDefenses.length === 3 ? 'pointer' : 'not-allowed',
-                      boxShadow: selectedAttacks.length === 2 && selectedDefenses.length === 3
-                        ? '0 3px 11px rgba(220, 20, 60, 0.4)'
-                        : 'none',
-                      transition: 'all 0.3s ease',
-                      textTransform: 'uppercase',
-                      letterSpacing: '1.5px',
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
                     }}
-                    onMouseEnter={(e) => {
-                      if (selectedAttacks.length === 2 && selectedDefenses.length === 3) {
-                        e.currentTarget.style.transform = 'scale(1.05)';
-                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(220, 20, 60, 0.6)';
+                    onEnded={() => setIsAttacking(false)}
+                    onError={(e) => {
+                      console.error('Error loading attack video:', getAttackVideo(), e);
+                      setIsAttacking(false);
+                    }}
+                    onLoadStart={() => {
+                      if (import.meta.env.DEV) {
+                        console.log('[BattleArena] Attack video loading:', getAttackVideo());
                       }
                     }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.boxShadow = selectedAttacks.length === 2 && selectedDefenses.length === 3
-                        ? '0 4px 15px rgba(220, 20, 60, 0.4)'
-                        : 'none';
+                  />
+                ) : (
+                  <img
+                    src={getCharacterImage()}
+                    alt={character.class}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
                     }}
-                  >
-                    ⚔️ Атаковать!
-                  </button>
-                </div>
-
-                {/* Моб */}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
-                  {/* Полоска HP моба */}
-                  <div style={{
-                    width: '220px',
-                    position: 'relative',
-                    height: '20px',
-                    background: 'rgba(0, 0, 0, 0.8)',
-                    borderRadius: '6px',
-                    border: battleState.currentMonster === 5
-                      ? '2px solid rgba(255, 215, 0, 0.6)'
-                      : '2px solid rgba(220, 20, 60, 0.5)',
-                    overflow: 'hidden',
-                  }}>
-                    {(() => {
-                      // Используем вычисленное максимальное HP моба
-                      const monsterHpPercent = monsterMaxHp > 0 
-                        ? Math.max(0, Math.min(100, (battleState.monsterHp / monsterMaxHp) * 100))
-                        : 0;
-                      return (
-                        <>
-                          <div style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            height: '100%',
-                            width: `${monsterHpPercent}%`,
-                            background: battleState.currentMonster === 5
-                              ? 'linear-gradient(90deg, #ffd700 0%, #ffed4e 100%)'
-                              : 'linear-gradient(90deg, #8b0000 0%, #dc143c 100%)',
-                            transition: 'width 0.5s ease',
-                          }} />
-                          <div style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            fontSize: '11px',
-                            fontWeight: 'bold',
-                            color: '#fff',
-                            textShadow: '1px 1px 2px rgba(0, 0, 0, 1)',
-                            zIndex: 2,
-                          }}>
-                            {battleState.monsterHp} / {monsterMaxHp}
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
-                  
-                  <div style={{
-                    width: '220px',
-                    height: '220px',
-                    background: '#000',
-                    border: battleState.currentMonster === 5
-                      ? '2px solid rgba(255, 215, 0, 0.6)'
-                      : '2px solid rgba(220, 20, 60, 0.5)',
-                    borderRadius: '11px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: isMonsterAttacking
-                      ? '0 0 40px rgba(220, 20, 60, 0.8)'
-                      : battleState.currentMonster === 5
-                      ? '0 0 30px rgba(255, 215, 0, 0.5)'
-                      : '0 0 23px rgba(220, 20, 60, 0.3)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}>
-                    {/* Изображение моба или анимация атаки */}
-                    {/* Анимация показывается только для первого данжа (dungeonId === 1) и мобов 1, 2, 4 */}
-                    {(() => {
-                      const currentMonster = battleState.currentMonster || 1;
-                      const currentDungeonId = battleState.dungeonId || dungeonId;
-                      const shouldShowAnimation = isMonsterAttacking && 
-                        currentDungeonId === 1 && 
-                        (currentMonster === 1 || currentMonster === 2 || currentMonster === 4);
-                      
-                      // ВСЕ мобы должны смотреть на персонажа (справа налево к персонажу)
-                      // Поэтому отзеркаливаем всех мобов по умолчанию
-                      // Исключение: первый моб в 3 данже уже перевернут в ассетах, его не отзеркаливаем
-                      const needsFlip = (() => {
-                        const mobNum = battleState.currentMonster || 1;
-                        const dId = battleState.dungeonId || dungeonId;
-                        const dungeonIdNum = typeof dId === 'number' ? dId : (dId ? parseInt(String(dId), 10) : null);
-                        
-                        // Первый моб в 3 данже уже перевернут в ассетах - не отзеркаливаем
-                        if (dungeonIdNum === 3 && mobNum === 1) {
-                          return false;
-                        }
-                        
-                        // Все остальные мобы отзеркаливаем
-                        return true;
-                      })();
-                      
-                      const transformStyle = needsFlip ? { transform: 'scaleX(-1)' } : {};
-                      
-                      return shouldShowAnimation ? (
-                        <video
-                          key={`mob-attack-${battleState.roundNumber}`}
-                          src={getMobAttackVideo(currentMonster)}
-                          autoPlay
-                          muted
-                          playsInline
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                            ...transformStyle,
-                          }}
-                          onEnded={() => setIsMonsterAttacking(false)}
-                        />
-                      ) : (
-                      <img
-                        src={getMobImage(battleState.currentMonster || 1, dungeonId)}
-                        alt={getMobName(battleState.currentMonster || 1, dungeonId)}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                          filter: 'drop-shadow(0 0 20px rgba(220, 20, 60, 0.6))',
-                          ...transformStyle,
-                        }}
-                      />
-                      );
-                    })()}
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '8px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      background: 'rgba(0, 0, 0, 0.8)',
-                      color: battleState.currentMonster === 5 ? '#ffd700' : '#dc143c',
-                      padding: '4px 11px',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                      border: `2px solid ${battleState.currentMonster === 5 ? 'rgba(255, 215, 0, 0.5)' : 'rgba(220, 20, 60, 0.5)'}`,
-                      boxShadow: battleState.currentMonster === 5 ? '0 0 8px rgba(255, 215, 0, 0.5)' : 'none',
-                    }}>
-                      {getMobName(battleState.currentMonster || 1, dungeonId)}
-                    </div>
-                  </div>
-                </div>
+                  />
+                )}
               </div>
 
-              {/* Зоны атаки и защиты */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '15px',
-                alignItems: 'center',
-                width: '100%',
-              }}>
-                {/* Атака */}
-                <ZoneSelector
-                  type="attack"
-                  zones={ZONES}
-                  selectedZones={selectedAttacks}
-                  maxSelections={2}
-                  onToggle={toggleAttack}
-                  lastRoundHits={waitingForResult ? [] : lastRoundResults.playerHits}
-                  lastRoundMisses={waitingForResult ? [] : lastRoundResults.playerMisses}
-                />
-
-                {/* Защита */}
-                <ZoneSelector
-                  type="defense"
-                  zones={ZONES}
-                  selectedZones={selectedDefenses}
-                  maxSelections={3}
-                  onToggle={toggleDefense}
-                  lastRoundBlocked={waitingForResult ? [] : lastRoundResults.monsterBlocked}
-                  lastRoundMisses={waitingForResult ? [] : lastRoundResults.monsterHits}
-                />
-              </div>
+              {/* Блоки защиты */}
+              <ZoneBlocks
+                type="defense"
+                zones={ZONES}
+                selectedZones={selectedDefenses}
+                lastRoundResult={lastRoundResults}
+                onToggle={toggleDefense}
+                waitingForResult={waitingForResult}
+              />
             </div>
 
-            {/* Правый блок - Действия противника - фиксированный */}
-            <div style={{
-              position: 'fixed',
-              top: 0,
-              right: '15px',
-              width: '300px',
-              height: '100vh',
-              zIndex: 1,
-            }}>
-              <EnemyActions lastRoundResult={battleState.lastRoundResult} />
-            </div>
-          </>
-        ) : (
+            {/* ЧАТ внизу - фиксированная высота 240px */}
+            <ChatStub />
+          </div>
+
+          {/* ЦЕНТРАЛЬНАЯ КОЛОНКА - Таймер + FIGHT (узкая) */}
           <div style={{
-            position: 'fixed',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '24px',
+            padding: '0 16px',
+          }}>
+            {/* Таймер */}
+            {battleState.status === 'active' && !waitingForResult && (
+              <div style={{
+                background: timeLeft <= 5
+                  ? 'rgba(244, 67, 54, 0.9)'
+                  : timeLeft <= 10
+                  ? 'rgba(255, 152, 0, 0.9)'
+                  : '#111215',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                border: `3px solid ${timeLeft <= 5 ? '#f44336' : timeLeft <= 10 ? '#FF9800' : '#2C2D33'}`,
+                color: '#fff',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                minWidth: '80px',
+                textAlign: 'center',
+                transition: 'all 0.3s ease',
+                fontFamily: 'serif',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+              }}>
+                ⏱ {timeLeft}с
+              </div>
+            )}
+            {/* Кнопка FIGHT */}
+            <button
+              onClick={() => submitActions()}
+              disabled={selectedAttacks.length !== 2 || selectedDefenses.length !== 3}
+              style={{
+                padding: '16px 32px',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                color: '#fff',
+                background: selectedAttacks.length === 2 && selectedDefenses.length === 3
+                  ? '#B21E2C'
+                  : '#2C2D33',
+                border: '3px solid #2C2D33',
+                borderRadius: '8px',
+                cursor: selectedAttacks.length === 2 && selectedDefenses.length === 3 ? 'pointer' : 'not-allowed',
+                transition: 'all 0.3s ease',
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+                fontFamily: 'serif',
+                boxShadow: selectedAttacks.length === 2 && selectedDefenses.length === 3
+                  ? 'inset 0 2px 4px rgba(0,0,0,0.6), 0 0 10px rgba(178, 30, 44, 0.5)'
+                  : 'inset 0 2px 4px rgba(0,0,0,0.6)',
+              }}
+              onMouseEnter={(e) => {
+                if (selectedAttacks.length === 2 && selectedDefenses.length === 3) {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.6), 0 0 15px rgba(178, 30, 44, 0.7)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = selectedAttacks.length === 2 && selectedDefenses.length === 3
+                  ? 'inset 0 2px 4px rgba(0,0,0,0.6), 0 0 10px rgba(178, 30, 44, 0.5)'
+                  : 'inset 0 2px 4px rgba(0,0,0,0.6)';
+              }}
+            >
+              ⚔️ FIGHT
+            </button>
+          </div>
+
+          {/* ПРАВАЯ КОЛОНКА - Монстр + Лог боя */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* МОНСТР - flex-1 чтобы занять верхнюю часть */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {/* Инфо моба */}
+              <div style={{
+                background: '#111215',
+                border: '3px solid #2C2D33',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontFamily: 'serif',
+                color: '#E6E6E6',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+              }}>
+                {getMobName(battleState.currentMonster || 1, dungeonId)}
+              </div>
+
+              {/* HP бар */}
+              <div style={{
+                width: '286px', // Увеличено пропорционально квадрату монстра
+                position: 'relative',
+                height: '20px',
+                background: '#111215',
+                borderRadius: '6px',
+                border: battleState.currentMonster === 5
+                  ? '3px solid rgba(255, 215, 0, 0.6)'
+                  : '3px solid #2C2D33',
+                overflow: 'hidden',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+              }}>
+                {(() => {
+                  const monsterHpPercent = monsterMaxHp > 0
+                    ? Math.max(0, Math.min(100, (battleState.monsterHp / monsterMaxHp) * 100))
+                    : 0;
+                  return (
+                    <>
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        height: '100%',
+                        width: `${monsterHpPercent}%`,
+                        background: battleState.currentMonster === 5
+                          ? 'linear-gradient(90deg, #ffd700 0%, #ffed4e 100%)'
+                          : 'linear-gradient(90deg, #8b0000 0%, #dc143c 100%)',
+                        transition: 'width 0.5s ease',
+                      }} />
+                      <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        color: '#fff',
+                        textShadow: '1px 1px 2px rgba(0, 0, 0, 1)',
+                        zIndex: 2,
+                      }}>
+                        {battleState.monsterHp} / {monsterMaxHp}
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Квадрат с монстром */}
+              <div style={{
+                width: '286px', // Увеличено на 30% (220 * 1.3 = 286)
+                height: '286px', // Увеличено на 30%
+                background: '#000',
+                border: battleState.currentMonster === 5
+                  ? '3px solid rgba(255, 215, 0, 0.6)'
+                  : '3px solid #2C2D33',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}>
+                {/* Изображение моба или анимация атаки */}
+                {(() => {
+                  const currentMonster = battleState.currentMonster || 1;
+                  const currentDungeonId = battleState.dungeonId || dungeonId;
+
+                  const needsFlip = (() => {
+                    const mobNum = battleState.currentMonster || 1;
+                    const dId = battleState.dungeonId || dungeonId;
+                    const dungeonIdNum = typeof dId === 'number' ? dId : (dId ? parseInt(String(dId), 10) : null);
+
+                    if (dungeonIdNum === 3 && mobNum === 1) {
+                      return false;
+                    }
+                    return true;
+                  })();
+
+                  const transformStyle = needsFlip ? { transform: 'scaleX(-1)' } : {};
+
+                  return isMonsterAttacking ? (
+                    <video
+                      key={`mob-attack-${battleState.roundNumber}-${currentMonster}-${currentDungeonId}`}
+                      src={getMobAttackVideo(currentMonster, currentDungeonId)}
+                      autoPlay
+                      muted
+                      playsInline
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        ...transformStyle,
+                      }}
+                      onEnded={() => setIsMonsterAttacking(false)}
+                    />
+                  ) : (
+                    <img
+                      src={getMobImage(battleState.currentMonster || 1, dungeonId)}
+                      alt={getMobName(battleState.currentMonster || 1, dungeonId)}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 0 20px rgba(220, 20, 60, 0.6))',
+                        ...transformStyle,
+                      }}
+                    />
+                  );
+                })()}
+              </div>
+
+              {/* Блоки атаки */}
+              <ZoneBlocks
+                type="attack"
+                zones={ZONES}
+                selectedZones={selectedAttacks}
+                lastRoundResult={lastRoundResults}
+                onToggle={toggleAttack}
+                waitingForResult={waitingForResult}
+              />
+            </div>
+
+            {/* ЛОГ БОЯ внизу - фиксированная высота 240px */}
+            <DetailedBattleLog roundResults={roundHistory} />
+          </div>
+        </div>
+      ) : (
+          <div style={{
+            position: 'absolute',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
@@ -917,12 +969,46 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
               {battleState.status === 'won' ? '🎉' : '💀'}
             </div>
 
-            {battleState.status === 'won' && (
+            {/* Показываем награды и при победе, и при поражении */}
+            {(battleState.status === 'won' || battleState.status === 'lost') && (
               <div style={{
                 ...styles.lootContainer,
                 maxWidth: '450px',
+                border: battleState.status === 'won'
+                  ? '2px solid #d4af37'
+                  : '2px solid #8b0000',
               }}>
-                <h3 style={{ textAlign: 'center', marginBottom: '11px' }}>🎁 Награды</h3>
+                <h3 style={{
+                  textAlign: 'center',
+                  marginBottom: '11px',
+                  color: battleState.status === 'won' ? '#d4af37' : '#ff4444',
+                }}>
+                  {battleState.status === 'won' ? '🎉 Победа!' : '💀 Поражение'}
+                </h3>
+
+                <div style={{
+                  textAlign: 'center',
+                  marginBottom: '15px',
+                  fontSize: '16px',
+                  color: '#aaa',
+                }}>
+                  {battleState.status === 'won'
+                    ? 'Вы успешно прошли подземелье!'
+                    : 'Вы погибли, но получили награды за пройденный путь:'}
+                </div>
+
+                {(() => {
+                  console.log('🎁 BattleArena: Отображение результатов боя:', {
+                    status: battleState.status,
+                    lootedItems: battleState.lootedItems,
+                    lootedItemsLength: battleState.lootedItems?.length || 0,
+                    expGained: battleState.expGained,
+                    goldGained: battleState.goldGained,
+                    hasLootedItems: !!battleState.lootedItems,
+                    lootedItemsIsArray: Array.isArray(battleState.lootedItems),
+                  });
+                  return null;
+                })()}
 
                 {battleState.expGained && battleState.expGained > 0 && (
                   <div style={styles.rewardItem}>
@@ -939,15 +1025,52 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
                 {battleState.lootedItems && battleState.lootedItems.length > 0 && (
                   <div style={styles.lootSection}>
                     <h4 style={{ marginBottom: '10px' }}>Выпали предметы:</h4>
-                    {battleState.lootedItems.map((item, index) => (
-                      <div key={index} style={styles.lootItem}>
-                        <span style={styles.lootItemName}>
-                          {item.itemName}
-                          {item.enhancement > 0 && <span style={styles.lootEnhancement}> +{item.enhancement}</span>}
-                        </span>
-                        <span style={styles.lootItemType}>{item.itemType}</span>
-                      </div>
-                    ))}
+                    {(() => {
+                      // Группируем предметы по названию, типу и уровню заточки
+                      const groupedItems = battleState.lootedItems.reduce((acc, item) => {
+                        // Создаем уникальный ключ для группировки
+                        const key = `${item.itemName}_${item.itemType}_${item.enhancement || 0}`;
+                        
+                        if (!acc[key]) {
+                          acc[key] = {
+                            ...item,
+                            quantity: 1,
+                          };
+                        } else {
+                          acc[key].quantity += 1;
+                        }
+                        
+                        return acc;
+                      }, {} as Record<string, any>);
+
+                      // Преобразуем объект в массив для отображения
+                      const itemsArray = Object.values(groupedItems);
+
+                      return itemsArray.map((item: any, index) => (
+                        <div key={index} style={styles.lootItem}>
+                          <span style={styles.lootItemName}>
+                            {item.itemName}
+                            {item.enhancement > 0 && <span style={styles.lootEnhancement}> +{item.enhancement}</span>}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={styles.lootItemType}>{item.itemType}</span>
+                            {item.quantity > 1 && (
+                              <span style={{
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                color: '#d4af37',
+                                background: 'rgba(212, 175, 55, 0.2)',
+                                padding: '4px 10px',
+                                borderRadius: '4px',
+                                border: '1px solid rgba(212, 175, 55, 0.5)',
+                              }}>
+                                × {item.quantity}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 )}
               </div>

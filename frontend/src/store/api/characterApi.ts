@@ -8,9 +8,12 @@ export const characterApi = baseApi.injectEndpoints({
       providesTags: (result, error, id) => [{ type: 'Character', id }],
     }),
 
-    getMyCharacter: builder.query<Character | null, void>({
+    getMyCharacter: builder.query<Character[], void>({
       query: () => `/character/me`,
-      providesTags: (result) => result ? [{ type: 'Character', id: result.id }] : [],
+      providesTags: (result) =>
+        result && Array.isArray(result)
+          ? [...result.map(({ id }) => ({ type: 'Character' as const, id })), 'Character']
+          : ['Character'],
     }),
 
     getMyCharacters: builder.query<Character[], void>({
@@ -68,6 +71,20 @@ export const characterApi = baseApi.injectEndpoints({
       ],
     }),
 
+    enhanceItemWithScroll: builder.mutation<
+      { success: boolean; newEnhancementLevel: number; itemName: string; scrollName: string },
+      { characterId: number; inventoryItemId: number; scrollItemId: number }
+    >({
+      query: ({ characterId, inventoryItemId, scrollItemId }) => ({
+        url: `/character/${characterId}/enhance-with-scroll`,
+        method: 'POST',
+        body: { inventoryItemId, scrollItemId },
+      }),
+      invalidatesTags: (result, error, { characterId }) => [
+        { type: 'Character', id: characterId },
+      ],
+    }),
+
     sellItem: builder.mutation<
       { goldReceived: number; itemName: string },
       { characterId: number; itemId: number }
@@ -82,15 +99,29 @@ export const characterApi = baseApi.injectEndpoints({
     }),
 
     getLevelProgress: builder.query<
-      { currentLevel: number; currentExp: number; expForNextLevel: number; freePoints: number },
+      { currentLevel: number; currentExp: number; expForNextLevel: number; freePoints: number; progress: number },
       number
     >({
       query: (characterId) => `/character/${characterId}/level-progress`,
+      transformResponse: (response: { currentLevel: number; currentExp: number; requiredExp: number; freePoints: number; progress: number }) => ({
+        currentLevel: response.currentLevel,
+        currentExp: response.currentExp,
+        expForNextLevel: response.requiredExp, // Преобразуем requiredExp в expForNextLevel для совместимости
+        freePoints: response.freePoints,
+        progress: response.progress,
+      }),
     }),
 
     distributeStats: builder.mutation<
       void,
-      { characterId: number; strength: number; agility: number; intelligence: number }
+      { 
+        characterId: number; 
+        strength: number; 
+        agility: number; 
+        intelligence: number;
+        maxHp?: number;
+        stamina?: number;
+      }
     >({
       query: ({ characterId, ...stats }) => ({
         url: `/character/${characterId}/distribute-stats`,
@@ -139,6 +170,41 @@ export const characterApi = baseApi.injectEndpoints({
         { type: 'Character', id: characterId },
       ],
     }),
+
+    getCharactersByUserId: builder.query<Character[], number>({
+      query: (userId) => `/character/user/${userId}`,
+      providesTags: (result) =>
+        result && Array.isArray(result)
+          ? result.map(({ id }) => ({ type: 'Character', id }))
+          : [],
+      transformResponse: (response: Character[] | unknown) => {
+        // Убеждаемся, что возвращаем массив
+        if (Array.isArray(response)) {
+          return response;
+        }
+        console.error('getCharactersByUserId: Expected array, got:', response);
+        return [];
+      },
+    }),
+
+    autoCreateCharacters: builder.mutation<Character[], void>({
+      query: () => ({
+        url: `/character/auto-create`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Character'],
+    }),
+
+    updateCharacterName: builder.mutation<Character, { characterId: number; name: string }>({
+      query: ({ characterId, name }) => ({
+        url: `/character/${characterId}/name`,
+        method: 'PUT',
+        body: { name },
+      }),
+      invalidatesTags: (result, error, { characterId }) => [
+        { type: 'Character', id: characterId },
+      ],
+    }),
   }),
 })
 
@@ -152,10 +218,14 @@ export const {
   useEquipItemMutation,
   useUnequipItemMutation,
   useEnhanceItemMutation,
+  useEnhanceItemWithScrollMutation,
   useSellItemMutation,
   useGetLevelProgressQuery,
   useDistributeStatsMutation,
   useGetStaminaInfoQuery,
   useTestLevelBoostMutation,
   useEnhanceOffhandMutation,
+  useGetCharactersByUserIdQuery,
+  useAutoCreateCharactersMutation,
+  useUpdateCharacterNameMutation,
 } = characterApi

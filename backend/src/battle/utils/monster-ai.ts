@@ -68,7 +68,8 @@ export class MonsterAI {
    */
   private static selectUniqueZones(zones: Zone[], count: number): Zone[] {
     // ЖЕСТКО определяем валидные зоны - 'back' НЕ ДОЛЖЕН быть здесь НИКОГДА
-    const VALID_ZONES_ONLY: ('head' | 'body' | 'legs' | 'arms')[] = ['head', 'body', 'legs', 'arms'];
+    const VALID_ZONES_ONLY = ['head', 'body', 'legs', 'arms'] as const;
+    type ValidZone = typeof VALID_ZONES_ONLY[number];
     
     // СТРОГАЯ фильтрация: оставляем ТОЛЬКО валидные зоны, исключаем 'back' полностью
     const availableZones = zones.filter(zone => {
@@ -104,7 +105,7 @@ export class MonsterAI {
         availableZones
       });
       // Убираем 'back' и заменяем на валидную зону
-      const filtered: ('head' | 'body' | 'legs' | 'arms')[] = selected.filter(z => z !== 'back') as ('head' | 'body' | 'legs' | 'arms')[];
+      const filtered: ValidZone[] = selected.filter((z): z is ValidZone => z !== 'back');
       const missing = count - filtered.length;
       for (let i = 0; i < missing; i++) {
         const available = VALID_ZONES_ONLY.find(z => !filtered.includes(z));

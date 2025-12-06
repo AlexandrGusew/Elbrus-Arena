@@ -118,10 +118,21 @@ export class BattleService {
       return null;
     }
 
+    const lootedItems = (battle.lootedItems as any[]) || [];
+    const expGained = battle.expGained || 0;
+    const goldGained = battle.goldGained || 0;
+
+    console.log(`📦 getBattleWithLoot для боя ${battleId}:`, {
+      lootedItemsCount: lootedItems.length,
+      lootedItems,
+      expGained,
+      goldGained,
+    });
+
     return {
-      lootedItems: battle.lootedItems as any[] || [],
-      expGained: battle.expGained || 0,
-      goldGained: battle.goldGained || 0,
+      lootedItems,
+      expGained,
+      goldGained,
     };
   }
 
@@ -410,6 +421,11 @@ export class BattleService {
 
     const currentRounds = Array.isArray(fullBattle.rounds) ? (fullBattle.rounds as unknown as RoundResult[]) : [];
 
+    // Вычисляем turnNumber для текущего моба
+    // Фильтруем раунды по текущему мобу и считаем количество ходов
+    const currentMonsterRounds = currentRounds.filter(r => r.roundNumber === fullBattle.currentMonster);
+    const turnNumber = currentMonsterRounds.length + 1;
+
     // ФИНАЛЬНАЯ КРИТИЧЕСКАЯ ПРОВЕРКА перед сохранением в базу данных
     // Убеждаемся, что 'back' НИКОГДА не попадет в результат
     if (monsterActions.attacks.some(z => z === 'back') || monsterActions.defenses.some(z => z === 'back')) {
@@ -439,7 +455,8 @@ export class BattleService {
     }
 
     const roundResult: RoundResult = {
-      roundNumber: currentRounds.length + 1,
+      roundNumber: fullBattle.currentMonster,  // Номер раунда = номер текущего моба (1-5)
+      turnNumber,  // Номер хода внутри раунда с текущим мобом
       playerActions,
       monsterActions,
       playerDamage,
@@ -451,9 +468,82 @@ export class BattleService {
     let nextMonster = fullBattle.currentMonster;
     let nextMonsterHp = newMonsterHp;
     let nextPlayerFirst = !playerFirst;
+    let finalCharacterHp = newCharacterHp;
+    let battleLoot: any[] = [];
+    let battleExpGained = 0;
+    let battleGoldGained = 0;
 
     if (newCharacterHp <= 0) {
       newStatus = 'lost';
+
+      // Начисляем награды за пройденных мобов при поражении
+      const defeatedMonsters = fullBattle.currentMonster - 1 + (newMonsterHp <= 0 ? 1 : 0);
+      if (defeatedMonsters > 0) {
+        // Награда = (общая награда / количество мобов) * количество побежденных мобов
+        const goldReward = Math.floor((dungeon.goldReward / dungeon.monsters.length) * defeatedMonsters);
+        const expReward = Math.floor((dungeon.expReward / dungeon.monsters.length) * defeatedMonsters);
+
+        battleGoldGained = goldReward;
+        battleExpGained = expReward;
+
+        await this.prisma.character.update({
+          where: { id: character.id },
+          data: {
+            gold: character.gold + goldReward,
+            experience: character.experience + expReward,
+          },
+        });
+
+        // Автоматическая проверка повышения уровня
+        await this.levelUpService.checkAndLevelUp(character.id);
+
+        // Генерируем лут со всех побежденных монстров при поражении
+        // Побежденные монстры: все монстры до текущего (currentMonster - 1), плюс текущий, если он был убит
+        const monstersToLoot: number[] = [];
+        
+        // Добавляем всех побежденных монстров до текущего
+        for (let i = 0; i < fullBattle.currentMonster - 1; i++) {
+          monstersToLoot.push(dungeon.monsters[i].monster.id);
+        }
+        
+        // Если текущий монстр был убит, добавляем его тоже
+        if (newMonsterHp <= 0) {
+          monstersToLoot.push(currentMonster.id);
+        }
+
+        console.log(`💀 ПОРАЖЕНИЕ: Генерируем лут с ${monstersToLoot.length} монстров`);
+        
+        // Генерируем лут с каждого побежденного монстра
+        const allLootDetails: string[] = [];
+        for (const monsterId of monstersToLoot) {
+          const lootedItems = await this.lootService.generateLoot(monsterId);
+          if (lootedItems.length > 0) {
+            await this.lootService.addItemsToInventory(character.id, lootedItems);
+
+            // Получаем полную информацию о лутнутых предметах
+            for (const loot of lootedItems) {
+              const item = await this.prisma.item.findUnique({
+                where: { id: loot.itemId },
+              });
+              if (item) {
+                battleLoot.push({
+                  itemId: item.id,
+                  itemName: item.name,
+                  itemType: item.type,
+                  enhancement: 0,
+                });
+                allLootDetails.push(`${item.name} x${loot.quantity}`);
+              }
+            }
+          }
+        }
+        
+        if (allLootDetails.length > 0) {
+          console.log(`🎁 ДРОП при поражении: ${allLootDetails.join(', ')}`);
+        } else {
+          console.log(`❌ ДРОП при поражении: ничего не выпало`);
+        }
+      }
     } else if (newMonsterHp <= 0) {
       if (fullBattle.currentMonster < dungeon.monsters.length) {
         nextMonster = fullBattle.currentMonster + 1;
@@ -465,11 +555,6 @@ export class BattleService {
         newStatus = 'won';
       }
     }
-
-    let finalCharacterHp = newCharacterHp;
-    let battleLoot: any[] = [];
-    let battleExpGained = 0;
-    let battleGoldGained = 0;
 
     if (newStatus === 'won') {
       finalCharacterHp = character.maxHp;
@@ -493,24 +578,49 @@ export class BattleService {
       // Автоматическая проверка повышения уровня
       await this.levelUpService.checkAndLevelUp(character.id);
 
-      const lootedItems = await this.lootService.generateLoot(currentMonster.id);
-      if (lootedItems.length > 0) {
-        await this.lootService.addItemsToInventory(character.id, lootedItems);
+      // Генерируем лут со всех побежденных монстров при победе
+      // Все монстры до текущего (currentMonster - 1), плюс текущий (босс)
+      const monstersToLoot: number[] = [];
+      
+      // Добавляем всех побежденных монстров до текущего
+      for (let i = 0; i < fullBattle.currentMonster - 1; i++) {
+        monstersToLoot.push(dungeon.monsters[i].monster.id);
+      }
+      
+      // Добавляем текущего монстра (босса), так как он был побежден
+      monstersToLoot.push(currentMonster.id);
 
-        // Получаем полную информацию о лутнутых предметах
-        for (const loot of lootedItems) {
-          const item = await this.prisma.item.findUnique({
-            where: { id: loot.itemId },
-          });
-          if (item) {
-            battleLoot.push({
-              itemId: item.id,
-              itemName: item.name,
-              itemType: item.type,
-              enhancement: 0,
+      console.log(`🏆 ПОБЕДА в подземелье: Генерируем лут с ${monstersToLoot.length} монстров`);
+      
+      // Генерируем лут с каждого побежденного монстра
+      const allLootDetails: string[] = [];
+      for (const monsterId of monstersToLoot) {
+        const lootedItems = await this.lootService.generateLoot(monsterId);
+        if (lootedItems.length > 0) {
+          await this.lootService.addItemsToInventory(character.id, lootedItems);
+
+          // Получаем полную информацию о лутнутых предметах
+          for (const loot of lootedItems) {
+            const item = await this.prisma.item.findUnique({
+              where: { id: loot.itemId },
             });
+            if (item) {
+              battleLoot.push({
+                itemId: item.id,
+                itemName: item.name,
+                itemType: item.type,
+                enhancement: 0,
+              });
+              allLootDetails.push(`${item.name} x${loot.quantity}`);
+            }
           }
         }
+      }
+      
+      if (allLootDetails.length > 0) {
+        console.log(`🎁 ДРОП при победе: ${allLootDetails.join(', ')}`);
+      } else {
+        console.log(`❌ ДРОП при победе: ничего не выпало`);
       }
     } else if (newMonsterHp <= 0 && newStatus === 'active') {
       // Награда за промежуточного монстра = общая награда / количество монстров
@@ -528,9 +638,25 @@ export class BattleService {
       // Автоматическая проверка повышения уровня
       await this.levelUpService.checkAndLevelUp(character.id);
 
+      console.log(`✅ Победа над промежуточным монстром "${currentMonster.name}" (ID: ${currentMonster.id})`);
+      
       const lootedItems = await this.lootService.generateLoot(currentMonster.id);
       if (lootedItems.length > 0) {
         await this.lootService.addItemsToInventory(character.id, lootedItems);
+        
+        // Получаем информацию о предметах для логирования
+        const lootDetails: string[] = [];
+        for (const loot of lootedItems) {
+          const item = await this.prisma.item.findUnique({
+            where: { id: loot.itemId },
+          });
+          if (item) {
+            lootDetails.push(`${item.name} x${loot.quantity}`);
+          }
+        }
+        console.log(`🎁 ДРОП с промежуточного монстра: ${lootDetails.join(', ')}`);
+      } else {
+        console.log(`❌ ДРОП с промежуточного монстра: ничего не выпало`);
       }
 
       const healAmount = Math.floor(character.maxHp * 0.3);
@@ -538,6 +664,17 @@ export class BattleService {
     }
 
     const updatedRounds = [...currentRounds, roundResult];
+
+    // Логируем данные перед сохранением
+    if (newStatus === 'won' || newStatus === 'lost') {
+      console.log(`💾 Сохранение данных боя ${battleId}:`, {
+        status: newStatus,
+        lootedItemsCount: battleLoot.length,
+        lootedItems: battleLoot,
+        expGained: battleExpGained,
+        goldGained: battleGoldGained,
+      });
+    }
 
     await this.prisma.pveBattle.update({
       where: { id: battleId },
@@ -548,8 +685,8 @@ export class BattleService {
         status: newStatus,
         playerFirst: nextPlayerFirst,
         rounds: JSON.parse(JSON.stringify(updatedRounds)),
-        ...(newStatus === 'won' && {
-          lootedItems: battleLoot,
+        ...((newStatus === 'won' || newStatus === 'lost') && {
+          lootedItems: JSON.parse(JSON.stringify(battleLoot)), // Убеждаемся, что это чистый JSON
           expGained: battleExpGained,
           goldGained: battleGoldGained,
         }),

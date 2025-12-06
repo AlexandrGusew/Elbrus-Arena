@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { RoundResult, Zone } from '../../hooks/useBattle';
 
 // Описания атак для разных зон
@@ -63,55 +64,87 @@ const getAttackDescription = (zone: Zone, roundNumber: number, attackIndex: numb
 
 export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
   const results = roundResults ?? [];
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   // Убираем дубликаты раундов по roundNumber (на случай если они есть)
   const uniqueResults = results.reduce((acc, result) => {
-    const existing = acc.find(r => r.roundNumber === result.roundNumber);
+    const existing = acc.find(r => r.roundNumber === result.roundNumber && r.turnNumber === result.turnNumber);
     if (!existing) {
       acc.push(result);
     }
     return acc;
   }, [] as typeof results);
   
-  // Сортируем по номеру раунда на случай если порядок нарушен
-  const sortedResults = [...uniqueResults].sort((a, b) => a.roundNumber - b.roundNumber);
+  // Сортируем по номеру раунда и хода - хронология сверху вниз (старые сверху, новые снизу)
+  const sortedResults = [...uniqueResults].sort((a, b) => {
+    if (a.roundNumber !== b.roundNumber) {
+      return a.roundNumber - b.roundNumber;
+    }
+    return a.turnNumber - b.turnNumber;
+  });
+
+  // Автоматическая прокрутка вниз при добавлении новых записей
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      // Прокручиваем в самый низ, чтобы видеть новые записи
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [sortedResults.length]); // Срабатывает при изменении количества записей
 
   return (
     <div style={{
-      background: 'rgba(0, 0, 0, 0.85)',
-      border: '2px solid rgba(212, 175, 55, 0.3)',
-      borderRadius: '12px',
-      padding: '12px',
-      height: '100%',
-      overflowY: 'auto',
-      fontFamily: '"Cinzel", "MedievalSharp", "UnifrakturMaguntia", "IM Fell English", serif',
+      border: '4px solid #2C2D33',
+      borderRadius: '10px',
+      background: '#1A1B21',
+      height: '240px',
+      display: 'flex',
+      flexDirection: 'column',
+      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+      fontFamily: 'serif',
       fontWeight: '500',
       letterSpacing: '0.5px',
     }}>
-      <h3 style={{
-        color: '#d4af37',
-        fontSize: '16px',
-        marginBottom: '10px',
-        textAlign: 'center',
-        textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(212, 175, 55, 0.5)',
-        borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
-        paddingBottom: '6px',
-        fontFamily: '"Cinzel", "MedievalSharp", "UnifrakturMaguntia", "IM Fell English", serif',
-        fontWeight: '600',
-        letterSpacing: '1px',
-        textTransform: 'uppercase',
+      {/* Заголовок */}
+      <div style={{
+        borderBottom: '2px solid #2C2D33',
+        padding: '8px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
-        ⚔️ Хроника боя
-      </h3>
+        <span style={{
+          color: '#E6E6E6',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          textTransform: 'uppercase',
+          letterSpacing: '1px',
+          fontFamily: 'serif',
+        }}>
+          LOGA FIGHT
+        </span>
+      </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {/* Контент с прокруткой */}
+      <div 
+        ref={scrollContainerRef}
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
+      >
+
         {sortedResults.length === 0 ? (
           <div style={{
             textAlign: 'center',
-            color: '#888',
+            color: 'rgba(230, 230, 230, 0.3)',
             fontSize: '12px',
             marginTop: '20px',
             fontStyle: 'italic',
+            fontFamily: 'serif',
           }}>
             Бой ещё не начался...
           </div>
@@ -132,7 +165,7 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
 
             return (
               <div
-                key={`round-${result.roundNumber}`}
+                key={`round-${result.roundNumber}-turn-${result.turnNumber}`}
                 style={{
                   background: 'rgba(212, 175, 55, 0.05)',
                   border: '1px solid rgba(212, 175, 55, 0.2)',
@@ -150,7 +183,7 @@ export const DetailedBattleLog = ({ roundResults }: DetailedBattleLogProps) => {
                   textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
                   letterSpacing: '0.5px',
                 }}>
-                  Раунд {result.roundNumber}
+                  Раунд {result.roundNumber}, Ход {result.turnNumber}
                 </div>
 
                 {/* Атаки игрока */}

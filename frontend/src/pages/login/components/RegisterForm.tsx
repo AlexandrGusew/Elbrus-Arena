@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import enterButton from '../images/enterButton.png';
 
 interface RegisterFormProps {
     onSubmit: (username: string, password: string) => void;
@@ -233,10 +234,16 @@ export function RegisterForm({ onSubmit, isLoading = false }: RegisterFormProps)
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="relative px-20 py-4 border-2 border-red-800/80 rounded bg-gradient-to-b from-red-950/90 to-red-900/90 hover:from-red-900/90 hover:to-red-800/90 text-amber-200 transition-all tracking-[0.2em] uppercase shadow-[0_0_30px_rgba(127,29,29,0.5)] hover:shadow-[0_0_40px_rgba(127,29,29,0.7)] group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ fontFamily: 'serif' }}
+                    className="relative px-20 py-4 rounded bg-gradient-to-b from-red-950/90 to-red-900/90 hover:from-red-900/90 hover:to-red-800/90 text-amber-200 transition-all tracking-[0.2em] uppercase shadow-[0_0_30px_rgba(127,29,29,0.5)] hover:shadow-[0_0_40px_rgba(127,29,29,0.7)] group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                        fontFamily: 'serif',
+                        backgroundImage: `url(${enterButton})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat'
+                    }}
                 >
-                    <span className="relative z-10">{isLoading ? 'Creating...' : 'Register'}</span>
+                    <span className="relative z-10">{isLoading ? 'Creating...' : ''}</span>
                     {!isLoading && <div className="absolute inset-0 bg-gradient-to-t from-red-600/0 via-red-600/20 to-red-600/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>}
                 </button>
             </div>

@@ -39,10 +39,18 @@ export function CreateCharacterPage() {
         setError('');
 
         try {
-            await createCharacter({
+            const newCharacter = await createCharacter({
                 name: name.trim(),
                 class: selectedClass,
             }).unwrap();
+
+            // Сохраняем ID созданного персонажа
+            if (newCharacter?.id) {
+                localStorage.setItem('characterId', newCharacter.id.toString());
+            }
+
+            // Небольшая задержка для инвалидации кэша
+            await new Promise(resolve => setTimeout(resolve, 100));
 
             // После создания → возврат на страницу выбора героя
             navigate('/choose-hero');
