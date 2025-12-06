@@ -53,13 +53,56 @@ export class TelegramBotService implements OnModuleInit {
       try {
         console.log(`📨 /start от пользователя @${telegramUsername} (ID: ${telegramId})`);
 
+        // Показываем приветствие с кнопкой
+        await ctx.reply(
+          `🎮 Добро пожаловать в Nightfall Arena!\n\n` +
+          `Привет, ${firstName || telegramUsername}!\n\n` +
+          `Используйте кнопку ниже для получения кода аутентификации 👇`,
+          {
+            reply_markup: {
+              keyboard: [
+                [{ text: '🔐 Запросить код аутентификации' }]
+              ],
+              resize_keyboard: true,
+              one_time_keyboard: false
+            }
+          }
+        );
+      } catch (error) {
+        console.error('Ошибка при обработке /start:', error);
+        await ctx.reply('Произошла ошибка. Попробуйте позже.');
+      }
+    });
+
+    // Обработчик кнопки "Запросить код аутентификации"
+    this.bot.hears('🔐 Запросить код аутентификации', async (ctx: Context) => {
+      const telegramId = ctx.from?.id;
+      const telegramUsername = ctx.from?.username;
+      const firstName = ctx.from?.first_name;
+
+      if (!telegramId || !telegramUsername) {
+        return ctx.reply('Не удалось получить ваш Telegram username');
+      }
+
+      try {
+        console.log(`🔐 Запрос кода от @${telegramUsername} (ID: ${telegramId})`);
+
         // Ищем попытку авторизации по username
         const attempt = this.authAttempts.get(telegramUsername);
 
         if (!attempt) {
           return ctx.reply(
             '❌ Попытка авторизации не найдена.\n\n' +
-            'Пожалуйста, сначала введите свой Telegram логин на сайте и нажмите "Открыть бота".'
+            'Пожалуйста, сначала введите свой Telegram логин на сайте и нажмите "Открыть бота".',
+            {
+              reply_markup: {
+                keyboard: [
+                  [{ text: '🔐 Запросить код аутентификации' }]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: false
+              }
+            }
           );
         }
 
@@ -96,14 +139,25 @@ export class TelegramBotService implements OnModuleInit {
 
         // Отправляем код
         await ctx.reply(
-          `🔐 Ваш код для входа в Nightfall Arena:\n\n${code}\n\n` +
-          `Код действителен 5 минут.\n\n` +
-          `Введите этот код на сайте для авторизации.`
+          `🔐 Ваш код для входа в Nightfall Arena:\n\n` +
+          `<b>${code}</b>\n\n` +
+          `⏱ Код действителен 5 минут.\n\n` +
+          `Введите этот код на сайте для авторизации.`,
+          {
+            parse_mode: 'HTML',
+            reply_markup: {
+              keyboard: [
+                [{ text: '🔐 Запросить код аутентификации' }]
+              ],
+              resize_keyboard: true,
+              one_time_keyboard: false
+            }
+          }
         );
 
         console.log(`✅ Код ${code} отправлен пользователю @${telegramUsername}`);
       } catch (error) {
-        console.error('Ошибка при обработке /start:', error);
+        console.error('Ошибка при генерации кода:', error);
         await ctx.reply('Произошла ошибка. Попробуйте позже.');
       }
     });
