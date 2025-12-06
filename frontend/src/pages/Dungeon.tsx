@@ -151,7 +151,7 @@ const Dungeon = () => {
         justifyContent: 'center',
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: '#000',
+        backgroundColor: 'transparent', // Прозрачный, чтобы видеть глобальный dark fantasy фон
       }}>
         {/* Видео фон для экрана выбора - фиксированное */}
         <video

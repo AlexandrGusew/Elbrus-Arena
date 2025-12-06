@@ -134,7 +134,7 @@ export class BattleGateway {
             totalMonsters: battle.totalMonsters,
             dungeonId: battle.dungeonId,
           });
-        }, 2000);
+        }, 1000);
       }
     } catch (error) {
       client.emit('error', { message: error.message });

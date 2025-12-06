@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Character, InventoryItem } from '../../types/api';
 import { useUnequipItemMutation } from '../../store/api/characterApi';
 import { ItemIcon } from '../common/ItemIcon';
+import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, cardStyle, gradientTextStyle, dashboardBorders } from '../../styles/dashboard.styles';
 
 interface InventorySectionProps {
   character: Character;
@@ -126,16 +127,16 @@ export function InventorySection({
   // Функция для генерации блока характеристики
   const renderStatBlock = (label: string, value: number | string) => (
     <div style={{
-      border: '1px solid rgba(139, 69, 19, 0.8)',
+      border: `1px solid ${dashboardColors.borderAmber}`,
       borderRadius: '8px',
-      background: 'rgba(10, 10, 10, 0.5)',
+      background: dashboardColors.backgroundDark,
       padding: '10px 12px',
       minHeight: '40px',
     }}>
       <div style={{
-        color: '#d4af37',
+        color: dashboardColors.textGold,
         fontSize: '12px',
-        fontFamily: "'Courier New', monospace",
+        fontFamily: dashboardFonts.secondary,
         letterSpacing: '0.5px',
         display: 'flex',
         width: '100%',
@@ -156,7 +157,7 @@ export function InventorySection({
           whiteSpace: 'nowrap',
           fontSize: '18px',
           fontWeight: 'bold',
-          color: '#f4d03f',
+          color: dashboardColors.textGold,
         }}>{value}</span>
       </div>
     </div>
@@ -169,64 +170,105 @@ export function InventorySection({
         {onBack && (
           <button
             onClick={onBack}
-            className="border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 px-6 py-4 relative transition-all group flex items-center gap-2 border-amber-700/60 hover:border-red-700/70"
+          style={{
+            ...cardStyle,
+            border: `3px solid ${dashboardColors.borderGold}`,
+            padding: '14px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            overflow: 'hidden',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = dashboardColors.borderBronze;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = dashboardColors.borderGold;
+          }}
           >
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div style={cornerOrnaments.topLeft}></div>
+            <div style={cornerOrnaments.topRight}></div>
+            <div style={cornerOrnaments.bottomLeft}></div>
+            <div style={cornerOrnaments.bottomRight}></div>
 
-            <span className="text-2xl" style={{
-              fontFamily: 'serif',
-              textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
-              background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+            <span style={{
+              fontSize: '24px',
+              ...gradientTextStyle,
             }}>←</span>
           </button>
         )}
 
         <button
           onClick={onNavigateToInventory}
-          className={`border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 px-6 py-4 relative transition-all group flex items-center gap-2 ${
-            !showForge ? 'border-red-700/60' : 'border-amber-700/60 hover:border-red-700/70'
-          }`}
+          style={{
+            ...cardStyle,
+            border: `3px solid ${!showForge ? dashboardColors.borderBronze : dashboardColors.borderGold}`,
+            padding: '14px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            overflow: 'hidden',
+          }}
+          onMouseEnter={(e) => {
+            if (showForge) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (showForge) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRed;
+            }
+          }}
         >
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-          <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+          <div style={cornerOrnaments.topLeft}></div>
+          <div style={cornerOrnaments.topRight}></div>
+          <div style={cornerOrnaments.bottomLeft}></div>
+          <div style={cornerOrnaments.bottomRight}></div>
 
-          <span className="text-xl uppercase tracking-[0.2em]" style={{
-            fontFamily: 'serif',
-            textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
-            background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
+          <span style={{
+            fontSize: '18px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.2em',
+            ...gradientTextStyle,
           }}>Inventory</span>
         </button>
 
         {onNavigateToForge && (
           <button
             onClick={onNavigateToForge}
-            className={`border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 px-8 py-4 relative transition-all group ${
-              showForge ? 'border-red-700/60' : 'border-amber-700/60 hover:border-red-700/70'
-            }`}
+          style={{
+            ...cardStyle,
+            border: `3px solid ${showForge ? dashboardColors.borderBronze : dashboardColors.borderGold}`,
+            padding: '14px 36px',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            overflow: 'hidden',
+          }}
+          onMouseEnter={(e) => {
+            if (!showForge) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRedHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!showForge) {
+              e.currentTarget.style.borderColor = dashboardColors.borderRed;
+            }
+          }}
           >
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/50 group-hover:border-red-700/80 transition-all"></div>
+            <div style={cornerOrnaments.topLeft}></div>
+            <div style={cornerOrnaments.topRight}></div>
+            <div style={cornerOrnaments.bottomLeft}></div>
+            <div style={cornerOrnaments.bottomRight}></div>
 
-            <span className="text-xl uppercase tracking-[0.2em]" style={{
-              fontFamily: 'serif',
-              textShadow: '0 0 15px rgba(217, 119, 6, 0.6)',
-              background: 'linear-gradient(to bottom, #fef3c7 0%, #f59e0b 50%, #92400e 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+            <span style={{
+              fontSize: '18px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.2em',
+              ...gradientTextStyle,
             }}>Forge</span>
           </button>
         )}
@@ -234,50 +276,24 @@ export function InventorySection({
 
       {/* Item Details Section - в стиле референса */}
       <div style={{
-        border: '1px solid rgba(139, 69, 19, 0.8)',
-        borderRadius: '8px',
-        background: 'rgba(20, 20, 20, 0.5)',
+        ...cardStyle,
+        border: `2px solid ${dashboardColors.borderAmber}`,
         padding: '16px',
         display: 'flex',
         gap: '16px',
-        position: 'relative',
       }}>
         {/* Декоративные уголки */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '24px',
-          height: '24px',
-          borderTop: '2px solid rgba(220, 38, 38, 0.8)',
-          borderLeft: '2px solid rgba(220, 38, 38, 0.8)',
-        }}></div>
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '24px',
-          height: '24px',
-          borderBottom: '2px solid rgba(220, 38, 38, 0.8)',
-          borderLeft: '2px solid rgba(220, 38, 38, 0.8)',
-        }}></div>
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          right: 0,
-          width: '24px',
-          height: '24px',
-          borderBottom: '2px solid rgba(220, 38, 38, 0.8)',
-          borderRight: '2px solid rgba(220, 38, 38, 0.8)',
-        }}></div>
+        <div style={cornerOrnaments.topLeft}></div>
+        <div style={cornerOrnaments.bottomLeft}></div>
+        <div style={cornerOrnaments.bottomRight}></div>
         <div style={{
           position: 'absolute',
           top: 0,
           right: 0,
-          width: '24px',
-          height: '24px',
-          borderTop: '2px solid rgba(139, 69, 19, 0.8)',
-          borderRight: '2px solid rgba(139, 69, 19, 0.8)',
+          width: dashboardBorders.cornerSize,
+          height: dashboardBorders.cornerSize,
+          borderTop: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderAmber}`,
+          borderRight: `${dashboardBorders.cornerBorder} solid ${dashboardColors.borderAmber}`,
         }}></div>
 
         {/* Левая панель - изображение предмета */}
@@ -285,9 +301,9 @@ export function InventorySection({
           width: '150px',
           height: '150px',
           minWidth: '150px',
-          border: '1px solid rgba(139, 69, 19, 0.8)',
+          border: `1px solid ${dashboardColors.borderAmber}`,
           borderRadius: '8px',
-          background: 'rgba(10, 10, 10, 0.5)',
+          background: dashboardColors.backgroundDark,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -300,11 +316,11 @@ export function InventorySection({
             />
           ) : (
             <span style={{
-              color: '#d4af37',
+              color: dashboardColors.textGold,
               fontSize: '11px',
               textTransform: 'uppercase',
               textAlign: 'center',
-              fontFamily: "'IM Fell English', serif",
+              fontFamily: dashboardFonts.secondary,
               opacity: 0.4,
             }}>
               IMAGE<br/>ITEM
@@ -322,17 +338,17 @@ export function InventorySection({
           {!selectedItem ? (
             // Placeholder когда предмет не выбран
             <div style={{
-              border: '1px solid rgba(139, 69, 19, 0.8)',
+              border: `1px solid ${dashboardColors.borderAmber}`,
               borderRadius: '8px',
-              background: 'rgba(10, 10, 10, 0.5)',
+              background: dashboardColors.backgroundDark,
               padding: '20px 12px',
               textAlign: 'center',
             }}>
               <span style={{
-                color: '#d4af37',
+                color: dashboardColors.textGold,
                 fontSize: '13px',
                 textTransform: 'uppercase',
-                fontFamily: "'IM Fell English', serif",
+                fontFamily: dashboardFonts.secondary,
                 opacity: 0.5,
               }}>
                 Выберите предмет
@@ -342,16 +358,16 @@ export function InventorySection({
             <>
               {/* Название предмета - всегда показываем если предмет выбран */}
               <div style={{
-                border: '1px solid rgba(139, 69, 19, 0.8)',
+                border: `1px solid ${dashboardColors.borderAmber}`,
                 borderRadius: '8px',
-                background: 'rgba(10, 10, 10, 0.5)',
+                background: dashboardColors.backgroundDark,
                 padding: '10px 12px',
               }}>
                 <span style={{
-                  color: '#d4af37',
+                  color: dashboardColors.textGold,
                   fontSize: '13px',
                   textTransform: 'uppercase',
-                  fontFamily: "'IM Fell English', serif",
+                  fontFamily: dashboardFonts.secondary,
                 }}>
                   {selectedItem.item.name}
                   {selectedItem.enhancement > 0 && ` +${selectedItem.enhancement}`}
@@ -377,138 +393,65 @@ export function InventorySection({
 
       {/* Inventory Grid */}
       <div
-        className={`border-3 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 p-4 relative transition-all ${
-          isInventoryDropZone ? 'border-green-500/80 bg-green-950/30' : 'border-amber-700/60'
-        }`}
         onDragOver={handleInventoryDragOver}
         onDragLeave={handleInventoryDragLeave}
         onDrop={handleInventoryDrop}
-        style={{ height: '560px' }}
+        style={{ 
+          ...cardStyle,
+          border: `3px solid ${isInventoryDropZone ? 'rgba(34, 197, 94, 0.8)' : dashboardColors.borderGold}`,
+          background: isInventoryDropZone ? 'rgba(20, 83, 45, 0.3)' : cardStyle.background,
+          height: '560px',
+          padding: '20px',
+          transition: 'all 0.3s ease',
+          overflow: 'hidden',
+        }}
       >
-        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/60"></div>
-        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/60"></div>
-        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/60"></div>
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/60"></div>
+        <div style={cornerOrnaments.topLeft}></div>
+        <div style={cornerOrnaments.topRight}></div>
+        <div style={cornerOrnaments.bottomLeft}></div>
+        <div style={cornerOrnaments.bottomRight}></div>
 
-        <div className="grid grid-cols-6 gap-3 overflow-y-auto h-full pr-2" style={{ maxHeight: '100%' }}>
-          {(() => {
-            // Группируем предметы по названию, типу и уровню заточки
-            const groupedItems = unequippedItems.reduce((acc, invItem) => {
-              const key = `${invItem.item.name}_${invItem.item.type}_${invItem.enhancement || 0}`;
-              
-              if (!acc[key]) {
-                acc[key] = {
-                  items: [invItem],
-                  firstItem: invItem,
-                  totalQuantity: invItem.quantity, // Суммируем quantity
-                };
-              } else {
-                acc[key].items.push(invItem);
-                acc[key].totalQuantity += invItem.quantity; // Добавляем quantity
-              }
-              
-              return acc;
-            }, {} as Record<string, { items: InventoryItem[]; firstItem: InventoryItem; totalQuantity: number }>);
-
-            // Преобразуем объект в массив для отображения
-            const itemsArray = Object.values(groupedItems);
-            
-            // Получаем размер инвентаря (по умолчанию 36 для сетки 6x6)
-            const inventorySize = character.inventory?.size || 36;
-            const maxSlots = Math.max(inventorySize, 36); // Минимум 36 слотов (6x6)
-            
-            // Создаем массив всех слотов (заполненные + пустые)
-            const allSlots: (InventoryItem | null)[] = [];
-            
-            // Добавляем заполненные слоты
-            itemsArray.forEach(group => {
-              allSlots.push(group.firstItem);
-            });
-            
-            // Заполняем оставшиеся слоты null (пустые ячейки)
-            while (allSlots.length < maxSlots) {
-              allSlots.push(null);
-            }
-            
-            // Отладка
-            console.log('📦 InventorySection: Сетка инвентаря:', {
-              totalItems: unequippedItems.length,
-              groupedItems: itemsArray.length,
-              inventorySize,
-              maxSlots,
-              filledSlots: itemsArray.length,
-              emptySlots: maxSlots - itemsArray.length,
-              groupedItemsDetails: itemsArray.map(group => ({
-                name: group.firstItem.item.name,
-                type: group.firstItem.item.type,
-                enhancement: group.firstItem.enhancement,
-                totalQuantity: group.totalQuantity,
-                itemsCount: group.items.length,
-                itemsQuantities: group.items.map(item => item.quantity),
-              })),
-            });
-
-            return allSlots.map((slotItem, index) => {
-              // Если слот пустой
-              if (!slotItem) {
-                return (
-                  <div
-                    key={`empty-slot-${index}`}
-                    className="border-2 rounded-lg bg-gradient-to-b from-stone-950/30 to-black/30 border-amber-800/20 flex flex-col items-center justify-center aspect-square p-1 opacity-40"
-                    style={{ height: 'fit-content', minHeight: '80px' }}
-                  >
-                    {/* Пустая ячейка */}
-                  </div>
-                );
-              }
-              
-              // Если слот заполнен - находим группу для этого предмета
-              const group = groupedItems[`${slotItem.item.name}_${slotItem.item.type}_${slotItem.enhancement || 0}`];
-              
-              return (
-                <div
-                  key={`${slotItem.item.name}_${slotItem.item.type}_${slotItem.enhancement || 0}_${index}`}
-                  draggable={true}
-                  onDragStart={(e) => handleDragStart(e, slotItem)}
-                  onDragEnd={handleDragEnd}
-                  onClick={() => handleItemClick(slotItem)}
-                  className={`border-2 rounded-lg bg-gradient-to-b from-stone-950/50 to-black/50 hover:border-amber-600/60 transition-all cursor-move flex flex-col items-center justify-center aspect-square p-1 relative ${
-                    selectedItem?.id === slotItem.id || forgeItemSlot?.id === slotItem.id ? 'border-red-700/80' : 'border-amber-800/40'
-                  } ${draggedItem?.id === slotItem.id ? 'opacity-50' : ''}`}
-                  style={{ height: 'fit-content', minHeight: '80px' }}
-                >
-                  {/* Счетчик количества в верхнем правом углу */}
-                  {group && group.totalQuantity > 1 && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '4px',
-                      right: '4px',
-                      background: 'linear-gradient(135deg, #d4af37 0%, #b8941f 100%)',
-                      color: '#000',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      padding: '3px 6px',
-                      borderRadius: '4px',
-                      border: '2px solid #ffd700',
-                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.5), 0 0 8px rgba(212, 175, 55, 0.5)',
-                      zIndex: 100,
-                      minWidth: '24px',
-                      textAlign: 'center',
-                      lineHeight: '1',
-                    }}>
-                      ×{group.totalQuantity}
-                    </div>
-                  )}
-                  
-                  <ItemIcon
-                    item={slotItem.item}
-                    size="small"
-                    enhancement={slotItem.enhancement}
-                  />
-                </div>
-              );
-            });
-          })()}
+        <div className="grid grid-cols-8 gap-3 overflow-y-auto h-full" style={{ maxHeight: '100%', paddingRight: '8px' }}>
+          {unequippedItems.map((invItem) => (
+            <div
+              key={invItem.id}
+              draggable={true}
+              onDragStart={(e) => handleDragStart(e, invItem)}
+              onDragEnd={handleDragEnd}
+              onClick={() => handleItemClick(invItem)}
+              style={{
+                border: `2px solid ${selectedItem?.id === invItem.id || forgeItemSlot?.id === invItem.id ? dashboardColors.borderGold : dashboardColors.borderMetal}`,
+                borderRadius: '8px',
+                background: cardStyle.background,
+                transition: 'all 0.3s ease',
+                cursor: 'move',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                aspectRatio: '1',
+                padding: '4px',
+                opacity: draggedItem?.id === invItem.id ? 0.5 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (selectedItem?.id !== invItem.id && forgeItemSlot?.id !== invItem.id) {
+                  e.currentTarget.style.borderColor = dashboardColors.borderGold;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedItem?.id !== invItem.id && forgeItemSlot?.id !== invItem.id) {
+                  e.currentTarget.style.borderColor = dashboardColors.borderAmber;
+                }
+              }}
+              style={{ height: 'fit-content' }}
+            >
+              <ItemIcon
+                item={invItem.item}
+                size="small"
+                enhancement={invItem.enhancement}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -3,7 +3,15 @@ import type { Character, InventoryItem } from '../../types/api';
 import { useEquipItemMutation, useUnequipItemMutation, useGetCharacterQuery, useGetLevelProgressQuery } from '../../store/api/characterApi';
 import { StatsCalculator } from '../../utils/statsCalculator';
 import { getAssetUrl } from '../../utils/assetUrl';
-import { ItemIcon } from '../common/ItemIcon';
+import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, cardStyle } from '../../styles/dashboard.styles';
+
+// Импорт изображений для слотов
+import weaponImg from '../../assets/inventory-pers/weapon.png';
+import helmetImg from '../../assets/inventory-pers/helmet.png';
+import armorImg from '../../assets/inventory-pers/armor.png';
+import beltsImg from '../../assets/inventory-pers/belt.png';
+import bootsImg from '../../assets/inventory-pers/boots.png';
+import ringImg from '../../assets/inventory-pers/ring.png';
 
 interface CharacterCardProps {
   character: Character;
@@ -43,10 +51,10 @@ const getClassVideo = (classType: string): string => {
   }
 };
 
-export function CharacterCard({ character: characterProp, onEquipmentClick, onItemSelect, selectedItem, onLevelBarClick }: CharacterCardProps) {
+export function CharacterCard({ character: characterProp, onEquipmentClick, onItemSelect }: CharacterCardProps) {
   const [equipItem] = useEquipItemMutation();
   const [unequipItem] = useUnequipItemMutation();
-  const [dragOverSlot, setDragOverSlot] = useState<ItemSlotType | null>(null);
+  const [clickedSlot, setClickedSlot] = useState<ItemSlotType | null>(null);
 
   // Получаем актуальные данные персонажа через RTK Query для автоматического обновления
   const { data: characterData } = useGetCharacterQuery(characterProp.id, {
@@ -79,10 +87,20 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
     RING: equippedItems.find(item => itemTypeToSlot(item.item.type) === 'RING'),
   };
 
-  const handleSlotClick = (slotType: string, item?: InventoryItem) => {
-    // Если есть надетый предмет - клик обрабатывается внутри предмета
+  const handleSlotClick = (slotType: ItemSlotType, item?: InventoryItem) => {
+    // Переключаем увеличение слота при клике
+    if (clickedSlot === slotType) {
+      setClickedSlot(null);
+    } else {
+      setClickedSlot(slotType);
+    }
+    
+    // Если есть надетый предмет - выбираем его для просмотра
+    if (item && onItemSelect) {
+      onItemSelect(item);
+    }
     // Если слота пуст - вызываем onEquipmentClick (если есть)
-    if (!item && onEquipmentClick) {
+    else if (!item && onEquipmentClick) {
       onEquipmentClick(slotType);
     }
   };
@@ -91,19 +109,17 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
   const effectiveStats = StatsCalculator.calculateEffectiveStats(character);
 
   // Drag & Drop handlers для экипировки
-  const handleDragOver = (e: React.DragEvent, slotType: ItemSlotType) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    setDragOverSlot(slotType);
   };
 
   const handleDragLeave = () => {
-    setDragOverSlot(null);
+    // Обработка ухода курсора при drag
   };
 
   const handleDrop = async (e: React.DragEvent, slotType: ItemSlotType) => {
     e.preventDefault();
-    setDragOverSlot(null);
 
     const itemData = e.dataTransfer.getData('inventory-item');
     if (!itemData) return;
@@ -126,12 +142,6 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
     }
   };
 
-  // Drag handlers для снятия предмета
-  const handleItemDragStart = (e: React.DragEvent, item: InventoryItem) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('equipped-item', JSON.stringify(item));
-  };
-
   const handleUnequip = async (item: InventoryItem) => {
     try {
       await unequipItem({ characterId: character.id, itemId: item.id }).unwrap();
@@ -140,89 +150,117 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
     }
   };
 
-  // Маппинг названий слотов
-  const slotNames: Record<ItemSlotType, string> = {
-    WEAPON: 'МЕЧ',
-    HELMET: 'ШЛЕМ',
-    ARMOR: 'БРОНЯ',
-    BOOTS: 'САПОГИ',
-    BELT: 'ПОЯС',
-    RING: 'КОЛЬЦО',
+  // Маппинг изображений для слотов
+  const slotBackgrounds: Record<ItemSlotType, string> = {
+    WEAPON: weaponImg,
+    HELMET: helmetImg,
+    ARMOR: armorImg,
+    BOOTS: bootsImg,
+    BELT: beltsImg,
+    RING: ringImg,
   };
 
   // Рендер слота экипировки
   const renderEquipmentSlot = (slotType: ItemSlotType, equippedItem?: InventoryItem) => {
-    const isHighlighted = dragOverSlot === slotType;
+    const isClicked = clickedSlot === slotType;
+    // Лёгкий эффект увеличения при клике
+    const scale = isClicked ? 1.25 : 1;
+    const zIndex = isClicked ? 50 : 1;
 
     return (
       <div
-        onDragOver={(e) => handleDragOver(e, slotType)}
+        onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, slotType)}
         onClick={() => handleSlotClick(slotType, equippedItem)}
-        className={`border-2 rounded bg-gradient-to-b from-stone-950/50 to-black/50 flex items-center justify-center text-[10px] text-amber-300 uppercase tracking-wider transition-all cursor-pointer aspect-square w-20 h-20 ${
-          isHighlighted ? 'border-green-500/80 bg-green-950/30' : 'border-amber-800/40 hover:border-amber-600/60'
-        }`}
-      >
-        {equippedItem ? (
-          <div
-            draggable={true}
-            onDragStart={(e) => handleItemDragStart(e, equippedItem)}
-            onClick={(e) => {
-              // Одинарный клик - выбираем предмет для просмотра
-              e.stopPropagation();
-              e.preventDefault();
-              if (onItemSelect) {
-                console.log('Selecting item:', equippedItem.item.name);
-                onItemSelect(equippedItem);
-              } else {
-                console.warn('onItemSelect is not defined');
-              }
-            }}
-            onDoubleClick={(e) => {
-              // Двойной клик - снимаем предмет
-              e.stopPropagation();
-              handleUnequip(equippedItem);
-            }}
-            className={`text-center cursor-pointer w-full h-full flex items-center justify-center p-1 ${
-              selectedItem?.id === equippedItem.id ? 'ring-2 ring-red-500' : ''
-            }`}
-          >
-            <ItemIcon
-              item={equippedItem.item}
-              size="small"
-              enhancement={equippedItem.enhancement}
-            />
-          </div>
-        ) : (
-          slotNames[slotType]
-        )}
-      </div>
+        onDoubleClick={(e) => {
+          // Двойной клик - снимаем предмет
+          if (equippedItem) {
+            e.stopPropagation();
+            handleUnequip(equippedItem);
+          }
+        }}
+        className="rounded flex items-center justify-center transition-all cursor-pointer w-full aspect-square"
+        style={{
+          backgroundImage: `url(${slotBackgrounds[slotType]})`,
+          // Увеличиваем видимый размер картинки примерно в 1.5 раза,
+          // масштабируя фон по ширине с сохранением пропорций
+          backgroundSize: '150% auto',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          position: 'relative',
+          transform: `scale(${scale})`,
+          zIndex: zIndex,
+          transition: 'transform 0.3s ease',
+        }}
+      />
     );
   };
 
   return (
-    <div className="border-3 border-amber-700/60 rounded-xl bg-gradient-to-b from-stone-950/50 to-black/50 p-4 relative h-full">
-      <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-700/60"></div>
-      <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-700/60"></div>
-      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-700/60"></div>
-      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-700/60"></div>
+    <div 
+      style={{
+        ...cardStyle,
+        border: `3px solid ${dashboardColors.borderGold}`,
+        padding: '20px',
+        height: '100%',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={cornerOrnaments.topLeft}></div>
+      <div style={cornerOrnaments.topRight}></div>
+      <div style={cornerOrnaments.bottomLeft}></div>
+      <div style={cornerOrnaments.bottomRight}></div>
 
-      <div className="grid grid-cols-2 gap-4 h-full">
+      <div className="grid grid-cols-2 gap-4 h-full" style={{ overflow: 'hidden' }}>
         {/* Left Half - Character */}
         <div className="flex flex-col gap-2 h-full">
           {/* Class */}
-          <div className="px-4 py-2 border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 text-center text-amber-200 tracking-wider uppercase text-sm" style={{ fontFamily: 'serif' }}>
+          <div 
+            style={{
+              ...cardStyle,
+              padding: '12px 18px',
+              textAlign: 'center',
+              fontSize: '13px',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              fontFamily: dashboardFonts.primary,
+              color: dashboardColors.textGold,
+              textShadow: dashboardEffects.textShadow,
+              overflow: 'hidden',
+            }}
+          >
             {character.class}
           </div>
 
           {/* Name */}
-          <div className="px-4 py-2 border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 text-center text-amber-200 tracking-wider uppercase text-sm" style={{ fontFamily: 'serif' }}>
+          <div 
+            style={{
+              ...cardStyle,
+              padding: '12px 18px',
+              textAlign: 'center',
+              fontSize: '13px',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              fontFamily: dashboardFonts.primary,
+              color: dashboardColors.textGold,
+              textShadow: dashboardEffects.textShadow,
+              overflow: 'hidden',
+            }}
+          >
             {character.name}
           </div>
 
           {/* Character Circle - Takes remaining space */}
-          <div className="flex-1 w-full rounded-full border-[3px] border-amber-700/60 bg-gradient-to-br from-red-950/60 via-stone-900 to-black flex items-center justify-center relative overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.9)]">
+          <div 
+            className="flex-1 w-full rounded-full flex items-center justify-center relative"
+            style={{
+              border: `3px solid ${dashboardColors.borderGold}`,
+              background: 'linear-gradient(to bottom right, rgba(139, 0, 0, 0.6) 0%, rgba(30, 30, 30, 0.9) 50%, rgba(0, 0, 0, 1) 100%)',
+              boxShadow: dashboardEffects.insetShadow,
+              overflow: 'hidden',
+            }}
+          >
             <video
               key={character.class}
               autoPlay
@@ -234,7 +272,7 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
                 height: '100%',
                 objectFit: 'cover',
               }}
-              onError={(e) => {
+              onError={() => {
                 console.error(`Video failed to load for ${character.class}:`, getClassVideo(character.class));
               }}
             >
@@ -244,23 +282,60 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
 
           {/* Level Bar at the bottom */}
           <div 
-            className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 overflow-hidden relative cursor-pointer hover:border-amber-600/60 transition-all"
-            onClick={onLevelBarClick}
-            style={{ minHeight: '32px' }}
-            title="Нажмите для распределения очков"
+            style={{
+              ...cardStyle,
+              padding: 0,
+              overflow: 'hidden',
+              position: 'relative',
+              minHeight: '40px',
+              marginTop: '8px',
+            }}
           >
             {/* Background */}
-            <div className="w-full h-full bg-black/40" style={{ minHeight: '32px' }}></div>
+            <div style={{ 
+              width: '100%', 
+              height: '100%', 
+              background: 'rgba(0, 0, 0, 0.6)',
+              position: 'absolute',
+              minHeight: '36px',
+            }}></div>
 
             {/* Progress Bar */}
             <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-700 to-amber-500 transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                height: '100%',
+                background: 'linear-gradient(to right, #C9A86A 0%, #A07938 50%, #6B542E 100%)',
+                width: `${progressPercentage}%`,
+                transition: 'width 0.3s ease',
+                minHeight: '40px',
+                boxShadow: '0 0 10px rgba(201, 168, 106, 0.4)',
+              }}
             ></div>
 
             {/* Text Label */}
-            <div className="absolute top-0 left-0 w-full h-full flex items-center px-3">
-              <span className="text-black text-sm uppercase tracking-wider font-bold relative z-10" style={{ fontFamily: 'serif', textShadow: '0 0 2px rgba(255,255,255,0.5)' }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 12px',
+              zIndex: 2,
+            }}>
+              <span style={{
+                color: '#000',
+                fontSize: '13px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontWeight: 'bold',
+                fontFamily: dashboardFonts.primary,
+                textShadow: '0 0 3px rgba(255, 255, 255, 0.6)',
+              }}>
                 LVL {character.level}
               </span>
             </div>
@@ -268,60 +343,234 @@ export function CharacterCard({ character: characterProp, onEquipmentClick, onIt
         </div>
 
         {/* Right Half - Split between Stats and Equipment */}
-        <div className="flex flex-col gap-3 h-full">
-          {/* Stats Box - Top Half */}
-          <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 p-2 h-1/2 flex flex-col justify-between">
+        <div className="flex flex-col gap-4 h-full" style={{ overflow: 'hidden' }}>
+          {/* Stats Box - верхняя часть (делаем крупнее, как на примере) */}
+          <div 
+            style={{
+              ...cardStyle,
+              padding: '18px',
+              height: '40%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              gap: '8px',
+              overflow: 'hidden',
+            }}
+          >
             {/* HIT POINT */}
-            <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 px-3 py-2 flex justify-between items-center">
-              <span className="text-[11px] text-amber-200 uppercase tracking-wider" style={{ fontFamily: 'serif' }}>HIT POINT</span>
-              <span className="text-[11px] text-amber-200 font-bold" style={{ fontFamily: 'serif' }}>{effectiveStats.maxHp}</span>
+            <div 
+              style={{
+                ...cardStyle,
+                padding: '10px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontFamily: dashboardFonts.primary,
+              }}>HIT POINT</span>
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                fontWeight: 'bold',
+                fontFamily: dashboardFonts.primary,
+              }}>{effectiveStats.maxHp}</span>
             </div>
 
             {/* CURRENT HP */}
-            <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 px-3 py-2 flex justify-between items-center">
-              <span className="text-[11px] text-amber-200 uppercase tracking-wider" style={{ fontFamily: 'serif' }}>CURRENT HP</span>
-              <span className="text-[11px] text-amber-200 font-bold" style={{ fontFamily: 'serif' }}>{effectiveStats.currentHp}</span>
+            <div 
+              style={{
+                ...cardStyle,
+                padding: '10px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontFamily: dashboardFonts.primary,
+              }}>CURRENT HP</span>
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                fontWeight: 'bold',
+                fontFamily: dashboardFonts.primary,
+              }}>{effectiveStats.currentHp}</span>
             </div>
 
             {/* DAMAGE */}
-            <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 px-3 py-2 flex justify-between items-center">
-              <span className="text-[11px] text-amber-200 uppercase tracking-wider" style={{ fontFamily: 'serif' }}>DAMAGE</span>
-              <span className="text-[11px] text-amber-200 font-bold" style={{ fontFamily: 'serif' }}>{effectiveStats.damage}</span>
+            <div 
+              style={{
+                ...cardStyle,
+                padding: '10px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontFamily: dashboardFonts.primary,
+              }}>DAMAGE</span>
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                fontWeight: 'bold',
+                fontFamily: dashboardFonts.primary,
+              }}>{effectiveStats.damage}</span>
             </div>
 
             {/* ARMOR */}
-            <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 px-3 py-2 flex justify-between items-center">
-              <span className="text-[11px] text-amber-200 uppercase tracking-wider" style={{ fontFamily: 'serif' }}>ARMOR</span>
-              <span className="text-[11px] text-amber-200 font-bold" style={{ fontFamily: 'serif' }}>{effectiveStats.armor}</span>
+            <div 
+              style={{
+                ...cardStyle,
+                padding: '10px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontFamily: dashboardFonts.primary,
+              }}>ARMOR</span>
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                fontWeight: 'bold',
+                fontFamily: dashboardFonts.primary,
+              }}>{effectiveStats.armor}</span>
             </div>
 
             {/* STR */}
-            <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 px-3 py-2 flex justify-between items-center">
-              <span className="text-[11px] text-amber-200 uppercase tracking-wider" style={{ fontFamily: 'serif' }}>STR</span>
-              <span className="text-[11px] text-amber-200 font-bold" style={{ fontFamily: 'serif' }}>{effectiveStats.strength}</span>
+            <div 
+              style={{
+                ...cardStyle,
+                padding: '10px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontFamily: dashboardFonts.primary,
+              }}>STR</span>
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                fontWeight: 'bold',
+                fontFamily: dashboardFonts.primary,
+              }}>{effectiveStats.strength}</span>
             </div>
 
             {/* AGI */}
-            <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 px-3 py-2 flex justify-between items-center">
-              <span className="text-[11px] text-amber-200 uppercase tracking-wider" style={{ fontFamily: 'serif' }}>AGI</span>
-              <span className="text-[11px] text-amber-200 font-bold" style={{ fontFamily: 'serif' }}>{effectiveStats.agility}</span>
+            <div 
+              style={{
+                ...cardStyle,
+                padding: '10px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontFamily: dashboardFonts.primary,
+              }}>AGI</span>
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                fontWeight: 'bold',
+                fontFamily: dashboardFonts.primary,
+              }}>{effectiveStats.agility}</span>
             </div>
 
             {/* INT */}
-            <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 px-3 py-2 flex justify-between items-center">
-              <span className="text-[11px] text-amber-200 uppercase tracking-wider" style={{ fontFamily: 'serif' }}>INT</span>
-              <span className="text-[11px] text-amber-200 font-bold" style={{ fontFamily: 'serif' }}>{effectiveStats.intelligence}</span>
+            <div 
+              style={{
+                ...cardStyle,
+                padding: '10px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontFamily: dashboardFonts.primary,
+              }}>INT</span>
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                fontWeight: 'bold',
+                fontFamily: dashboardFonts.primary,
+              }}>{effectiveStats.intelligence}</span>
             </div>
 
             {/* GOLD */}
-            <div className="border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/50 to-black/50 px-3 py-2 flex justify-between items-center">
-              <span className="text-[11px] text-amber-200 uppercase tracking-wider" style={{ fontFamily: 'serif' }}>GOLD</span>
-              <span className="text-[11px] text-amber-200 font-bold" style={{ fontFamily: 'serif' }}>{character.gold}</span>
+            <div 
+              style={{
+                ...cardStyle,
+                padding: '10px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                fontFamily: dashboardFonts.primary,
+              }}>GOLD</span>
+              <span style={{
+                fontSize: '11px',
+                color: dashboardColors.textGold,
+                fontWeight: 'bold',
+                fontFamily: dashboardFonts.primary,
+              }}>{character.gold}</span>
             </div>
           </div>
 
           {/* Equipment Grid - Bottom Half */}
-          <div className="grid grid-cols-2 gap-3 h-1/2 p-5 place-items-center">
+          <div
+            className="grid grid-cols-2 grid-rows-3 gap-2 p-0 place-items-stretch"
+            style={{ overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}
+          >
             {renderEquipmentSlot('WEAPON', equipmentSlots.WEAPON)}
             {renderEquipmentSlot('HELMET', equipmentSlots.HELMET)}
             {renderEquipmentSlot('ARMOR', equipmentSlots.ARMOR)}

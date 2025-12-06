@@ -26,6 +26,12 @@ async function bootstrap() {
   const corsOriginsString = configService.get<string>('CORS_ORIGINS', '');
   const corsOrigins = corsOriginsString.split(',').filter(Boolean);
 
+  // Добавляем localhost для разработки
+  const isDevelopment = configService.get<string>('NODE_ENV') !== 'production';
+  if (isDevelopment) {
+    corsOrigins.push('http://localhost:5173', 'http://localhost:3000');
+  }
+
   app.enableCors({
     origin: [
       ...corsOrigins,

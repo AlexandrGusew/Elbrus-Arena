@@ -13,6 +13,7 @@ import { store } from '../store';
 import { baseApi } from '../store/api/baseApi';
 import { useState, useEffect, useRef } from 'react';
 import { getAssetUrl } from '../utils/assetUrl';
+import borderPattern from '../assets/border/pattern.svg';
 import { ChatWindow } from '../components/ChatWindow';
 import { CharacterCard } from '../components/dashboard/CharacterCard';
 import { ChatSection } from '../components/dashboard/ChatSection';
@@ -23,6 +24,7 @@ import { LevelUpSection } from '../components/dashboard/LevelUpSection';
 import { CharacterSelector } from '../components/CharacterSelector';
 import { Volume2, VolumeX, LogOut } from 'lucide-react';
 import type { InventoryItem } from '../types/api';
+import { dashboardColors, dashboardFonts, dashboardEffects, cornerOrnaments, mainContainer } from '../styles/dashboard.styles';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -246,24 +248,6 @@ const Dashboard = () => {
   // Выбор видео героя по классу
   return (
     <div style={{ position: 'relative', width: '1440px', height: '1080px', overflow: 'hidden' }}>
-      {/* Видео фон */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          zIndex: 1,
-        }}
-      >
-        <source src={getAssetUrl('dashboard/mainCityBackground.mp4')} type="video/mp4" />
-      </video>
 
       {/* Фоновая музыка - два трека для crossfade */}
       <audio 
@@ -300,33 +284,36 @@ const Dashboard = () => {
           onClick={toggleMusic}
           style={{
             padding: '8px 16px',
-            border: '1px solid #d4af37',
-            background: 'rgba(20, 20, 20, 0.9)',
-            color: '#d4af37',
+            border: `2px solid ${dashboardColors.borderGold}`,
+            background: dashboardColors.backgroundMedium,
+            color: dashboardColors.textGold,
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            borderRadius: '4px',
+            borderRadius: '6px',
             fontSize: '12px',
             fontWeight: 'bold',
             textTransform: 'uppercase',
-            fontFamily: "'IM Fell English', serif",
+            fontFamily: dashboardFonts.secondary,
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
+            letterSpacing: '0.1em',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
             e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.borderColor = dashboardColors.borderBronze;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+            e.currentTarget.style.background = dashboardColors.backgroundMedium;
             e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.borderColor = dashboardColors.borderGold;
           }}
         >
           {isMusicPlaying ? (
-            <Volume2 size={14} color="#d4af37" />
+            <Volume2 size={14} color={dashboardColors.textGold} />
           ) : (
-            <VolumeX size={14} color="#d4af37" />
+            <VolumeX size={14} color={dashboardColors.textGold} />
           )}
           <span>MUSIC</span>
         </button>
@@ -336,31 +323,34 @@ const Dashboard = () => {
           <button
             onClick={handleLogout}
             style={{
-              padding: '8px 16px',
-              border: '1px solid #d4af37',
-              background: 'rgba(20, 20, 20, 0.9)',
-              color: '#d4af37',
+              padding: '10px 18px',
+              border: `2px solid ${dashboardColors.borderGold}`,
+              background: dashboardColors.buttonBackground,
+              color: dashboardColors.textGold,
               cursor: 'pointer',
               transition: 'all 0.3s ease',
-              borderRadius: '4px',
+              borderRadius: '6px',
               fontSize: '12px',
               fontWeight: 'bold',
               textTransform: 'uppercase',
-              fontFamily: "'IM Fell English', serif",
+              fontFamily: dashboardFonts.secondary,
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '8px',
+              letterSpacing: '0.1em',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+              e.currentTarget.style.background = dashboardColors.buttonHover;
               e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.borderColor = dashboardColors.borderBronze;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+              e.currentTarget.style.background = dashboardColors.buttonBackground;
               e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = dashboardColors.borderGold;
             }}
           >
-            <LogOut size={14} color="#d4af37" />
+            <LogOut size={14} color={dashboardColors.textGold} />
             <span>EXIT</span>
           </button>
         )}
@@ -371,24 +361,27 @@ const Dashboard = () => {
             onClick={handleBack}
             style={{
               padding: '8px 16px',
-              border: '1px solid #d4af37',
-              background: 'rgba(20, 20, 20, 0.9)',
-              color: '#d4af37',
+              border: `2px solid ${dashboardColors.borderGold}`,
+              background: dashboardColors.backgroundMedium,
+              color: dashboardColors.textGold,
               cursor: 'pointer',
               transition: 'all 0.3s ease',
-              borderRadius: '4px',
+              borderRadius: '6px',
               fontSize: '12px',
               fontWeight: 'bold',
               textTransform: 'uppercase',
-              fontFamily: "'IM Fell English', serif",
+              fontFamily: dashboardFonts.secondary,
+              letterSpacing: '0.1em',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
               e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.borderColor = dashboardColors.borderBronze;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(20, 20, 20, 0.9)';
+              e.currentTarget.style.background = dashboardColors.backgroundMedium;
               e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = dashboardColors.borderGold;
             }}
           >
             BACK
@@ -426,19 +419,70 @@ const Dashboard = () => {
 
       {/* Если персонаж выбран - показываем контент Dashboard */}
       {character ? (
-        <div className="absolute top-4 left-4 right-4 bottom-4 z-[2]">
-          <div className="w-full h-full border-4 border-amber-700/60 rounded-2xl bg-gradient-to-b from-stone-950/95 to-black/95 backdrop-blur-md shadow-2xl shadow-black/80 p-6 relative">
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          right: '16px',
+          bottom: '16px',
+          zIndex: 2,
+        }}>
+          <div style={{
+            ...mainContainer,
+            width: '100%',
+            height: '100%',
+            // SVG-рамка со всех 4 сторон через border-image
+            borderWidth: '24px',
+            borderStyle: 'solid',
+            borderColor: 'transparent',
+            borderRadius: '16px',
+            borderImageSource: `url(${borderPattern})`,
+            borderImageSlice: 30,
+            borderImageRepeat: 'round',
+            backdropFilter: 'blur(12px)',
+            boxShadow: dashboardEffects.boxShadow,
+            padding: '20px 12px 20px 20px',
+            overflow: 'hidden',
+          }}>
             {/* Corner ornaments */}
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-red-700/60"></div>
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-red-700/60"></div>
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-red-700/60"></div>
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-red-700/60"></div>
+            <div style={{
+              ...cornerOrnaments.topLeft,
+              width: '48px',
+              height: '48px',
+              borderTop: '4px solid',
+              borderLeft: '4px solid',
+              borderColor: dashboardColors.borderGold,
+            }}></div>
+            <div style={{
+              ...cornerOrnaments.topRight,
+              width: '48px',
+              height: '48px',
+              borderTop: '4px solid',
+              borderRight: '4px solid',
+              borderColor: dashboardColors.borderGold,
+            }}></div>
+            <div style={{
+              ...cornerOrnaments.bottomLeft,
+              width: '48px',
+              height: '48px',
+              borderBottom: '4px solid',
+              borderLeft: '4px solid',
+              borderColor: dashboardColors.borderGold,
+            }}></div>
+            <div style={{
+              ...cornerOrnaments.bottomRight,
+              width: '48px',
+              height: '48px',
+              borderBottom: '4px solid',
+              borderRight: '4px solid',
+              borderColor: dashboardColors.borderGold,
+            }}></div>
 
-            <div className="grid grid-cols-[45%_55%] gap-6 h-full">
+            <div className="grid grid-cols-[40%_60%] gap-5 h-full" style={{ overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
               {/* LEFT COLUMN */}
-              <div className="flex flex-col gap-4 h-full">
-                {/* Character Info Card OR Forge Section - 2/3 of height */}
-                <div className="h-[66%]">
+              <div className="flex flex-col gap-4 h-full" style={{ overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
+                {/* Character Info Card OR Forge Section - больше места под слоты */}
+                <div className="h-[75%]" style={{ overflow: 'hidden' }}>
                   {showForge ? (
                     <ForgeSection
                       character={character}
@@ -459,13 +503,14 @@ const Dashboard = () => {
                   )}
                 </div>
 
-                {/* Chat Section - 1/3 of height */}
-                <div className="h-[33%]">
+                {/* Chat Section - меньше высота */}
+                <div className="h-[25%]" style={{ overflow: 'hidden' }}>
                   <ChatSection characterId={character.id} characterName={character.name} />
                 </div>
               </div>
 
               {/* RIGHT COLUMN */}
+              <div style={{ width: '100%', height: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
               {activeSection === 'main' ? (
                 <NavigationButtons
                   onInventoryClick={() => {
@@ -505,6 +550,7 @@ const Dashboard = () => {
                   }}
                 />
               ) : null}
+              </div>
             </div>
           </div>
         </div>

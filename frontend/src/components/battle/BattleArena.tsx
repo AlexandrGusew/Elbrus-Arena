@@ -287,7 +287,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
     }
   }, [battleState.lastRoundResult, waitingForResult]);
 
-  // Таймер на 1 секунду для автоматического выбора зон (режим тестирования)
+  // Таймер на 1 секунду для автоматического выбора зон
   useEffect(() => {
     // Сбрасываем таймер при начале нового раунда
     if (battleState.status === 'active' && !waitingForResult) {
@@ -337,7 +337,7 @@ export const BattleArena = ({ character, battleState, roundHistory, onSubmitActi
             setSelectedDefenses([]);
             setWaitingForResult(true);
 
-            return 1; // Сбрасываем для следующего раунда (режим тестирования)
+            return 1; // Сбрасываем для следующего раунда
           }
           return prev - 1;
         });
