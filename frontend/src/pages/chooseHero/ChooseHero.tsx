@@ -15,11 +15,7 @@ interface Character {
 }
 
 export function ChooseCharacterPage({ onNavigate, musicOn, onToggleMusic }: ChooseCharacterPageProps) {
-    const characters: (Character | null)[] = [
-        { id: 1, name: 'Darkmoon', class: 'Warrior', level: 12, icon: '⚔️' },
-        null,
-        null
-    ];
+    const character: Character = { id: 1, name: 'Darkmoon', class: 'Warrior', level: 12, icon: '⚔️' };
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center px-12 py-6 relative">
@@ -62,65 +58,39 @@ export function ChooseCharacterPage({ onNavigate, musicOn, onToggleMusic }: Choo
                 </div>
             </div>
 
-            {/* Character Slots */}
-            <div className="grid grid-cols-3 gap-5 mb-8 w-full max-w-[1100px]">
-                {characters.map((character, index) => (
-                    <div
-                        key={index}
-                        className="relative group"
-                    >
-                        <div className="absolute -inset-2 border border-amber-900/20 rounded-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            {/* Character Card */}
+            <div className="mb-8 flex justify-center">
+                <div className="w-[353px] p-5 relative group cursor-pointer">
+                    {/* Avatar Circle: 160x160 + 3px border */}
+                    <div className="w-40 h-40 mx-auto rounded-full border-[3px] border-amber-700/60 bg-gradient-to-br from-red-950/60 via-stone-900 to-black flex items-center justify-center relative overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.9)]">
+                        {/* Glowing eyes: 12px, 56px from top, 48px from edge */}
+                        <div className="absolute w-3 h-3 rounded-full bg-red-600 blur-sm animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.9)]" style={{ top: '56px', left: '48px' }}></div>
+                        <div className="absolute w-3 h-3 rounded-full bg-red-600 blur-sm animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.9)]" style={{ top: '56px', right: '48px', animationDelay: '0.5s' }}></div>
 
-                        <div className="border-2 border-amber-700/60 rounded-lg p-5 bg-gradient-to-b from-stone-950/95 to-black/95 backdrop-blur-md hover:border-amber-600/80 hover:shadow-[0_0_30px_rgba(217,119,6,0.2)] transition-all cursor-pointer relative h-full">
-                            {/* Corner ornaments */}
-                            <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-red-700/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-red-700/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-red-700/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-red-700/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <span className="text-6xl filter drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]">{character.icon}</span>
 
-                            {character ? (
-                                <div className="flex flex-col items-center">
-                                    <div className="w-40 h-40 rounded-full border-[3px] border-amber-700/60 bg-gradient-to-br from-red-950/60 via-stone-900 to-black flex items-center justify-center mb-3 relative overflow-hidden shadow-[inset_0_0_40px_rgba(0,0,0,0.9)] group-hover:border-amber-600/80 group-hover:scale-105 transition-all">
-                                        {/* Glowing eyes */}
-                                        <div className="absolute top-14 left-12 w-3 h-3 rounded-full bg-red-600 blur-sm animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.9)]"></div>
-                                        <div className="absolute top-14 right-12 w-3 h-3 rounded-full bg-red-600 blur-sm animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.9)]" style={{ animationDelay: '0.5s' }}></div>
-
-                                        <span className="text-6xl filter drop-shadow-[0_0_12px_rgba(251,191,36,0.6)] transition-transform">{character.icon}</span>
-
-                                        {/* Level badge */}
-                                        <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full border-2 border-amber-600/80 bg-gradient-to-br from-red-950 to-black flex items-center justify-center text-amber-200 text-sm shadow-lg">
-                                            {character.level}
-                                        </div>
-
-                                        {/* Animated ring */}
-                                        <div className="absolute inset-1 rounded-full border border-amber-500/20 animate-pulse"></div>
-                                    </div>
-
-                                    <div className="border-2 border-amber-800/40 rounded px-6 py-2 bg-gradient-to-b from-stone-950/80 to-black/90 mb-2 text-center text-amber-200 tracking-[0.15em] uppercase text-sm shadow-inner" style={{ fontFamily: 'serif' }}>
-                                        {character.name}
-                                    </div>
-
-                                    <div className="px-4 py-1 border border-amber-900/30 rounded bg-stone-950/50 text-amber-400/80 text-xs tracking-wider uppercase">
-                                        {character.class} - Level {character.level}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div
-                                    onClick={() => onNavigate('create')}
-                                    className="flex flex-col items-center justify-center h-[280px]"
-                                >
-                                    <div className="w-40 h-40 rounded-full border-2 border-dashed border-amber-700/40 bg-gradient-to-br from-stone-950/40 to-black/40 flex items-center justify-center mb-3 hover:border-amber-600/60 hover:bg-gradient-to-br hover:from-red-950/30 hover:to-stone-900/40 transition-all group-hover:scale-105">
-                                        <Plus className="w-12 h-12 text-amber-700/50 group-hover:text-amber-500/70 transition-colors" />
-                                    </div>
-
-                                    <div className="px-6 py-2 border-2 border-amber-800/40 rounded bg-gradient-to-b from-stone-950/60 to-black/80 hover:from-red-950/60 hover:to-red-900/60 hover:border-amber-700/60 text-amber-300 transition-all tracking-[0.15em] uppercase text-sm" style={{ fontFamily: 'serif' }}>
-                                        Create New
-                                    </div>
-                                </div>
-                            )}
+                        {/* Level badge: 32px */}
+                        <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full border-2 border-amber-600/80 bg-gradient-to-br from-red-950 to-black flex items-center justify-center text-amber-200 text-sm shadow-lg">
+                            {character.level}
                         </div>
                     </div>
-                ))}
+
+                    {/* 12px gap */}
+                    <div className="h-3"></div>
+
+                    {/* NAME: 32px height */}
+                    <div className="h-8 border-2 border-amber-800/40 rounded px-6 bg-gradient-to-b from-stone-950/80 to-black/90 flex items-center justify-center text-amber-200 tracking-[0.15em] uppercase text-sm shadow-inner" style={{ fontFamily: 'serif' }}>
+                        {character.name}
+                    </div>
+
+                    {/* 8px gap */}
+                    <div className="h-2"></div>
+
+                    {/* CLASS - Level: 22px height */}
+                    <div className="h-[22px] px-4 border border-amber-900/30 rounded bg-stone-950/50 flex items-center justify-center text-amber-400/80 text-xs tracking-wider uppercase">
+                        {character.class} - Level {character.level}
+                    </div>
+                </div>
             </div>
 
             {/* Start Button */}
